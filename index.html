@@ -692,6 +692,17 @@ html.pwa #gate{padding-top:56px}
   .fly .ft{display:none!important}
   .ft-row{display:block;margin-top:6px;text-align:center;font-size:14px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 }
+/* ticket: airport codes + flight number are the headline; tighter spacing below */
+.pass .ap b{font-size:34px!important;line-height:36px!important;letter-spacing:.02em}
+.pass .fly .fn{font-size:16px!important;line-height:36px;height:36px;display:flex;align-items:center;justify-content:center;letter-spacing:.08em;color:var(--sakura)}
+.pass .fly{align-content:start}
+@media (max-width:520px){
+  .pass .ap b{font-size:30px!important;line-height:32px!important}
+  .pass .fly .fn{line-height:32px;height:32px;font-size:15px!important}
+  .pass-main{gap:8px!important}
+  .ft-row{margin-top:2px;font-size:14px;color:var(--ink)}
+  .hotel-m{margin-top:4px;padding-top:10px}
+}
 
 </style>
 
@@ -1521,7 +1532,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.27';
+window.__BUILD='1.28';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
