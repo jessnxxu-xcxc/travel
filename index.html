@@ -921,6 +921,8 @@ a.ititle.tlink:hover{text-decoration-color:#7FBBD6}
 .dsec .clist .crow .ithumbs img{width:72px;height:72px}
 /* narrow phones (≤380): one online avatar, slimmer 旅費 pill so the toolbar never scrolls sideways */
 @media (max-width:380px){.bar .peer~.peer{display:none!important}.bar #mbar{padding:0 8px!important}.bar{gap:4px!important}}
+/* the round ＋ is only for people who can edit (its display:grid above must not bring it back for view-only or the sign-in screen) */
+body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 
 </style>
 
@@ -1864,7 +1866,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.48';
+window.__BUILD='1.49';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
