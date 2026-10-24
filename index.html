@@ -723,16 +723,38 @@ html.pwa #gate{padding-top:56px}
 .item .ibody{padding:10px 4px 10px 2px}
 .item .chk[aria-pressed="false"]{color:transparent!important}
 .item .chk[aria-pressed="false"]:hover{color:var(--muted)!important}
-.item.is-move{border:2px dashed rgba(62,58,57,.35)!important;background:transparent!important;min-height:0;border-radius:14px!important}
-.item.is-move .ibody{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;row-gap:0;padding:8px 4px 8px 2px}
-.item.is-move .imeta{order:0}
-.item.is-move .imeta .kind{display:none}
-.item.is-move .ititle{font-size:16px;order:1}
-.item.is-move .inote,.item.is-move .idesc{flex-basis:100%;order:2;font-size:12px}
-.item.is-move .chk{width:28px!important;height:28px!important;border-width:2px!important;font-size:12px}
-.item.is-move .grip{opacity:.5}
-.item.is-move .grip{min-height:0!important;height:auto!important}
-.item.is-move .iacts{padding-block:4px!important;align-items:center}
+.item.is-move,.item.is-stay,.item.is-todo{border:2px dashed rgba(62,58,57,.35)!important;background:transparent!important;min-height:0;border-radius:14px!important}
+.item.is-move .ibody,.item.is-stay .ibody,.item.is-todo .ibody{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;row-gap:0;padding:8px 4px 8px 2px}
+.item.is-move .imeta,.item.is-stay .imeta,.item.is-todo .imeta{order:0}
+.item.is-move .imeta .kind,.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:none}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle{font-size:16px;order:1}
+.item.is-move .inote,.item.is-move .idesc,.item.is-stay .inote,.item.is-stay .idesc,.item.is-todo .inote,.item.is-todo .idesc{flex-basis:100%;order:2;font-size:12px}
+.item.is-move .chk,.item.is-stay .chk,.item.is-todo .chk{width:28px!important;height:28px!important;border-width:2px!important;font-size:12px}
+.item.is-move .grip,.item.is-stay .grip,.item.is-todo .grip{opacity:.5}
+.item.is-move .grip,.item.is-stay .grip,.item.is-todo .grip{min-height:0!important;height:auto!important}
+.item.is-move .iacts,.item.is-stay .iacts,.item.is-todo .iacts{padding-block:4px!important;align-items:center}
+/* slot headers: smaller so a slot with one item doesn't cost a whole screen row */
+.slot-h{min-height:28px!important}
+.slot-h .sico{width:28px!important;height:28px!important}
+.slot-h .sico svg{width:14px;height:14px}
+.slot-h b{font-size:14px}
+.slot-add{width:32px!important;height:32px!important;font-size:18px!important}
+.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:inline-flex!important;font-size:12px;line-height:16px;padding:0 6px}
+/* ===== calmer itinerary: one strong element (place cards), everything else quiet ===== */
+.tl .slot{border-top:0!important;padding-block:6px!important}
+.tl .slot+.slot{margin-top:6px}
+.tl .slot-h .sico{display:none!important}
+.tl .slot-h b{background:none!important;color:var(--muted);font-size:13px;letter-spacing:.08em}
+.tl .slot-add{border:0!important;background:transparent!important;color:var(--muted)!important;width:28px!important;height:28px!important}
+.tl .slot.cur .slot-h b{color:var(--sakura)}
+/* transport / hotel / to-do: plain rows, no box */
+.item.is-move,.item.is-stay,.item.is-todo{border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle{font-size:15px;font-weight:400;color:var(--ink)}
+.item.is-move .imeta,.item.is-stay .imeta,.item.is-todo .imeta{color:var(--muted)}
+.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:none!important}
+.item.is-move .chk,.item.is-stay .chk,.item.is-todo .chk{border-color:rgba(62,58,57,.35)!important}
+/* place cards: a bit lighter frame */
+.item.is-spot,.item.is-food,.item.is-shop{border-width:2px!important}
 
 </style>
 
@@ -1569,7 +1591,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.33';
+window.__BUILD='1.34';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
