@@ -949,6 +949,15 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 /* date pill on 出發前 checklist rows that already have a day */
 .ldate{display:inline-flex;align-self:flex-start;justify-self:start;width:max-content;font-size:12px;line-height:18px;padding:0 8px;border:1.5px solid rgba(62,58,57,.35);border-radius:999px;color:var(--muted);margin-bottom:2px}
 .clist .crow .cbody:has(.ithumbs)>.ldate{grid-row:2}
+/* 口袋名單 looks like the other 出發前 lists: one white card, dashed dividers, check circle on the left and drag grip on the right */
+.col[data-col="0"] .pool-slot .list:has(.item){border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;overflow:hidden;gap:0!important;padding:0}
+.col[data-col="0"] .pool-slot .item{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:0;grid-template-columns:auto minmax(0,1fr) 32px!important}
+.col[data-col="0"] .pool-slot .item+.item{border-top:2px dashed rgba(62,58,57,.18)!important}
+.col[data-col="0"] .pool-slot .item .iacts{order:-1;padding:8px 0 8px 12px!important;align-items:center;justify-content:center}
+.col[data-col="0"] .pool-slot .item .ibody{order:0;padding:10px 4px 10px 10px!important}
+.col[data-col="0"] .pool-slot .item .grip{order:1}
+.col[data-col="0"] .pool-slot .item .ititle{font-size:16px!important}
+.col[data-col="0"] .pool-slot .item .ipic{width:48px;height:48px}
 
 </style>
 
@@ -1906,7 +1915,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.54';
+window.__BUILD='1.55';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
