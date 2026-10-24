@@ -828,6 +828,49 @@ body:has(.addrow input:focus) .fab,body:has(.sheet) .fab{opacity:0;pointer-event
 .fab{width:60px!important;height:60px!important;min-width:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;gap:0!important}
 .fab svg{width:26px!important;height:26px!important}
 .fab #fab-t{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ===== route-map look (v2) ===== */
+/* date strip = a train line: small stations on a track, the little train sits on the chosen day, date as a pill underneath */
+.strip .chip:not(.pool){padding-top:0;gap:0}
+.strip .chip:not(.pool) .c-w{line-height:16px}
+.strip .chip:not(.pool)::before{content:'';position:absolute;left:-2px;right:-2px;top:25px;border-top:2px solid var(--ink);opacity:.55}
+.strip .chip:not(.pool):last-child::before{right:50%}
+.strip .c-month+.chip::before{left:50%}
+.strip .chip:not(.pool)::after{content:'';position:absolute;left:50%;top:20px;width:8px;height:8px;margin-left:-6px;border:2px solid var(--ink);border-radius:50%;background:var(--bg)}
+.strip .chip:not(.pool) .c-d{margin-top:20px;width:auto!important;min-width:36px;height:28px!important;padding:0 6px;box-sizing:border-box;border-radius:999px!important;font-size:16px}
+.strip .chip.active:not(.pool)::after{width:26px;height:22px;top:15px;margin-left:-13px;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 22'%3E%3Cpath d='M13 1v3' stroke='%233E3A39' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='3' y='4' width='20' height='16' rx='5' fill='%23F2A497' stroke='%233E3A39' stroke-width='2'/%3E%3Crect x='6.5' y='8' width='5.5' height='5' rx='1.5' fill='%23F6D27A' stroke='%233E3A39' stroke-width='1.6'/%3E%3Crect x='14' y='8' width='5.5' height='5' rx='1.5' fill='%23F6D27A' stroke='%233E3A39' stroke-width='1.6'/%3E%3C/svg%3E") center/contain no-repeat}
+.strip .chip.active:not(.pool) .c-w{color:var(--ink);font-weight:700}
+.strip .chip.today:not(.active) .c-d{border:2px dashed var(--ink)!important}
+/* the day's items hang off one dotted line, each place a station on it */
+.tl{position:relative;padding-left:24px}
+.tl::before{content:'';position:absolute;left:8px;top:18px;bottom:12px;border-left:2px dotted rgba(62,58,57,.45)}
+.tl .slot-h{position:relative}
+.tl .slot-h::before{content:'';position:absolute;left:-20px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ink)}
+.tl .slot.cur .slot-h::before{background:var(--sakura)}
+.tl .item::before{content:'';position:absolute;left:-23px;top:15px;width:10px;height:10px;border:2px solid var(--ink);border-radius:50%;background:var(--bg)}
+.tl .item.is-move::before,.tl .item.is-todo::before,.tl .item.no-loc::before{width:6px;height:6px;left:-21px;top:16px;background:var(--bg);border-color:rgba(62,58,57,.55)}
+.tl .item.done::before{background:var(--ink)}
+.ghost::before,.tl .item.src::before{display:none}
+/* transport: coloured "how you go" tag + time, no box */
+.item.is-move .imeta .kind.tmode{display:inline-flex!important;align-items:center;gap:3px;font-size:12px;line-height:18px;padding:0 8px 0 6px;border:2px solid var(--ink)!important;border-radius:999px}
+.tmode svg{width:14px;height:14px}
+.tmode.m-train{background:var(--water)}.tmode.m-bus{background:var(--green)}.tmode.m-taxi{background:var(--yellow)}.tmode.m-plane{background:var(--coral)}.tmode.m-ship{background:var(--water)}.tmode.m-walk,.tmode.m-go{background:#fff}
+.item.is-move .ibody{align-items:center}
+.item.is-move .ititle{flex:1 1 100%}
+.item.is-move .inote,.item.is-move .idesc{flex-basis:auto}
+.item.is-move .inote+.tdur,.item.is-move .idesc+.tdur{margin-left:-2px}
+.tdur{order:2;font-size:12px;color:var(--muted)}
+.item.is-move .inote+.tdur::before,.item.is-move .idesc+.tdur::before{content:'・'}
+/* place names: underlined in light blue = tap to open the map */
+a.ititle.tlink{color:var(--ink);text-decoration:underline;text-decoration-color:var(--water);text-decoration-thickness:4px;text-underline-offset:4px;text-decoration-skip-ink:none;justify-self:start}
+a.ititle.tlink:hover{text-decoration-color:#7FBBD6}
+.item.done a.ititle.tlink{text-decoration:line-through;color:var(--muted)}
+/* small place picture under the check circle */
+.item .ipic{width:56px;height:56px;object-fit:cover;border-radius:12px;border:2px solid var(--ink);background:var(--sunk);display:block}
+.item.done .ipic{opacity:.5;filter:grayscale(.6)}
+.picrow{display:flex;align-items:center;gap:12px}
+.picrow img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:2px solid var(--ink)}
+/* home button is icon-only at every width (its text overflowed the 36px circle on desktop) */
+.bar .backlink span{display:none!important}
 
 </style>
 
@@ -981,10 +1024,10 @@ function itemHTML(it){
   return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+(PLACE_KINDS.includes(it.kind)&&!(it.area||it.q||safeUrl(it.map))?' no-loc':'')+(it.done?' done':'')+'" data-id="'+esc(it.id)+'">'+
    '<button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'"><svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></button>'+
    '<div class="ibody" role="button" tabindex="0"><span class="imeta">'+(it.must?'<span class="must">★ 必去</span>':'')+(it.time?'<span class="itime">'+esc(it.time)+'</span>':'')+
-   '<span class="kind k-'+esc(KIND_L[it.kind]?it.kind:'spot')+'">'+esc(KIND_L[it.kind]||'景點')+'</span>'+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+(showMap?'<a class="mapl" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'地圖</a>':'')+'</span>'+
-   '<span class="ititle">'+esc(it.title)+'</span>'+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+(it.note&&!it.desc?'<span class="inote">'+esc(it.note)+'</span>':'')+thumbs(it.photos)+goNext(it)+'</div>'+
+   kindTag(it)+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+''+'</span>'+
+   (showMap?'<a class="ititle tlink" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" aria-label="'+esc(it.title)+'（開地圖）">'+esc(it.title)+'</a>':'<span class="ititle">'+esc(it.title)+'</span>')+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+(it.note&&!it.desc?'<span class="inote">'+esc(it.note)+'</span>':'')+thumbs(it.photos)+tdur(it)+goNext(it)+'</div>'+
    '<span class="iacts">'+
-   '<button type="button" class="ibtn chk" aria-label="標記完成" aria-pressed="'+(it.done?'true':'false')+'">✓</button></span></div>'}
+   '<button type="button" class="ibtn chk" aria-label="標記完成" aria-pressed="'+(it.done?'true':'false')+'">✓</button>'+picHTML(it)+'</span></div>'}
 function slotHTML(day,s,list,cur){const em=!(list&&list.length);
   return '<section class="slot'+(s.k==='pool'?' pool-slot':'')+(em?' is-empty':'')+(cur?' cur':'')+'">'+(s.k==='pool'?'':'<div class="slot-h">'+sicon(s.k)+'<b>'+s.l+'</b><button type="button" class="slot-add" data-day="'+day+'" data-slot="'+s.k+'" aria-label="新增到'+s.l+'">＋</button></div>')+
    '<div class="list" data-day="'+day+'" data-slot="'+s.k+'">'+(list&&list.length?list.map(itemHTML).join(''):'<div class="empty">'+(s.k==='pool'?'還沒有備選地點':(S.canWrite?'拖到這裡或按＋':'—'))+'</div>')+'</div></section>'}
@@ -1249,7 +1292,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
     '<div class="row2"><div class="fld"><label for="e-time">時間</label><input class="inp" id="e-time" inputmode="numeric" placeholder="例 12:30" value="'+esc(it.time)+'"></div>'+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
-    '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+
+    '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
     (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
     '<details class="more"'+(it.note?' open':'')+'><summary>更多資訊（備註、類型、地圖連結）</summary><div>'+
@@ -1685,9 +1728,58 @@ document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest
   else quickAdd(tab)},true);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.chip,.pretabs [data-pt]'))setTimeout(fabSync,0)},false);
 window.__fabSync=()=>setTimeout(fabSync,0);
+/* transport steps: a coloured tag that says how you go (電車／公車／計程車…), and how long it takes when the note has both times */
+const TMODES=[
+  ['plane','飛機',/JX\d|航班|飛機|✈|flight/i,'<path d="M2 9.5l12-4.2a1 1 0 0 1 .6 1.9L4.5 11.4 2.6 10.6zM6 8l-1.6-3.6 1.4-.5 3.6 2.8M7.2 10.2l1.6 3.4 1.4-.5.2-4.4"/>'],
+  ['taxi','計程車',/計程車|yoxi|taxi|uber|タクシー|\bGO\b/i,'<path d="M3 11V8.5l1.4-3.2A1 1 0 0 1 5.3 4.7h5.4a1 1 0 0 1 .9.6L13 8.5V11zM3 8.5h10M5 11v1.5M11 11v1.5"/><circle cx="5.5" cy="9.8" r=".5"/><circle cx="10.5" cy="9.8" r=".5"/>'],
+  ['ship','船',/渡輪|水上巴士|遊船|船/,'<path d="M2.5 10.5h11l-1.6 2.5H4.1zM4.5 10.5V7h7v3.5M8 7V3.5M2 14.5c1.5 0 1.5-.8 3-.8s1.5.8 3 .8 1.5-.8 3-.8 1.5.8 3 .8"/>'],
+  ['bus','公車',/公車|巴士|bus|バス|利木津/i,'<rect x="3.5" y="2.5" width="9" height="10" rx="2"/><path d="M3.5 8h9M5.5 12.5v1.5M10.5 12.5v1.5M6 5h4"/>'],
+  ['walk','步行',/步行|走路|徒步|散步|walk/i,'<circle cx="8.5" cy="3" r="1.2"/><path d="M8 5.5l-1.5 4 2 1.5.5 3.5M6.5 9.5l-1.2 4.5M8 5.5l2 2 2 .5M8 5.5L5.5 7 5 9"/>'],
+  ['train','電車',/地鐵|電車|JR|[^路]線|skyliner|機捷|捷運|metro|新幹線|ゆりかもめ|モノレール|轉乘|京急|京成|Narita Express|N'EX/i,'<rect x="4" y="2.5" width="8" height="9" rx="2"/><path d="M4 7.5h8M6 11.5l-1.5 2.5M10 11.5l1.5 2.5"/><circle cx="6.2" cy="9.5" r=".4"/><circle cx="9.8" cy="9.5" r=".4"/>'],
+];
+const TMODE_GO='<path d="M2.5 8h9.5M9 4.5L12.5 8 9 11.5"/>';
+function tmode(it){const s=[it.title,it.note,it.desc].filter(Boolean).join(' ');for(const m of TMODES)if(m[2].test(s))return m;return null}
+function kindTag(it){
+  if(it.kind!=='move')return '<span class="kind k-'+esc(KIND_L[it.kind]?it.kind:'spot')+'">'+esc(KIND_L[it.kind]||'景點')+'</span>';
+  const m=tmode(it);return '<span class="kind tmode m-'+(m?m[0]:'go')+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(m?m[3]:TMODE_GO)+'</svg>'+(m?m[1]:'交通')+'</span>'}
+function tdur(it){if(it.kind!=='move')return '';const s=[it.note,it.desc].filter(Boolean).join(' ');
+  if(/約\s*\d|分鐘|小時/.test(s))return '';
+  const r=s.match(/(\d{1,2}):(\d{2})\s*(?:[–\-~～→]|到)\s*(\d{1,2}):(\d{2})/);if(!r)return '';
+  let d=(+r[3]*60+ +r[4])-(+r[1]*60+ +r[2]);if(d<0)d+=1440;if(!d||d>720)return '';
+  return '<span class="tdur">約 '+(d>=60?Math.floor(d/60)+' 小時'+(d%60?' '+d%60+' 分':''):d+' 分鐘')+'</span>'}
+/* small pictures: AI names the Wikipedia article for each place, that article's lead photo becomes the card's thumbnail.
+   Looked up once per item and saved on it (pic = image URL, or 'none' when there is no good match / someone removed it). */
+const PIC_OK=/^https:\/\/(upload|thumb)\.wikimedia\.org\//;
+function picOf(it){return it&&typeof it.pic==='string'&&PIC_OK.test(it.pic)?it.pic:''}
+function picHTML(it){if(it.photos&&it.photos.length)return '';const u=picOf(it);return u?'<img class="ipic" src="'+esc(u)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':''}
+let PIC_BUSY=false;
+async function wikiPics(titles){
+  const u='https://ja.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=240&titles='+encodeURIComponent(titles.join('|'));
+  const q=((await (await fetch(u)).json())||{}).query||{},fwd={};
+  (q.normalized||[]).concat(q.redirects||[]).forEach(r=>{fwd[r.from]=r.to});
+  const img={};Object.values(q.pages||{}).forEach(p=>{if(p.thumbnail&&p.thumbnail.source)img[p.title]=p.thumbnail.source});
+  return t=>{let k=t,n=0;while(fwd[k]&&n++<3)k=fwd[k];return img[k]||''}}
+async function findPics(){
+  if(PIC_BUSY||!S.sample||!canWrite())return;
+  const todo=[...S.items.values()].filter(it=>(PLACE_KINDS.includes(it.kind)||it.kind==='stay')&&it.pic===undefined&&it.title&&(it.area||it.q||it.map)).slice(0,60);
+  if(!todo.length)return;PIC_BUSY=true;
+  try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
+    const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的地點。請替每一個找出最符合的日文維基百科條目標題（必須是確實存在的條目，例如「東京ディズニーシー」「浅草寺」）。餐廳、小店、咖啡廳，或找不到、不確定的，一律填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["浅草寺",""]。\n'+
+      part.map((it,k)=>(k+1)+'. '+it.title.slice(0,30)+(it.area?'（'+String(it.area).slice(0,12)+'）':'')).join('\n');
+    let names;try{const r=await S.sample(prompt);names=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(names)||names.length!==part.length)continue;
+    const want=[...new Set(names.filter(n=>typeof n==='string'&&n.trim()).map(n=>n.trim()))];
+    let get=()=>'';if(want.length){try{get=await wikiPics(want)}catch(e){break}}
+    part.forEach((it,k)=>{const n=typeof names[k]==='string'?names[k].trim():'',src=n?get(n):'',pic=PIC_OK.test(src)?src:'none';
+      const cur=S.items.get(it.id);if(!cur||cur.pic!==undefined)return;S.items.set(it.id,Object.assign({},cur,{pic}));queue('items'+it.id,()=>ref('items',it.id).update({pic}))});
+    render()}}
+  finally{PIC_BUSY=false}}
+function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size)findPics();else if(++n<20)setTimeout(go,1500)})()}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
+  patch('items',b.dataset.id,{pic:'none'},'已拿掉圖片');const f=b.closest('.picfld');if(f)f.remove()});
 
 /* ---------- boot ---------- */
-const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
+const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
   const C=window.claude,use=n=>C&&C.use?C.use(n).catch(()=>null):Promise.resolve(null);
   const db=await use('db');
@@ -1713,7 +1805,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.45';
+window.__BUILD='1.46';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
