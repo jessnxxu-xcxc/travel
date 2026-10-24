@@ -653,6 +653,12 @@ body.gated #app{display:none}
 .tnew .plus{font-size:24px}
 .tnew b{font-size:16px}
 .hotel-l{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.hotel-m{display:none}
+@media (max-width:520px){
+  .hotel-m{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);text-decoration:none;font-size:14px;min-width:0}
+  .hotel-m b{font-weight:400;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hotel-m em{font-style:normal;font-size:12px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:var(--water);line-height:22px;flex-shrink:0}
+}
 
 </style>
 
@@ -1738,7 +1744,8 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
         : '<div class="fly-row"><div class="ap"><b>' + fmtDate(T.start) + '</b><span>出發</span></div><div class="fly"><span class="fline">' + plane + '</span></div><div class="ap r"><b>' + fmtDate(end) + '</b><span>回程</span></div></div>') +
       ((b.no || h.name) ? '<div class="pass-meta">' + (b.no ? '<div><span>' + bLabel + fmtDate(bDate) + '</span><b>' + esc(b.no) + '</b><small class="nb">' + esc([b.dep, b.arr].filter(Boolean).join(' → ')) + '</small></div>' : '<div></div>') +
         (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + (h.map ? '<a class="hotel-l" href="' + esc(h.map) + '" target="_blank" rel="noopener">' + esc(h.name) + ' 📍</a>' : esc(h.name)) + '</b><small class="nb">' + esc(h.note || '') + '</small></div>' : '') + '</div>' : '') +
-      '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>';
+      '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>' +
+      (h.name ? (h.map ? '<a class="hotel-m" href="' + esc(h.map) + '" target="_blank" rel="noopener">' : '<div class="hotel-m">') + '<span>🏨</span><b>' + esc(h.name) + '</b>' + (h.map ? '<em>地圖</em></a>' : '</div>') : '');
   }
 
   /* ---------- db adapter (collection/doc API over docs table, scoped to one trip) ---------- */
