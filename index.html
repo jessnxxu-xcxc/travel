@@ -1,0 +1,1616 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#FFFCF6">
+<title>旅行手帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: 旅遊手帳。點點方格紙底、紙膠帶標題、印章日期、貼紙標籤；一頁到底：行程 → 記帳 → 清單 */
+:root{
+  --bg:#F7F4EF; --surface:#FFFFFF; --sunk:#F2EDE6; --dot:#E3DCD2;
+  --ink:#26232E; --muted:#6E6877; --line:#E5DDD3; --line-strong:#CEC3B6;
+  --sakura:#D6456D; --sakura-soft:#FBE8ED; --ai:#34508F; --ai-soft:#E8EDF6;
+  --k-food:#C23D63; --k-spot:#34508F; --k-shop:#6A4C9C; --k-move:#5E6472; --k-stay:#2F7A6B; --k-todo:#946016;
+  --kb-food:#FBE8ED; --kb-spot:#E8EDF6; --kb-shop:#EFEAF7; --kb-move:#EEEFF2; --kb-stay:#E3F1EC; --kb-todo:#F7EEDD;
+  --tape-pink:rgba(214,69,109,.2); --tape-blue:rgba(52,80,143,.16); --tape-mint:rgba(196,150,70,.22); --tape-yellow:rgba(196,150,70,.22); --hl:rgba(214,69,109,.16);
+  --ok:#2F7A6B; --warn:#946016; --warn-soft:#F7EEDD;
+  --paper-shadow:0 1px 0 rgba(90,70,50,.05),0 8px 18px -12px rgba(70,50,30,.28);
+  --scrim:rgba(38,35,46,.42); --shadow:0 12px 32px rgba(40,30,25,.18);
+  color-scheme:light;
+  --page-w:912px;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.nb{white-space:nowrap}
+.wrapc{max-width:var(--page-w);margin:0 auto}
+
+/* hero */
+.hero{padding-block:20px 12px;display:grid;gap:12px}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:0 8px;min-width:0;flex-wrap:wrap}
+.brand h1{margin:0;font-size:32px;font-weight:900;letter-spacing:-.01em;line-height:1.1}
+.brand h1 em{font-style:normal;color:var(--sakura)}
+.brand .sub{color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap;background:var(--surface)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--line-strong)}
+.sync[data-s="live"] i{background:var(--ok)}
+.sync[data-s="ro"] i{background:var(--warn)}
+.sync[data-s="off"] i{background:var(--sakura)}
+.pass{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 112px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 2px 10px rgba(23,32,58,.06)}
+.pass::before,.pass::after{content:"";position:absolute;right:104px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.pass::before{top:-9px;clip-path:inset(50% 0 0 0)}
+.pass::after{bottom:-9px;clip-path:inset(0 0 50% 0)}
+.pass-main{padding:18px 20px;display:grid;gap:14px;min-width:0}
+.fly-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px}
+.ap{display:grid;gap:2px}
+.ap.r{text-align:right}
+.ap b{font-size:32px;font-weight:900;line-height:1;letter-spacing:.02em}
+.ap span{font-size:12px;color:var(--muted);white-space:nowrap}
+.fly{display:grid;justify-items:center;gap:4px;min-width:0}
+.fn{font-size:12px;font-weight:700;color:var(--sakura);white-space:nowrap}
+.ft{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.fline{position:relative;width:100%;height:20px;display:grid;place-items:center;color:var(--sakura)}
+.fline::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px dashed var(--line-strong)}
+.fline svg{position:relative;width:20px;height:20px;transform:rotate(90deg);background:var(--surface);padding:0 2px}
+.pass-meta{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;border-top:1px dashed var(--line);padding-top:12px}
+.pass-meta div{display:grid;gap:1px;min-width:0}
+.pass-meta span{font-size:12px;color:var(--muted)}
+.pass-meta b{font-size:14px;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.pass-meta small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pass-stub{border-left:2px dashed var(--line);display:grid;place-content:center;justify-items:center;text-align:center;gap:2px;padding:12px 8px;background:var(--sakura-soft);border-radius:0 19px 19px 0}
+.pass-stub span{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap}
+.pass-stub b{font-size:36px;font-weight:900;line-height:1.05;color:var(--sakura);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pass-stub b.sm{font-size:24px}
+@media (max-width:520px){.pass-meta{display:none}.pass-main{padding-block:16px!important}.fly .ft{white-space:normal;text-align:center;max-width:9em}.pass{grid-template-columns:minmax(0,1fr) 88px}.pass::before,.pass::after{right:80px}.pass-main{padding:14px}.ap b{font-size:26px}.pass-meta{grid-template-columns:1fr}.pass-stub b{font-size:30px}.pass-stub b.sm{font-size:20px}}
+@media (min-width:760px){.brand h1{font-size:40px}}
+
+/* sticky bar */
+.bar-wrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:8px;padding-block:8px 0}
+.tabs{display:flex;gap:18px;padding:0 2px}
+.tabs button{border:0;background:transparent;border-bottom:3px solid transparent;border-radius:0;padding:6px 2px;font-size:16px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tabs button[aria-current="true"]{color:var(--ink);border-bottom-color:var(--sakura)}
+.bar .sp{flex:1}
+.peers{display:flex;align-items:center}
+.peer{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;border:2px solid var(--bg);margin-left:-6px;position:relative}
+.peer:first-child{margin-left:0}
+.peers-l{font-size:12px;color:var(--muted);margin-right:6px;white-space:nowrap}
+@media (max-width:400px){.peers-l{display:none}.tabs button{padding:6px 12px}}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);flex:0 0 auto}
+.icon-btn svg{width:18px;height:18px}
+.strip{display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.c-month{flex:0 0 auto;align-self:center;font-size:12px;font-weight:700;color:var(--muted);writing-mode:vertical-rl;letter-spacing:.1em;padding-right:2px}
+.chip{position:relative;flex:0 0 auto;display:grid;justify-items:center;gap:2px;min-width:44px;padding:2px 0;border:0;background:transparent;font-variant-numeric:tabular-nums}
+.chip .c-w{font-size:12px;color:var(--muted);line-height:1.4;white-space:nowrap}
+.chip.wkend .c-w{color:var(--sakura)}
+.chip .c-d{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:700;border:2px solid transparent;transition:background .15s,border-color .15s,color .15s}
+.chip:hover .c-d{background:var(--sunk)}
+.chip.today .c-d{border-color:var(--sakura);color:var(--sakura)}
+.chip.active .c-d{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.chip .c-dots{display:flex;gap:2px;height:6px;align-items:center}
+.chip .c-dots i{width:4px;height:4px;border-radius:50%;background:var(--sakura);opacity:.75}
+.chip.pool .c-d{border:2px dashed var(--line-strong);font-size:14px;color:var(--muted)}
+.chip.pool.active .c-d{border-style:solid}
+.chip.drop .c-d{background:var(--sakura);border-color:var(--sakura);color:#fff;transform:scale(1.1)}
+.chip .pdots{position:absolute;top:14px;right:0;display:flex;gap:2px}
+.chip .pdots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.strip-gap{height:8px}
+
+/* now card */
+.nowc{padding-block:24px 0}
+.nowcard{border:1px solid var(--sakura);background:var(--surface);border-radius:20px;box-shadow:0 6px 20px rgba(214,69,109,.1);padding:18px 20px;display:grid;gap:12px}
+.nowcard .nl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--sakura);letter-spacing:.04em}
+.nowcard .nl i{width:8px;height:8px;border-radius:50%;background:var(--sakura);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.nowmain{display:flex;align-items:center;gap:12px}
+.nowmain .nt{flex:1;min-width:0;display:grid;gap:2px}
+.nowmain .nt b{font-size:20px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}
+.nowmain .nt span{font-size:12px;color:var(--muted)}
+.nowmain .nt .nd{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nownext{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px;word-break:keep-all;overflow-wrap:anywhere}
+.nownext b{color:var(--ink);font-weight:700}
+
+/* board */
+.board{padding-block:24px 128px}
+.col{display:none;min-width:0}
+.col.active{display:block}
+.col-h{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.col-date{display:grid;justify-items:center;min-width:60px;padding:8px;border-radius:14px;border:1px solid var(--line-strong);background:var(--surface);font-variant-numeric:tabular-nums}
+.col-date b{font-size:22px;line-height:1.1;font-weight:900}
+.col-date span{font-size:12px;color:var(--muted);font-weight:500}
+.col-date.wkend span{color:var(--sakura)}
+.col-t{display:grid;gap:2px;min-width:0;flex:1}
+.col-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:4px}
+.col-n{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.08em}
+.col-n em{font-style:normal;color:var(--sakura)}
+.col-title{all:unset;cursor:pointer;font-size:22px;font-weight:700;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere;border-bottom:1px dashed transparent}
+.col-title:hover{border-bottom-color:var(--line-strong)}
+.col-title:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.col-title.ph-title{color:var(--muted);font-weight:500}
+.route{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--ai);color:var(--ai);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+.route svg{width:14px;height:14px}
+.route:hover{background:var(--ai-soft)}
+.col-foot{margin-top:12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.pool-desc{font-size:12px;color:var(--muted)}
+
+.tl{display:grid}
+.slot{display:grid;gap:10px;padding-block:14px;border-top:1px solid var(--line)}
+.tl .slot:first-child{border-top:0;padding-top:4px}
+.slot-h{display:flex;align-items:center;gap:8px;min-height:32px}
+.sico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line-strong);color:var(--muted);flex:0 0 auto}
+.sico svg{width:14px;height:14px}
+.slot-h b{font-size:14px;font-weight:700}
+.slot.cur .sico{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.slot.cur .slot-h b{color:var(--sakura)}
+.slot.is-empty{padding-block:10px;gap:0}
+.slot.is-empty .slot-h b,.slot.is-empty .sico{opacity:.6}
+.slot.is-empty .list{min-height:0}
+.slot.is-empty .empty{display:none}
+body.dragging .slot.is-empty{gap:10px}
+body.dragging .slot.is-empty .empty{display:flex}
+.slot-sum{font-size:12px;color:var(--muted)}
+.slot-add{all:unset;cursor:pointer;margin-left:auto;height:32px;padding:0 12px;border-radius:999px;display:inline-flex;align-items:center;color:var(--muted);border:1px solid var(--line);font-size:12px;font-weight:700;white-space:nowrap;background:var(--surface)}
+.slot-add:hover{border-color:var(--ink);color:var(--ink)}
+.slot-add:focus-visible{outline:2px solid var(--ai)}
+.slot.pool-slot{border-top:0}
+.slot.pool-slot.is-empty .empty{display:flex}
+.list{display:grid;gap:12px;min-height:36px;align-content:start}
+.empty{display:flex;align-items:center;min-height:36px;padding:0 12px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:12px}
+.list:has(.ph) .empty{display:none}
+body.dragging .list .empty{border-color:var(--line-strong)}
+
+.item{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:16px;min-height:60px;box-shadow:0 1px 2px rgba(23,32,58,.05);transition:border-color .15s,box-shadow .15s,transform .15s}
+.item:hover{border-color:var(--line-strong);box-shadow:0 4px 14px rgba(23,32,58,.08)}
+.item.src{position:absolute;visibility:hidden;pointer-events:none;height:0;min-height:0;overflow:hidden;border:0}
+.grip{all:unset;cursor:grab;display:grid;place-items:center;color:var(--line-strong);touch-action:none;border-radius:16px 0 0 16px}
+.grip:hover{color:var(--muted)}
+.grip:focus-visible{outline:2px solid var(--ai)}
+.ro .grip{cursor:default;visibility:hidden}
+.ibody{cursor:pointer;display:grid;gap:4px;padding:14px 4px 14px 2px;min-width:0;outline:none}
+.ibody:focus-visible{outline:2px solid var(--ai);border-radius:6px}
+.imeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:12px;color:var(--muted);line-height:1.5}
+.mapl{display:inline-flex;align-items:center;gap:2px;padding:1px 8px 1px 6px;border-radius:999px;background:var(--ai-soft);color:var(--ai);font-weight:700;text-decoration:none;white-space:nowrap}
+.mapl svg{width:12px;height:12px}
+.mapl:hover{text-decoration:underline}
+.itime{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.kind{font-size:12px;font-weight:700;padding:0 6px;border-radius:6px;border:1px solid currentColor;line-height:18px;white-space:nowrap}
+.k-food{color:var(--k-food)}.k-spot{color:var(--k-spot)}.k-shop{color:var(--k-shop)}.k-move{color:var(--k-move)}.k-stay{color:var(--k-stay)}.k-todo{color:var(--k-todo)}
+.ititle{font-size:18px;font-weight:700;line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
+.idesc{font-size:14px;color:var(--muted);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.inote{font-size:12px;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.iwarn{font-size:12px;color:var(--warn);font-weight:500}
+.ithumbs{display:flex;gap:6px;margin-top:4px}
+.ithumbs img{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:var(--sunk)}
+.ithumbs span{font-size:12px;color:var(--muted);align-self:center}
+.iacts{display:flex;align-items:flex-start;gap:4px;padding:14px 12px 14px 4px}
+.ibtn{all:unset;cursor:pointer;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:700;background:var(--surface)}
+.ibtn:hover{border-color:var(--line-strong);color:var(--ink)}
+.ibtn:focus-visible{outline:2px solid var(--ai)}
+.ibtn.map{width:auto;padding:0 8px;gap:2px;grid-auto-flow:column;color:var(--ai);border-color:var(--ai-soft);background:var(--ai-soft)}
+.ibtn.map svg{width:14px;height:14px}
+.item.done{background:var(--sunk)}
+.item.done .ititle{text-decoration:line-through;color:var(--muted)}
+.chk[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,30%{box-shadow:0 0 0 3px var(--sakura)}100%{box-shadow:0 0 0 0 transparent}}
+
+.ph{border:2px dashed var(--sakura);border-radius:12px;background:var(--sakura-soft)}
+.ghost{position:fixed;z-index:60;pointer-events:none;box-shadow:var(--shadow);border-color:var(--sakura);transform:rotate(1.5deg) scale(1.02);opacity:.96;margin:0}
+body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
+
+.notice{padding-block:12px 0}
+.notice div{border:1px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:14px}
+.notice b{display:block;margin-bottom:2px}
+
+.layout{max-width:var(--page-w);margin:0 auto;padding-inline:0}
+.layout.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mainc{min-width:0}
+.mbar{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;box-shadow:var(--paper-shadow)}
+.mbar span{overflow:hidden;text-overflow:ellipsis}
+.mbar b{color:var(--sakura);font-variant-numeric:tabular-nums}
+.mbar small{font-size:12px;font-weight:500;color:var(--muted)}
+.mbar:hover{border-color:var(--sakura)}
+.dsec{display:grid;gap:10px;padding-block:14px;border-top:1px dashed var(--line-strong)}
+.dsec-h{display:flex;align-items:center;gap:8px;min-height:32px;flex-wrap:wrap}
+.dsec-h b{font-size:14px;font-weight:700;background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.dsec-h small{font-size:12px;color:var(--muted)}
+.dsum{font-size:14px;font-weight:700;color:var(--sakura);font-variant-numeric:tabular-nums}
+.dsec .slot-add{margin-left:auto}
+.drows{display:grid;gap:8px}
+.dsec .clist{gap:8px}
+.dsec .addrow .inp{padding:8px 12px;font-size:14px}
+.dsec .addrow .btn{padding:8px 14px;font-size:14px}
+.ltype{font-size:12px;font-weight:700;padding:0 8px;border-radius:999px;line-height:20px;white-space:nowrap;justify-self:start}
+/* lists tab */
+.board{padding-bottom:32px!important}
+.below{display:grid;gap:40px;padding-block:8px 128px}
+.sec{display:grid;gap:16px;min-width:0;scroll-margin-top:var(--barh,140px)}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:24px;border-top:2px dashed var(--line-strong)}
+.sec-h h2{margin:0;font-size:24px;font-weight:900}
+.lgrid{display:grid;gap:16px}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px;min-width:0}
+.lcard-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.lcard-h b{font-size:18px;font-weight:700}
+.lcard-h small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lcard .crow{box-shadow:none}
+.subtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.subtabs button small{font-size:12px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.subtabs button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.subtabs button[aria-selected="true"] small{color:inherit;opacity:.8}
+.addrow{display:flex;gap:8px}
+.addrow .inp{flex:1;min-width:0}
+.prog{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prog .bar2{flex:1;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.prog .bar2 i{display:block;height:100%;background:var(--ok);border-radius:3px}
+.clist{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.crow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(23,32,58,.05)}
+.crow.done{background:var(--sunk)}
+.crow.done .ct{text-decoration:line-through;color:var(--muted)}
+.cbody{all:unset;cursor:pointer;display:grid;gap:2px;min-width:0}
+.cbody:focus-visible{outline:2px solid var(--ai);border-radius:6px}
+.ct{font-size:16px;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.cn{font-size:12px;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.cday{font-size:12px;font-weight:700;color:var(--ai);border:1px solid var(--ai-soft);background:var(--ai-soft);border-radius:6px;padding:0 6px;white-space:nowrap}
+.sec-l{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-top:4px}
+.sumcard{border:1px solid var(--line-strong);background:var(--surface);border-radius:20px;box-shadow:0 2px 10px rgba(23,32,58,.06);padding:20px;display:grid;gap:16px}
+.sumtop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sumtop b{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.sumtop span{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.linkbtn{all:unset;cursor:pointer;color:var(--ai);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.paid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.paid div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;font-variant-numeric:tabular-nums}
+.paid div span{font-size:12px;color:var(--muted)}
+.paid div b{font-size:16px}
+.settle{display:grid;gap:4px;font-size:14px}
+.settle .s{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.settle .s b{font-variant-numeric:tabular-nums;color:var(--sakura)}
+.people{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pchip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:14px;background:var(--surface)}
+.pchip button{all:unset;cursor:pointer;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.pchip button:hover{background:var(--sunk)}
+.money-sec{display:grid;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;min-width:0;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--muted)}
+.stats b{font-size:16px;word-break:keep-all;overflow-wrap:anywhere}
+@media (max-width:520px){.stats{grid-template-columns:1fr 1fr}.stats div:last-child{grid-column:1/-1}}
+.paid div i{font-style:normal;font-size:12px;color:var(--muted)}
+.viewseg{display:flex;gap:4px;background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:3px;width:max-content;max-width:100%;overflow-x:auto}
+.viewseg button{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
+.viewseg button[aria-pressed="true"]{background:var(--surface);color:var(--sakura);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.agg{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.agg>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 16px}
+.agg>summary::-webkit-details-marker{display:none}
+.agg>summary:focus-visible{outline:2px solid var(--ai);border-radius:12px}
+.agg[open]>summary{border-bottom:1px solid var(--line)}
+.agg .rows{display:grid;gap:8px;padding:10px}
+.abar{display:block;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden;margin-top:4px}
+.abar i{display:block;height:100%;border-radius:3px;background:var(--sakura)}
+.agg .cbody .abar i{background:var(--bc,var(--sakura))}
+.catbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--sunk);gap:2px}
+.catbar i{display:block;height:100%}
+.catleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.catleg span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.catleg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.spent{font-size:12px;font-weight:700;color:var(--sakura);white-space:nowrap;font-variant-numeric:tabular-nums}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px;font-size:12px}
+.amt-hint{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.erow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.erow .cbody{grid-column:1}
+.eamt{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.eamt small{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.eday{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+/* FAB / sheet / toast */
+.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:40;display:flex;align-items:center;gap:6px;height:52px;padding:0 20px 0 16px;border-radius:999px;border:0;background:var(--sakura);color:#fff;font-size:16px;font-weight:700;box-shadow:var(--shadow)}
+.fab svg{width:20px;height:20px}
+.scrim{position:fixed;inset:0;z-index:70;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:calc(100% - 40px);overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px;border:1px solid var(--line)}
+@media (min-width:760px){.scrim{align-items:center}.sheet{border-radius:20px;padding:24px}}
+.sheet h2{margin:0;font-size:20px;font-weight:700}
+.sheet .hint{margin:-8px 0 0;color:var(--muted);font-size:12px}
+.fld{display:grid;gap:6px}
+.fld>label,.fld>.lbl{font-size:12px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
+.inp{width:100%;border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;background:var(--surface);font-size:16px}
+textarea.inp{min-height:88px;resize:vertical;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:14px;white-space:nowrap}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.seg.days button{min-width:52px;font-variant-numeric:tabular-nums;padding:4px 6px;font-size:12px;line-height:1.3}
+.seg.days button b{display:block;font-size:14px}
+.btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btns .sp{flex:1}
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700;white-space:nowrap}
+.btn.sm{padding:4px 10px;font-size:12px;border-radius:8px}
+.btn.pri{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.danger{color:var(--sakura);border-color:var(--sakura)}
+.btn.ai{color:var(--ai);border-color:var(--ai)}
+.photos{display:flex;flex-wrap:wrap;gap:8px}
+.ph-t{position:relative;width:76px;height:76px}
+.ph-t img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:var(--sunk);display:block}
+.ph-t button{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);font-size:12px;display:grid;place-items:center;padding:0}
+.ph-t button.arm{background:var(--sakura);border-color:var(--sakura);color:#fff;width:auto;padding:0 8px;border-radius:12px}
+.ph-add{width:76px;height:76px;border-radius:10px;border:1px dashed var(--line-strong);display:grid;place-items:center;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;line-height:1.3;background:var(--surface)}
+.ph-add input{display:none}
+.ph-busy{width:76px;height:76px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.preview{display:grid;gap:6px}
+.pv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted)}
+.pv b{color:var(--ink);font-size:14px;margin-right:4px;word-break:keep-all;overflow-wrap:anywhere}
+.pv .tag{border:1px solid var(--line);border-radius:6px;padding:0 6px;white-space:nowrap}
+.sres{display:grid;gap:6px;max-height:60vh;overflow:auto}
+.sres button{all:unset;cursor:pointer;display:grid;gap:2px;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sres button:hover,.sres button:focus-visible{border-color:var(--ink)}
+.sres b{font-size:14px;word-break:keep-all;overflow-wrap:anywhere}
+.sres span{font-size:12px;color:var(--muted)}
+.sres mark{background:var(--sakura-soft);color:inherit;border-radius:2px}
+.lb{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.88);display:grid;place-items:center;padding:24px}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+.lb button{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);right:max(16px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:80;display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:var(--shadow)}
+.toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast button{all:unset;cursor:pointer;font-weight:700;color:var(--sakura);white-space:nowrap}
+.ro #exp-add,.ro [data-exp-day],.ro [data-todo-day],.ro .cam,.ro .now-done,.ro #e-exp,.ro .fab,.ro .slot-add,.ro .addrow,.ro .expform,.ro .pchip button,.ro .people .btn{display:none}
+body.sec-lists .fab{display:none}
+
+/* ---- journal layer ---- */
+body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.4px);background-size:22px 22px;background-attachment:fixed}
+.bar-wrap{background:var(--bg);border-bottom:1px solid var(--line)}
+.tape{position:relative;display:inline-block;padding:2px 12px;font-weight:700;color:var(--ink);background:var(--tape-pink);transform:rotate(-2deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.tape.blue{background:var(--tape-blue)}.tape.mint{background:var(--tape-mint)}.tape.yellow{background:var(--tape-yellow)}
+.pass,.item,.lcard,.sumcard,.nowcard,.crow,.erow,.agg,.col-date,.icon-btn{box-shadow:var(--paper-shadow)}
+.pass-main{position:relative}
+.pass-main::before{content:"";position:absolute;top:-12px;left:22px;width:84px;height:22px;background:var(--tape-blue);transform:rotate(-5deg);clip-path:polygon(0 12%,4% 0,96% 4%,100% 14%,98% 50%,100% 86%,96% 100%,4% 96%,0 88%,2% 50%)}
+.pass-stub{background:var(--sakura-soft);background-image:repeating-linear-gradient(-45deg,transparent 0 10px,rgba(255,255,255,.25) 10px 12px)}
+.col-n{justify-self:start;display:inline-block;padding:1px 12px;background:var(--tape-pink);color:var(--ink)!important;transform:rotate(-2deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.col-n em{color:var(--sakura)}
+.col-date{width:72px;height:72px;min-width:72px;padding:0;border-radius:50%;border:2px dashed var(--sakura);background:var(--surface);color:var(--sakura);display:grid;place-content:center;transform:rotate(-6deg)}
+.col-date b{font-size:20px;color:var(--sakura)}
+.col-date span{color:var(--sakura)!important;font-size:12px}
+.slot-h b{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.slot.cur .slot-h b{color:var(--ink)}
+.sico{border-style:dashed}
+.slot{border-top-style:dashed}
+.kind{border:0;padding:1px 8px;border-radius:999px;line-height:20px}
+.kind.k-food{background:var(--kb-food)}.kind.k-spot{background:var(--kb-spot)}.kind.k-shop{background:var(--kb-shop)}.kind.k-move{background:var(--kb-move)}.kind.k-stay{background:var(--kb-stay)}.kind.k-todo{background:var(--kb-todo)}
+.item{background:var(--surface);border-color:var(--line);border-radius:14px}
+.mapl{background:transparent;color:var(--muted);border:1px solid var(--line-strong);padding:0 8px 0 6px}
+.mapl:hover{color:var(--ai);border-color:var(--ai);text-decoration:none}
+.item.done{background:var(--sunk)}
+.ithumbs{gap:10px;margin-top:8px;padding-left:2px}
+.ithumbs img{width:64px;height:64px;border-radius:3px;border:4px solid #fff;box-shadow:0 2px 6px rgba(60,40,20,.25);transform:rotate(-3deg);cursor:zoom-in}
+.ithumbs img:nth-child(2){transform:rotate(2deg)}.ithumbs img:nth-child(3){transform:rotate(-1deg)}
+.iacts{flex-direction:column;align-items:center;gap:8px}
+.ibtn.cam svg{width:16px;height:16px}
+.nowcard{border-style:dashed;border-width:2px}
+.nowcard .nl{justify-self:start}
+.sec-h{border-top:2px dashed var(--line-strong)}
+.sec-h h2{font-size:22px;padding:2px 14px;background:var(--tape-yellow);transform:rotate(-1.5deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.lcard{position:relative;padding-top:22px}
+.lcard::before{content:"";position:absolute;top:-10px;left:50%;width:76px;height:20px;margin-left:-38px;background:var(--tape-mint);transform:rotate(3deg)}
+.lcard:nth-child(2)::before{background:var(--tape-pink);transform:rotate(-3deg)}
+.lcard:nth-child(3)::before{background:var(--tape-blue)}
+.lcard-h b{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.chip .c-d{border-style:dashed}
+.chip.active .c-d{border-style:solid}
+.fab{box-shadow:0 10px 24px -10px rgba(214,69,109,.55)}
+/* sheets as journal pages */
+.sheet{position:relative;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.4px);background-size:22px 22px;padding-bottom:0;gap:16px}
+.sheet h2{justify-self:start;padding:2px 14px;background:var(--tape-pink);transform:rotate(-1.5deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%);margin-right:48px}
+.sheet:not(:has(.foot)){padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;font-size:18px;line-height:1;color:var(--muted);z-index:2}
+.sheet-x:hover{color:var(--ink);border-color:var(--ink)}
+.sheet .inp{background:var(--surface);border-color:var(--line-strong);border-radius:12px}
+.sheet .foot{position:sticky;bottom:0;z-index:3;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px dashed var(--line-strong)}
+@media (min-width:760px){.sheet .foot{margin-inline:-24px;padding-inline:24px;padding-bottom:20px;border-radius:0 0 20px 20px}}
+.btn.block{width:100%;justify-content:center;display:flex}
+.map-big{display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ai);border-color:var(--ai);background:var(--surface);font-size:14px}
+.map-big svg{width:16px;height:16px}
+.more{border:1px dashed var(--line-strong);border-radius:12px;padding:0 14px;background:var(--surface)}
+.more>summary{cursor:pointer;padding:12px 0;font-size:14px;font-weight:700;color:var(--muted);list-style:none}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::before{content:"＋ "}
+.more[open]>summary::before{content:"－ "}
+.more>div{display:grid;gap:14px;padding-bottom:14px}
+.seg button{border-radius:999px;padding:6px 14px;background:var(--surface)}
+.seg button[aria-pressed="true"]{background:var(--sakura-soft);border-color:var(--sakura);color:var(--sakura);font-weight:700}
+.dstrip{display:flex;flex-wrap:nowrap;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px}
+.dstrip::-webkit-scrollbar{display:none}
+.dstrip button{flex:0 0 auto;display:grid;justify-items:center;gap:2px;min-width:44px;padding:0;border:0;background:transparent!important;color:var(--ink)!important;border-radius:0}
+.dstrip .w{font-size:12px;color:var(--muted)}
+.dstrip .we .w,.dstrip button.we .w{color:var(--sakura)}
+.dstrip .n{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:700;border:2px dashed var(--line-strong);background:var(--surface)}
+.dstrip button[aria-pressed="true"] .n{background:var(--sakura);border:2px solid var(--sakura);color:#fff}
+.dstrip .pool .n{font-size:12px}
+.hint2{font-size:12px;color:var(--muted);line-height:1.6}
+textarea.grow{min-height:52px;resize:none;overflow:hidden;font-size:18px;line-height:1.5}
+.pvc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:var(--paper-shadow)}
+.pvc b{font-size:16px;word-break:keep-all;overflow-wrap:anywhere}
+.pvc .imeta{grid-column:1/-1}
+/* ---- ux layer ---- */
+@media (min-width:960px){.fab{right:max(16px,calc((100vw - var(--page-w)) / 2 + 16px))}}
+.tl .slot.is-empty{display:none}
+body.dragging .tl .slot.is-empty{display:grid}
+.empty-day{border:2px dashed var(--line-strong);border-radius:16px;padding:20px;text-align:center;color:var(--muted);font-size:14px;background:var(--surface)}
+.slot-h .slot-add{width:32px;height:32px;padding:0;justify-content:center;font-size:16px}
+.item{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.col.slide-l{animation:slideL .22s ease-out}.col.slide-r{animation:slideR .22s ease-out}
+@keyframes slideL{from{transform:translateX(28px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}}
+.acts{display:grid;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.abtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;font-size:16px;font-weight:500;color:var(--ink);border-top:1px solid var(--line)}
+.abtn:first-child{border-top:0}
+.abtn:hover,.abtn:focus-visible{background:var(--sunk)}
+.abtn svg{width:20px;height:20px;color:var(--muted);flex:0 0 auto}
+.abtn.danger{color:var(--sakura)}.abtn.danger svg{color:var(--sakura)}
+.staff{position:fixed;inset:0;z-index:95;background:#fff;color:#1a1a1a;display:grid;align-content:center;justify-items:center;gap:20px;padding:calc(env(safe-area-inset-top,0px) + 32px) max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 32px) max(24px,env(safe-area-inset-left,0px));text-align:center}
+.staff .s-l{font-size:16px;color:#6b6b6b}
+.staff .s-n{font-size:clamp(36px,10vw,72px);font-weight:900;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;max-width:100%}
+.staff .s-a{font-size:24px;font-weight:700;color:#444}
+.staff .s-p{font-size:22px;font-weight:700;border-top:2px dashed #ddd;padding-top:20px}
+.staff .btns{justify-content:center}
+.staff .btn{font-size:16px}
+@media (max-width:520px){.pass-main{padding:14px!important}.ap b{font-size:22px!important}.fly .ft{font-size:12px}.pass-stub b{font-size:26px!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== 日系繪本風（和紙白底、3px 墨灰粗線、大圓角、平塗四色、Huninn） ===== */
+:root{
+  --bg:#FFFCF6; --surface:#FFFFFF; --sunk:#FBF3E6; --dot:transparent;
+  --ink:#3E3A39; --muted:#77706D; --line:#3E3A39; --line-strong:#3E3A39;
+  --coral:#F2A497; --yellow:#F6D27A; --water:#A8D3E6; --green:#B9DAA5;
+  --sakura:#D9705C; --sakura-soft:#FDE7E0; --ai:#3E3A39; --ai-soft:#E4F2F8;
+  --k-food:#3E3A39; --k-spot:#3E3A39; --k-shop:#3E3A39; --k-move:#3E3A39; --k-stay:#3E3A39; --k-todo:#3E3A39;
+  --kb-food:#F2A497; --kb-spot:#A8D3E6; --kb-shop:#F6D27A; --kb-move:#B9DAA5; --kb-stay:#B9DAA5; --kb-todo:#F6D27A;
+  --tape-pink:#F2A497; --tape-blue:#A8D3E6; --tape-mint:#B9DAA5; --tape-yellow:#F6D27A; --hl:rgba(246,210,122,.75);
+  --ok:#5E9A4A; --warn:#B07A10; --warn-soft:#FCF0D2;
+  --paper-shadow:none; --shadow:0 12px 0 -6px rgba(62,58,57,.18);
+  --font:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --bw:3px; --r:22px;
+}
+body{background:var(--bg)!important;background-image:none!important}
+.bar-wrap{border-bottom:var(--bw) solid var(--ink)}
+h1,h2,b,.ititle,.ct{font-weight:400!important}
+.brand h1{font-size:34px;letter-spacing:.02em}
+.brand h1 em{color:var(--sakura)}
+.hero-art{display:flex;justify-content:center;margin:-4px 0 -6px}
+.hero-svg{width:100%;max-width:420px;height:auto;display:block}
+@media (prefers-reduced-motion:no-preference){
+  .a-cloud1{animation:drift 9s ease-in-out infinite alternate}.a-cloud2{animation:drift 7s ease-in-out infinite alternate-reverse}
+  .a-plane{animation:bob 3.2s ease-in-out infinite}.a-sun{animation:glow 4s ease-in-out infinite;transform-origin:300px 38px}
+  .a-petal{animation:fall 6s ease-in-out infinite alternate}
+  .col.pop{animation:boing .5s cubic-bezier(.3,1.6,.5,1)}
+  .chip.active .c-d{animation:boing .45s cubic-bezier(.3,1.6,.5,1)}
+}
+@keyframes drift{to{transform:translateX(14px)}}
+@keyframes bob{50%{transform:translate(6px,-5px) rotate(-2deg)}}
+@keyframes glow{50%{transform:scale(1.08)}}
+@keyframes fall{to{transform:translateY(6px) rotate(8deg)}}
+@keyframes boing{0%{transform:scale(.94) translateY(6px);opacity:.6}60%{transform:scale(1.02) translateY(-2px);opacity:1}100%{transform:none}}
+
+/* cards & frames */
+.pass,.item,.nowcard,.erow,.crow,.agg,.sumcard,.lcard,.empty-day,.mbar,.icon-btn,.sheet,.acts,.pvc,.more,.fact{border:var(--bw) solid var(--ink)!important;border-radius:var(--r)!important;box-shadow:none!important}
+.item,.erow,.crow{border-radius:18px!important}
+.item.done{background:var(--sunk)}
+.pass::before,.pass::after{border:var(--bw) solid var(--ink);right:104px}
+.pass-main::before,.lcard::before{display:none}
+.pass-stub{background:var(--yellow)!important;background-image:none!important;border-left:var(--bw) dashed var(--ink)!important;border-radius:0 19px 19px 0}
+.pass-stub b{color:var(--ink)!important}
+.fline::before{border-top:3px dashed var(--ink)}
+.fline svg{color:var(--sakura)}
+.pass-meta{border-top:2px dashed var(--ink)}
+.nowcard{background:var(--sakura-soft)!important;border-style:solid!important}
+.nowcard .nl{color:var(--ink)}.nowcard .nl i{background:var(--sakura)}
+
+/* day header */
+.col-date{width:76px;height:76px;min-width:76px;border:var(--bw) solid var(--ink)!important;background:var(--coral)!important;color:var(--ink)!important;transform:rotate(-4deg)}
+.col-date b,.col-date span{color:var(--ink)!important}
+.col-n{background:var(--yellow)!important;border:2px solid var(--ink);border-radius:999px;clip-path:none!important;transform:none!important;padding:0 12px!important}
+.col-n em{color:var(--ink)}
+.col-title{font-size:24px}
+.route{border:2px solid var(--ink);color:var(--ink);background:var(--water)}
+.slot{border-top:2px dashed rgba(62,58,57,.25)!important}
+.sico{border:2px solid var(--ink)!important;background:var(--water)!important;color:var(--ink)!important}
+.slot.cur .sico{background:var(--coral)!important}
+.slot-h b,.dsec-h b,.lcard-h b{background:linear-gradient(transparent 55%,var(--hl) 55%)!important}
+.slot-add{border:2px solid var(--ink)!important;color:var(--ink)!important}
+.dsec{border-top:2px dashed rgba(62,58,57,.25)!important}
+
+/* chips / stickers */
+.kind{border:2px solid var(--ink)!important;color:var(--ink)!important;line-height:18px}
+.mapl{border:2px solid var(--ink)!important;color:var(--ink)!important;background:var(--water)!important}
+.must{display:inline-flex;align-items:center;gap:2px;padding:0 8px;border:2px solid var(--ink);border-radius:999px;background:var(--coral);font-size:12px;line-height:18px;color:var(--ink);white-space:nowrap}
+.spent{color:var(--ink);background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:0 8px}
+.ibtn{border:2px solid var(--ink)!important;color:var(--ink)!important;border-radius:50%!important}
+.chk[aria-pressed="true"]{background:var(--green)!important;color:var(--ink)!important}
+.chip .c-d{border:2px solid transparent!important}
+.chip.today .c-d{border-color:var(--ink)!important;border-style:dashed!important;color:var(--ink)}
+.chip.active .c-d{background:var(--coral)!important;border:var(--bw) solid var(--ink)!important;color:var(--ink)!important}
+.chip.wkend .c-w{color:var(--sakura)}
+.chip .c-dots i{background:var(--ink);opacity:.55}
+.chip.pool .c-d{border:2px dashed var(--ink)!important}
+
+/* buttons */
+.btn{border:var(--bw) solid var(--ink)!important;border-radius:999px!important;color:var(--ink)}
+.btn.pri{background:var(--yellow)!important;color:var(--ink)!important}
+.btn.danger{background:var(--sakura-soft)!important;color:var(--ink)!important}
+.map-big{background:var(--water)!important;color:var(--ink)!important}
+.fab{background:var(--yellow)!important;color:var(--ink)!important;border:var(--bw) solid var(--ink)!important;box-shadow:0 5px 0 var(--ink)!important}
+.fab:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)!important}
+.seg button{border:2px solid var(--ink)!important}
+.seg button[aria-pressed="true"]{background:var(--coral)!important;color:var(--ink)!important}
+.dstrip .n{border:2px dashed var(--ink)!important}
+.dstrip button[aria-pressed="true"] .n{background:var(--coral)!important;border:var(--bw) solid var(--ink)!important;color:var(--ink)!important}
+.viewseg{border:2px solid var(--ink)}
+.viewseg button[aria-pressed="true"]{background:var(--yellow);color:var(--ink)}
+.inp{border:2px solid var(--ink)!important;border-radius:14px!important}
+.sheet{background:var(--bg)!important;background-image:none!important}
+.sheet h2{background:var(--yellow)!important;clip-path:none!important;transform:none!important;border:2px solid var(--ink);border-radius:999px}
+.sheet-x{border:2px solid var(--ink)!important;color:var(--ink)!important}
+.sheet .foot{background:var(--bg)!important;border-top:2px dashed var(--ink)!important}
+.toast{border:var(--bw) solid var(--ink)!important;border-radius:999px!important}
+.mbar b{color:var(--sakura)}
+.catbar{border:2px solid var(--ink);height:14px;border-radius:999px}
+.abtn{border-top:2px dashed rgba(62,58,57,.25)!important}
+
+/* login gate & footer */
+body.gated #app{display:none}
+#gate{min-height:100vh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));background:var(--bg)}
+.gate-card{max-width:420px;width:100%;border:var(--bw) solid var(--ink);border-radius:28px;background:#fff;padding:28px 24px;display:grid;gap:16px;text-align:center}
+.gate-card h1{margin:0;font-size:28px;font-weight:400}
+.gate-card p{margin:0;color:var(--muted);line-height:1.7}
+.site-foot{padding-block:8px 120px;text-align:center;font-size:12px;color:var(--muted)}
+.site-foot button{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--ink)}
+
+/* bookshelf */
+.shelf{padding-block:24px 40px;display:grid;gap:20px}
+.shelf-h{text-align:center;display:grid;gap:6px;justify-items:center}
+.shelf-h h1{margin:0;font-size:32px;font-weight:400}
+.shelf-h p{margin:0;color:var(--muted)}
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.tcard{display:grid;border:var(--bw) solid var(--ink);border-radius:var(--r);background:#fff;overflow:hidden;text-decoration:none;color:var(--ink);transition:transform .15s}
+.tcard:hover{transform:translateY(-3px) rotate(-.5deg)}
+.tcard .tcover{background:var(--sunk);border-bottom:var(--bw) solid var(--ink);padding:10px 10px 0}
+.tcard .tcover svg{width:100%;height:auto;display:block}
+.tcard .tbody{display:grid;gap:4px;padding:14px 16px}
+.tcard b{font-size:20px;font-weight:400}
+.tcard span{font-size:12px;color:var(--muted)}
+.tcard .tst{justify-self:start;margin-top:4px;padding:1px 10px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--ink);font-size:12px}
+.tcard.now .tst{background:var(--coral)}.tcard.past{opacity:.75}.tcard.past .tst{background:var(--sunk)}
+.tnew{place-content:center;justify-items:center;min-height:220px;border-style:dashed;cursor:pointer;font:inherit;gap:6px}
+.tnew .plus{font-size:40px;line-height:1}
+.backlink{display:inline-flex;align-items:center;height:36px;padding:0 12px;border:2px solid var(--ink);border-radius:999px;color:var(--ink);text-decoration:none;font-size:14px;background:#fff;white-space:nowrap}
+.pill-btn{width:auto!important;padding:0 14px;background:var(--water)!important;border-radius:999px!important;font:inherit}
+.thseg{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.thbtn{display:grid!important;gap:4px;justify-items:center;padding:6px!important;border-radius:14px!important;font-size:12px!important}
+.thbtn .thart svg{width:100%;height:auto;display:block}
+.shrole{flex-wrap:nowrap}.shrole button{padding:4px 8px!important;font-size:12px!important}
+#sh-list .crow{grid-template-columns:minmax(0,1fr) auto auto}
+
+</style>
+
+<div id="app" hidden>
+  <header class="hero gut wrapc" id="trip-hero"></header>
+  <div class="bar-wrap">
+    <div class="wrapc gut">
+      <div class="bar">
+        <button type="button" class="mbar" id="mbar" aria-label="旅費總覽"></button>
+        <span class="sp"></span>
+        <div class="peers" id="peers" hidden></div>
+        <button type="button" class="icon-btn" id="search-btn" aria-label="搜尋"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg></button>
+      </div>
+      <nav class="strip" id="strip" aria-label="選擇日期"></nav>
+      <div class="strip-gap" id="strip-gap" hidden></div>
+    </div>
+  </div>
+  <div class="notice gut wrapc" id="notice" hidden><div id="notice-t"></div></div>
+  <div class="layout gut">
+  <div class="mainc">
+  <section class="nowc" id="now" hidden></section>
+  <main class="board" id="board"></main>
+  </div>
+  </aside>
+  </div>
+  <footer class="site-foot gut wrapc" id="site-foot"></footer>
+  <input type="file" accept="image/*" multiple id="cam-file" hidden>
+  <button class="fab" id="fab" type="button"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg><span id="fab-t">新增行程</span></button>
+</div>
+<div id="layer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* Cover / hero illustrations per trip theme (flat picture-book style, 3px ink outline). */
+window.__THEMES = (function () {
+  const S = '<svg class="hero-svg" viewBox="0 0 360 150" xmlns="http://www.w3.org/2000/svg" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">';
+  const sky = '<g class="a-sun"><circle cx="300" cy="38" r="20" fill="#F6D27A"/></g><g class="a-cloud1"><path d="M40 46c0-9 8-15 16-13 3-8 15-10 21-2 9-2 15 6 12 14z" fill="#fff"/></g><g class="a-cloud2"><path d="M222 30c0-7 6-11 12-10 3-6 12-7 16-1 7-1 11 5 9 11z" fill="#fff"/></g>';
+  const plane = '<g class="a-plane"><path d="M120 40 l34 -6 l10 -10 l6 2 l-6 12 l18 2 l4 -4 l4 1 l-3 7 l-55 6 z" fill="#fff"/></g>';
+  const ground = '<path d="M0 132 H360" fill="none"/>';
+  const E = '</svg>';
+  return {
+    travel: { label: '旅行', svg: S + sky + plane +
+      '<rect x="40" y="78" width="70" height="54" rx="10" fill="#F2A497"/><path d="M60 78v-10h30v10M40 100h70" fill="none"/><circle cx="55" cy="132" r="0"/>' +
+      '<circle cx="190" cy="100" r="32" fill="#A8D3E6"/><path d="M160 92c12 4 20-6 30 0s18 6 28-2M170 118c10-6 22 2 34-4" fill="none"/>' +
+      '<rect x="250" y="84" width="76" height="48" rx="6" fill="#fff"/><path d="M262 98h30M262 110h22" fill="none"/><rect x="300" y="92" width="18" height="18" rx="3" fill="#B9DAA5"/>' + ground + E },
+    tokyo: { label: '東京', svg: S + sky + plane +
+      '<path d="M0 132 L70 66 Q78 58 86 66 L160 132 Z" fill="#A8D3E6"/><path d="M58 77 L70 66 Q78 58 86 66 L98 77 L88 84 L78 76 L68 84 Z" fill="#fff"/>' +
+      '<g class="a-tower"><path d="M196 132 L214 50 L232 132" fill="#F2A497"/><path d="M214 50 L214 26M203 98 H225M207 78 H221" fill="none"/><path d="M201 106 L227 106 L229 114 L199 114 Z" fill="#F2A497"/></g>' +
+      '<g><path d="M268 132 L274 52 L280 132" fill="#fff"/><rect x="268" y="66" width="12" height="6" rx="2" fill="#A8D3E6"/><path d="M274 52 L274 30" fill="none"/></g>' + ground + E },
+    kyoto: { label: '京都', svg: S + sky +
+      '<path d="M90 132V70M190 132V70" fill="none" stroke-width="8"/><path d="M70 62 Q140 50 210 62 L206 72 Q140 62 74 72 Z" fill="#F2A497"/><path d="M84 86H196" fill="none" stroke-width="6"/>' +
+      '<path d="M250 132l20-40 20 40z" fill="#B9DAA5"/><path d="M280 132l24-52 24 52z" fill="#B9DAA5"/>' +
+      '<g class="a-petal" fill="#F2A497" stroke-width="2"><path d="M40 90c4-6 10-2 6 4-2 3-6 2-6-4z"/><path d="M230 70c4-6 10-2 6 4-2 3-6 2-6-4z"/></g>' + ground + E },
+    snow: { label: '北國雪景', svg: S + '<g class="a-cloud1"><path d="M40 46c0-9 8-15 16-13 3-8 15-10 21-2 9-2 15 6 12 14z" fill="#fff"/></g>' +
+      '<path d="M0 132 L90 54 L180 132Z" fill="#A8D3E6"/><path d="M68 73 L90 54 L112 73 L100 80 L90 72 L80 80Z" fill="#fff"/><path d="M150 132 L240 70 L330 132Z" fill="#A8D3E6"/><path d="M222 82 L240 70 L258 82 L248 88 L240 82 L232 88Z" fill="#fff"/>' +
+      '<g class="a-petal" fill="#fff" stroke-width="2"><circle cx="40" cy="80" r="4"/><circle cx="300" cy="50" r="4"/><circle cx="200" cy="40" r="4"/><circle cx="130" cy="30" r="4"/></g>' + ground + E },
+    island: { label: '海島', svg: S + sky + plane +
+      '<path d="M0 132 Q90 112 180 132 T360 132" fill="#A8D3E6"/><path d="M60 132 Q120 104 200 132Z" fill="#F6D27A"/>' +
+      '<path d="M120 116 Q116 80 126 60" fill="none" stroke-width="5"/><path d="M126 60 q-26 -6 -36 10 M126 60 q22 -12 36 4 M126 60 q-8 -22 -26 -24 M126 60 q14 -20 32 -18" fill="#B9DAA5"/>' + E },
+    city: { label: '城市', svg: S + sky + plane +
+      '<rect x="40" y="70" width="44" height="62" rx="4" fill="#A8D3E6"/><rect x="96" y="44" width="50" height="88" rx="4" fill="#F6D27A"/><rect x="158" y="80" width="40" height="52" rx="4" fill="#F2A497"/><rect x="210" y="56" width="46" height="76" rx="4" fill="#B9DAA5"/><rect x="268" y="88" width="50" height="44" rx="4" fill="#fff"/>' +
+      '<path d="M54 86h16M54 102h16M110 62h22M110 80h22M110 98h22M224 74h18M224 92h18" fill="none"/>' + ground + E },
+    nature: { label: '山林', svg: S + sky +
+      '<path d="M0 132 L80 70 L160 132Z" fill="#B9DAA5"/><path d="M120 132 L210 52 L300 132Z" fill="#B9DAA5"/><path d="M190 70 L210 52 L230 70 L220 76 L210 68 L200 76Z" fill="#fff"/>' +
+      '<path d="M300 132v-24M300 108l-12 14h24z" fill="#B9DAA5"/><path d="M40 132v-16M40 116l-10 12h20z" fill="#B9DAA5"/>' + ground + E }
+  };
+})();
+
+</script>
+<script>
+window.__bootTrip=function(T){
+/* ---------- constants ---------- */
+const SLOTS=[{k:'breakfast',l:'早餐',end:600},{k:'morning',l:'上午',end:690},{k:'lunch',l:'午餐',end:840},{k:'afternoon',l:'下午',end:1050},{k:'dinner',l:'晚餐',end:1230},{k:'evening',l:'晚上',end:1440}];
+const SICO={breakfast:'<path d="M3 6h8v3.5a3.5 3.5 0 0 1-3.5 3.5h-1A3.5 3.5 0 0 1 3 9.5zM11 7h1a1.75 1.75 0 0 1 0 3.5h-1M5.5 2.5v1.5M8.5 2.5v1.5"/>',
+  morning:'<path d="M2 12.5h12M4.5 12.5a3.5 3.5 0 0 1 7 0M8 3.5v2M3.6 6.6l1.2 1.2M12.4 6.6l-1.2 1.2"/>',
+  lunch:'<path d="M2 8.5h12a6 6 0 0 1-12 0zM6 2.5l1.5 5M10.5 2.5L9 7.5"/>',
+  afternoon:'<circle cx="8" cy="8" r="3"/><path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/>',
+  dinner:'<path d="M4.5 2v4a1.75 1.75 0 0 0 3.5 0V2M6.25 7.75V14M12 2c-1.6 1-2.2 3-2.2 5.2h2.2V14"/>',
+  evening:'<path d="M13 9.6A5.5 5.5 0 1 1 6.4 3a4.5 4.5 0 0 0 6.6 6.6z"/>'};
+const sicon=k=>'<span class="sico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+SICO[k]+'</svg></span>';
+const PIN='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>';
+const SLOT_L={pool:'口袋名單'};SLOTS.forEach(s=>SLOT_L[s.k]=s.l);
+const SLOT_I={};SLOTS.forEach((s,i)=>SLOT_I[s.k]=i);
+const KINDS=[['food','美食'],['spot','景點'],['shop','購物'],['move','交通'],['stay','住宿'],['todo','待辦']];
+const KIND_L=Object.fromEntries(KINDS);
+const LTYPES=[{k:'book',l:'訂位／票券',ph:'例：迪士尼門票、USHIGORO 訂位',empty:'要訂位、買票的事情放這裡，訂好就打勾'},{k:'pack',l:'行李',ph:'例：護照、行動電源',empty:'出發前要帶的東西，收進行李就打勾'},{k:'buy',l:'想買',ph:'例：藥妝、Tokyo Banana',empty:'想買的東西記在這裡，買到就打勾'}];
+const LT_L=Object.fromEntries(LTYPES.map(t=>[t.k,t.l]));
+const START=new Date(T.start+'T00:00:00'),NDAYS=T.days,WK='日一二三四五六';
+const PLACE_KINDS=['food','spot','shop'];
+const CATS=[['food','餐飲'],['shop','購物'],['move','交通'],['ticket','門票'],['stay','住宿'],['other','其他']];
+const CAT_L=Object.fromEntries(CATS);
+const CAT_C={food:'var(--k-food)',shop:'var(--k-shop)',move:'var(--k-move)',ticket:'var(--k-spot)',stay:'var(--k-stay)',other:'var(--k-todo)'};
+const KIND2CAT={food:'food',shop:'shop',spot:'ticket',move:'move',stay:'stay'};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
+const dayDate=n=>{const d=new Date(START);d.setDate(d.getDate()+n-1);return d};
+const md=d=>(d.getMonth()+1)+'/'+d.getDate();
+const dayLabel=n=>n===0?'口袋名單':'Day '+n+'（'+md(dayDate(n))+'）';
+const yen=n=>'¥'+Math.round(n).toLocaleString('en-US');
+const ntd=n=>'NT$'+Math.round(n).toLocaleString('en-US');
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const desk=matchMedia('(min-width:960px)');
+const now=()=>window.__NRT_NOW?new Date(window.__NRT_NOW):new Date();
+function todayN(){const t=now();t.setHours(0,0,0,0);return Math.round((t-START)/864e5)+1}
+const placeQuery=it=>{if((it.q||'').trim())return it.q.trim();const t=(it.title||'').trim(),a=(it.area||'').trim();return a&&!t.includes(a)?t+' '+a:t};
+const mapUrl=it=>safeUrl(it.map)||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(placeQuery(it));
+
+/* ---------- state ---------- */
+const S={items:new Map(),days:new Map(),lists:new Map(),exps:new Map(),meta:{rate:0.21,people:[]},
+  tab:'',mview:ls.get(T.id+'-mview')||'day',sub:ls.get(T.id+'-sub')||'book',active:1,
+  db:null,assets:null,sample:null,room:null,user:null,peers:[],prof:{},assetUrl:{},
+  canWrite:false,drag:null,dirty:false,q:{}};
+if(!LT_L[S.sub])S.sub='book';
+(function(){const n=todayN();if(n>=1&&n<=NDAYS)S.active=n;else{const v=parseInt(ls.get(T.id+'-day'),10);if(v>=0&&v<=NDAYS)S.active=v}})();
+
+function countdown(){const n=todayN();let l='出發倒數',v=1-n,u='天';
+  if(n>=1&&n<=NDAYS){l='旅程進行中';v='Day '+n;u=md(dayDate(n))}else if(n>NDAYS){l='旅程結束';v='✓';u='回憶收藏中'}
+  $('#cd-l').textContent=l;$('#cd').textContent=v;$('#cd').classList.toggle('sm',String(v).length>3);$('#cd-u').textContent=u}
+function setSync(s,t){const el=$('#sync');el.dataset.s=s;$('#sync-t').textContent=t}
+function notice(html){const n=$('#notice');if(!html){n.hidden=true;return}$('#notice-t').innerHTML=html;n.hidden=false}
+const photoSrc=id=>S.assetUrl[id]||(window.__photoUrl?window.__photoUrl(id,()=>render()):'/_blob/'+id);
+
+/* ---------- grouping ---------- */
+function groups(){const g={};for(const it of S.items.values()){const k=it.day+'|'+it.slot;(g[k]=g[k]||[]).push(it)}
+  for(const k in g)g[k].sort((a,b)=>(a.order-b.order)||a.id.localeCompare(b.id));return g}
+function dayItems(n){return [...S.items.values()].filter(i=>i.day===n&&SLOT_I[i.slot]!=null).sort((a,b)=>(SLOT_I[a.slot]-SLOT_I[b.slot])||(a.order-b.order))}
+function maxOrder(day,slot){let m=0;for(const it of S.items.values())if(it.day===day&&it.slot===slot&&it.order>m)m=it.order;return m}
+
+/* ---------- render ---------- */
+function render(){if(S.drag){S.dirty=true;return}S.dirty=false;
+  document.body.classList.toggle('ro',!S.canWrite);
+  renderPeers();renderStrip();renderNow();renderBoard();renderMbar();if($('#money'))renderMoney();saveCache()}
+function peersOn(day){return S.peers.filter(p=>p.presence&&p.presence.tab==='plan'&&p.presence.day===day)}
+function renderStrip(){const tn=todayN();let h='';
+  const dots=n=>{const ps=peersOn(n);return ps.length?'<span class="pdots">'+ps.slice(0,3).map(p=>'<i style="background:'+esc(p.color)+'"></i>').join('')+'</span>':''};
+  for(let n=0;n<=NDAYS;n++){
+    if(n===0){const c=[...S.items.values()].filter(i=>i.day===0).length;
+      const prep=[...S.lists.values()].filter(r=>!r.done&&(r.type==='pack'||!(r.day>0))).length;
+      h+='<button type="button" class="chip pool'+(S.active===0?' active':'')+'" data-day="0" aria-label="出發前準備，還有 '+prep+' 項">'+dots(0)+'<span class="c-w">出發前</span><span class="c-d">'+prep+'</span><span class="c-dots"></span></button><span class="c-month">'+(START.getMonth()+1)+'月</span>';continue}
+    const d=dayDate(n),wd=d.getDay(),np=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length;
+    h+='<button type="button" class="chip'+(S.active===n?' active':'')+(tn===n?' today':'')+(wd===0||wd===6?' wkend':'')+'" data-day="'+n+'" aria-label="'+md(d)+' 週'+WK[wd]+' Day '+n+'">'+dots(n)+'<span class="c-w">'+(tn===n?'今天':WK[wd])+'</span><span class="c-d">'+d.getDate()+'</span><span class="c-dots">'+'<i></i>'.repeat(Math.min(3,Math.ceil(np/2)))+'</span></button>'}
+  const st=$('#strip'),sl=st.scrollLeft;st.innerHTML=h;st.scrollLeft=sl;
+  if(!S.stripInit&&st.clientWidth){S.stripInit=true;const c=st.querySelector('.chip.active');if(c)st.scrollLeft=c.offsetLeft-st.offsetLeft-st.clientWidth/2+c.offsetWidth/2}}
+
+function thumbs(ids){if(!ids||!ids.length)return '';return '<span class="ithumbs">'+ids.slice(0,3).map(id=>'<img src="'+esc(photoSrc(id))+'" alt="" loading="lazy">').join('')+(ids.length>3?'<span>+'+(ids.length-3)+'</span>':'')+'</span>'}
+function itemHTML(it){
+  const showMap=PLACE_KINDS.includes(it.kind)&&!!(it.area||it.q)||!!safeUrl(it.map);
+  return '<div class="item'+(it.done?' done':'')+'" data-id="'+esc(it.id)+'">'+
+   '<button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'"><svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></button>'+
+   '<div class="ibody" role="button" tabindex="0"><span class="imeta">'+(it.must?'<span class="must">★ 必去</span>':'')+(it.time?'<span class="itime">'+esc(it.time)+'</span>':'')+
+   '<span class="kind k-'+esc(KIND_L[it.kind]?it.kind:'spot')+'">'+esc(KIND_L[it.kind]||'景點')+'</span>'+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+(showMap?'<a class="mapl" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'地圖</a>':'')+'</span>'+
+   '<span class="ititle">'+esc(it.title)+'</span>'+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+(it.note&&!it.desc?'<span class="inote">'+esc(it.note)+'</span>':'')+thumbs(it.photos)+'</div>'+
+   '<span class="iacts">'+
+   '<button type="button" class="ibtn chk" aria-label="標記完成" aria-pressed="'+(it.done?'true':'false')+'">✓</button></span></div>'}
+function slotHTML(day,s,list,cur){const em=!(list&&list.length);
+  return '<section class="slot'+(s.k==='pool'?' pool-slot':'')+(em?' is-empty':'')+(cur?' cur':'')+'">'+(s.k==='pool'?'':'<div class="slot-h">'+sicon(s.k)+'<b>'+s.l+'</b><button type="button" class="slot-add" data-day="'+day+'" data-slot="'+s.k+'" aria-label="新增到'+s.l+'">＋</button></div>')+
+   '<div class="list" data-day="'+day+'" data-slot="'+s.k+'">'+(list&&list.length?list.map(itemHTML).join(''):'<div class="empty">'+(s.k==='pool'?'想去但還沒排的地方先放這裡，之後拖到某一天':(S.canWrite?'拖到這裡或按＋':'—'))+'</div>')+'</div></section>'}
+function curSlot(){const t=now(),m=t.getHours()*60+t.getMinutes();const i=SLOTS.findIndex(s=>m<s.end);return i<0?SLOTS.length-1:i}
+function daySum(n){const it=dayItems(n),pl=it.filter(i=>PLACE_KINDS.includes(i.kind)),food=it.filter(i=>i.kind==='food').length,dn=it.filter(i=>i.done).length;
+  if(!it.length)return '';return '<span class="slot-sum">'+pl.length+' 個地點'+(food?'・'+food+' 家吃的':'')+(dn?'・已完成 '+dn+'/'+it.length:'')+'</span>'}
+function routeUrl(n){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).map(placeQuery).filter(Boolean);
+  const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,10);
+  if(!u.length)return '';if(u.length===1)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(u[0]);
+  return 'https://www.google.com/maps/dir/'+u.map(encodeURIComponent).join('/')}
+function renderBoard(){const g=groups(),tn=todayN();let h='';
+  for(let n=0;n<=NDAYS;n++){
+    const act=S.active===n?' active':'';
+    if(n===0){h+='<section class="col'+act+'" data-col="0"><header class="col-h"><div class="col-t"><span class="col-n">BEFORE</span><span class="col-title" style="cursor:default">出發前準備</span><span class="pool-desc">行李、還沒定日期的訂位和想買、想去但還沒排的地方</span></div></header>'+
+      listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位／票券（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('buy','想買（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+
+      '<section class="dsec"><div class="dsec-h"><b>口袋名單</b><small>想去但還沒排的地方，之後拖到某一天</small></div>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+'</section></section>';continue}
+    const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrl(n);
+    h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
+      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+(ru?'<a class="route" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
+      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
+      (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
+  const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
+  if(keep){const k=document.getElementById(keep);if(k){k.value=val;k.focus({preventScroll:true});try{k.setSelectionRange(ss,ss)}catch(e){}}}
+  if(!S.boardInit&&desk.matches&&b.clientWidth){S.boardInit=true;const c=b.querySelector('.col.active');if(c)b.scrollLeft=c.offsetLeft-b.offsetLeft-16}}
+
+const DICO={money:'<path d="M3.5 2.5 8 8l4.5-5.5M8 8v5.5M5 8.5h6M5 11h6"/>',todo:'<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="m5.5 8 2 2 3.5-4"/>',pack:'<rect x="3" y="5" width="10" height="8.5" rx="1.5"/><path d="M6 5V3.5h4V5M3 9h10"/>'};
+const dicon=k=>'<span class="sico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+DICO[k]+'</svg></span>';
+const LT_TAG={book:['訂位','k-spot'],buy:['想買','k-shop'],pack:['行李','k-move']};
+function rowHTML(r,withTag){return '<li class="crow'+(r.done?' done':'')+'" data-lid="'+esc(r.id)+'"><button type="button" class="ibtn chk lchk" aria-label="打勾" aria-pressed="'+(r.done?'true':'false')+'">✓</button>'+
+  '<button type="button" class="cbody lbody">'+(withTag&&LT_TAG[r.type]?'<span class="kind ltype '+LT_TAG[r.type][1]+'">'+LT_TAG[r.type][0]+'</span>':'')+'<span class="ct">'+esc(r.title)+'</span>'+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button><span></span></li>'}
+function listBlock(type,title,rows,day){const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
+  return '<section class="dsec">'+'<div class="dsec-h">'+dicon(type==='pack'?'pack':'todo')+'<b>'+title+'</b>'+(rows.length?'<small>'+done+' / '+rows.length+' 完成</small>':'')+'</div>'+
+    (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="'+esc(t.ph)+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+
+    (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'')+'</section>'}
+function daySections(n){const rate=+S.meta.rate||0;
+  const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
+  const todo=[...S.lists.values()].filter(r=>(r.type==='book'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
+  return '<section class="dsec">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>訂位・票券・要買的</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
+      (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>'+
+    '<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+yen(sum)+'</span><small>≈ '+ntd(sum*rate)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
+      (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>'}
+function renderMbar(){const m=money(),el=$('#mbar');const tx=m.tx[0];
+  el.innerHTML='<span>旅費 <b>'+yen(m.total)+'</b>'+(tx?' <small>'+esc(tx.from)+' → '+esc(tx.to)+' '+yen(tx.amt)+(m.tx.length>1?' 等':'')+'</small>':(m.total?'':' <small>還沒記帳</small>'))+'</span>'}
+function openMoney(){S.readSheet=false;
+  openSheet('<h2>旅費總覽</h2><div id="money"></div>'+(S.canWrite?'<div class="btns"><button type="button" class="btn pri block" id="m-add">＋ 記一筆</button></div>':''),
+  root=>{renderMoney();const a=root.querySelector('#m-add');if(a)a.onclick=()=>{closeSheet();openExp(null)};
+    root.addEventListener('click',e=>{const t=e.target;let el;e.stopPropagation();
+      if((el=t.closest('[data-mview]'))){S.mview=el.dataset.mview;ls.set(T.id+'-mview',S.mview);renderMoney();return}
+      if((el=t.closest('.ebody'))){openExp(el.closest('.erow').dataset.eid);return}
+      if((el=t.closest('[data-rm-person]'))){if(canWrite()){const p=el.dataset.rmPerson;saveMeta({people:S.meta.people.filter(x=>x!==p)});toast('已移除成員「'+p+'」',()=>saveMeta({people:S.meta.people.concat(p)}))}return}
+      if(t.closest('#add-person')){if(canWrite())openPrompt('新增分帳成員','名字','','例：Jessica','',v=>{if(!v)return false;if(!S.meta.people.includes(v))saveMeta({people:S.meta.people.concat(v)});setTimeout(openMoney,0)});return}
+      if(t.closest('#rate-btn')){if(canWrite())openPrompt('日圓匯率','1 日圓 = 多少台幣',String(S.meta.rate),'例 0.21','decimal',v=>{const r=parseFloat(v);if(!(r>0&&r<10)){toast('請輸入像 0.21 這樣的數字');return false}saveMeta({rate:r});setTimeout(openMoney,0)});return}})})}
+function openTodoAdd(day){if(!canWrite())return;S.readSheet=false;const st={type:'book'};
+  openSheet('<h2>今日要辦・'+md(dayDate(day))+'</h2><div class="fld"><label for="t-title">要辦什麼？</label><input class="inp" id="t-title" placeholder="例：迪士尼門票、USHIGORO 訂位、Tokyo Banana" autocomplete="off"></div>'+
+    '<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-ttype"><button type="button" data-v="book" aria-pressed="true">訂位／票券</button><button type="button" data-v="buy" aria-pressed="false">要買的</button></div></div>'+
+    '<div class="btns"><button type="button" class="btn pri block" id="t-ok">加入</button></div>',
+  root=>{const i=root.querySelector('#t-title');setTimeout(()=>i.focus(),50);bindSeg(root,'seg-ttype',v=>st.type=v);
+    const go=()=>{const v=i.value.trim();if(!v){i.focus();return}create('lists',{type:st.type,title:v,note:'',done:false,day,photos:[],ts:Date.now()});closeSheet();render();toast('已加到 '+dayLabel(day))};
+    root.querySelector('#t-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+
+/* ---------- now / next ---------- */
+function renderNow(){const box=$('#now'),n=todayN();
+  if(n<1||n>NDAYS||S.active!==n){box.hidden=true;return}
+  const t=now(),mins=t.getHours()*60+t.getMinutes(),cur=curSlot();
+  const toMin=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(s||'');return m?(+m[1])*60+(+m[2]):null};
+  const list=dayItems(n).filter(i=>!i.done);
+  const ups=list.filter(i=>{const tm=toMin(i.time);return tm!=null?tm>=mins-60:SLOT_I[i.slot]>=cur});
+  const nx=ups[0],after=ups[1];
+  let h='<div class="nowcard"><div class="nl"><i></i>現在・'+SLOTS[cur].l+'時段</div>';
+  if(!nx)h+='<div class="nowmain"><div class="nt"><b>今天的行程都完成了</b><span>好好休息，明天見</span></div></div>';
+  else h+='<div class="nowmain" data-id="'+esc(nx.id)+'"><div class="nt"><span>下一站'+(nx.time?'・'+esc(nx.time):'・'+SLOT_L[nx.slot])+(nx.area?'・'+esc(nx.area):'')+'</span><b>'+esc(nx.title)+'</b>'+(nx.desc?'<span class="nd">'+esc(nx.desc)+'</span>':'')+'</div>'+
+    (PLACE_KINDS.includes(nx.kind)||safeUrl(nx.map)?'<a class="ibtn map" href="'+esc(mapUrl(nx))+'" target="_blank" rel="noopener">'+PIN+'導航</a>':'')+
+    '<button type="button" class="ibtn chk now-done" data-id="'+esc(nx.id)+'" aria-label="完成，前往下一站">✓</button></div>'+
+    (after?'<div class="nownext">接著：<b>'+esc(after.title)+'</b>'+(after.area?'・'+esc(after.area):'')+'</div>':'');
+  box.innerHTML=h+'</div>';box.hidden=false}
+
+/* ---------- presence ---------- */
+function renderPeers(){const el=$('#peers');if(!S.room){el.hidden=true;return}
+  const ps=S.peers;if(!ps.length){el.hidden=true;return}
+  el.innerHTML='<span class="peers-l">'+ps.length+' 人在線上</span>'+ps.slice(0,4).map(p=>{const where=p.presence&&p.presence.tab==='lists'?'清單':p.presence&&p.presence.tab==='money'?'記帳':(p.presence&&p.presence.day!=null?dayLabel(p.presence.day):'');
+    return '<span class="peer" style="background:'+esc(p.color)+'" title="'+esc(p.name+(where?' 在看 '+where:''))+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</span>'}).join('');
+  el.hidden=false}
+let presT=0;
+function pushPresence(){if(!S.room)return;clearTimeout(presT);presT=setTimeout(()=>{S.room.presence({tab:S.tab||'plan',day:S.active}).catch(()=>{})},250)}
+async function onPeersChange(ch){const seen=new Map();
+  for(const p of ch.peers){if(p.isMe||p.kind!=='viewer')continue;const key=p.by||p.peer;if(!seen.has(key)||(p.updatedAt>(seen.get(key).updatedAt||0)))seen.set(key,p)}
+  const ids=[...seen.values()].map(p=>p.by).filter(Boolean);
+  if(ids.length&&S.user){try{const pr=await S.user.profiles(ids);Object.assign(S.prof,pr)}catch(e){}}
+  const pal=['#D93A6E','#1F56B0','#7445C2','#0B7F72','#A0640C'];
+  S.peers=[...seen.values()].map((p,i)=>{const pr=p.by&&S.prof[p.by];return{name:(pr&&pr.name)||'旅伴',color:(pr&&pr.color)||pal[i%pal.length],presence:p.presence||{},updatedAt:p.updatedAt}});
+  renderPeers();if(!S.drag)renderStrip()}
+
+/* ---------- lists tab ---------- */
+function listRows(type){return [...S.lists.values()].filter(r=>r.type===type).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0))||a.id.localeCompare(b.id))}
+function checkHTML(type){const t=LTYPES.find(x=>x.k===type),rows=listRows(type),done=rows.filter(r=>r.done).length;
+  let h='<form class="addrow" data-type="'+type+'"><input class="inp" id="add-'+type+'" aria-label="新增到'+t.l+'" placeholder="'+esc(t.ph)+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>';
+  if(rows.length)h+='<div class="prog"><span class="bar2"><i style="width:'+(rows.length?done/rows.length*100:0)+'%"></i></span></div>';
+  h+=rows.length?'<ul class="clist">'+rows.map(r=>'<li class="crow'+(r.done?' done':'')+'" data-lid="'+esc(r.id)+'"><button type="button" class="ibtn chk lchk" aria-label="打勾" aria-pressed="'+(r.done?'true':'false')+'">✓</button>'+
+    '<button type="button" class="cbody lbody"><span class="ct">'+esc(r.title)+'</span>'+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button>'+
+    (r.day?'<span class="cday">D'+r.day+' '+md(dayDate(r.day))+'</span>':'<span></span>')+'</li>').join('')+'</ul>'
+   :'<div class="empty">'+esc(t.empty)+'</div>';
+  return h}
+function people(){const set=[...S.meta.people];for(const e of S.exps.values())if(e.payer&&!set.includes(e.payer))set.push(e.payer);return set}
+function spentOn(it){let s=0;for(const e of S.exps.values())if(e.itemId===it.id)s+=+e.amount||0;return s}
+function money(){const ps=people(),ex=[...S.exps.values()];const paid={},spent={};ps.forEach(p=>{paid[p]=0;spent[p]=0});let total=0;
+  for(const e of ex){const a=+e.amount||0;total+=a;if(e.payer)paid[e.payer]+=a;
+    const cons=e.split==='self'?(e.payer?[e.payer]:[]):(S.meta.people.length?S.meta.people:(e.payer?[e.payer]:[]));
+    cons.forEach(p=>spent[p]=(spent[p]||0)+a/cons.length)}
+  const all=[...new Set([...ps,...Object.keys(spent)])];
+  const bal=all.map(p=>({p,b:(paid[p]||0)-(spent[p]||0)}));
+  const cr=bal.filter(x=>x.b>0.5).sort((a,b)=>b.b-a.b),dr=bal.filter(x=>x.b<-0.5).sort((a,b)=>a.b-b.b);const tx=[];
+  let i=0,j=0;while(i<dr.length&&j<cr.length){const amt=Math.min(-dr[i].b,cr[j].b);tx.push({from:dr[i].p,to:cr[j].p,amt});dr[i].b+=amt;cr[j].b-=amt;if(-dr[i].b<0.5)i++;if(cr[j].b<0.5)j++}
+  return{ps:all,total,paid,spent,tx,ex}}
+function eRow(e,rate){const meta=[e.what&&e.shop?e.what:'',CAT_L[e.cat]||'',e.payer?e.payer+' 付':'',e.split==='self'?'只算自己':(S.meta.people.length>1?'大家平分':'')].filter(Boolean).join('・');
+  return '<div class="erow" data-eid="'+esc(e.id)+'"><button type="button" class="cbody ebody"><span class="ct">'+esc(e.shop||e.what||'（未填）')+'</span>'+(meta?'<span class="cn">'+esc(meta)+'</span>':'')+'</button><div class="eamt">'+yen(+e.amount||0)+'<small>≈ '+ntd((+e.amount||0)*rate)+'</small></div></div>'}
+function aggHTML(groups,rate,max){return groups.map(g=>'<details class="agg"><summary><span class="cbody"><span class="ct">'+esc(g.label)+'</span><span class="cn">'+esc(g.sub)+'</span>'+(max?'<span class="abar"><i style="width:'+(g.sum/max*100).toFixed(1)+'%;--bc:'+(CAT_C[g.k]||'var(--sakura)')+'"></i></span>':'')+'</span><span class="eamt">'+yen(g.sum)+'<small>≈ '+ntd(g.sum*rate)+'</small></span></summary><div class="rows">'+g.rows.map(e=>eRow(e,rate)).join('')+'</div></details>').join('')}
+function renderMoney(){const el=$('#money'),m=money(),rate=+S.meta.rate||0,tn=todayN();
+  const openKeys=[...el.querySelectorAll('details[open]')].map(d=>d.dataset.k);const hadAny=!!el.querySelector('details.agg');
+  const byDay={};m.ex.forEach(e=>{byDay[e.day||0]=(byDay[e.day||0]||0)+(+e.amount||0)});
+  const dayKeys=Object.keys(byDay).filter(d=>+d>0);
+  const todaySum=tn>=1&&tn<=NDAYS?byDay[tn]||0:null;
+  const topDay=dayKeys.length?dayKeys.sort((a,b)=>byDay[b]-byDay[a])[0]:null;
+  let h='<div class="money-sec"><div class="sumcard"><div class="sumtop"><b>'+yen(m.total)+'</b><span>≈ '+ntd(m.total*rate)+'</span><button type="button" class="linkbtn" id="rate-btn">匯率 1 円 = NT$'+rate+'</button></div>'+
+    '<div class="stats"><div><span>'+(todaySum!=null?'今天':'筆數')+'</span><b>'+(todaySum!=null?yen(todaySum):m.ex.length+' 筆')+'</b></div><div><span>平均每天</span><b>'+yen(dayKeys.length?m.total/dayKeys.length:0)+'</b></div><div><span>花最多的一天</span><b>'+(topDay?md(dayDate(+topDay))+' '+yen(byDay[topDay]):'—')+'</b></div></div>';
+  if(m.total){const bc={};m.ex.forEach(e=>{const c=CAT_L[e.cat]?e.cat:'other';bc[c]=(bc[c]||0)+(+e.amount||0)});const cs=CATS.map(c=>c[0]).filter(c=>bc[c]);
+    h+='<div class="catbar" role="img" aria-label="各分類花費比例">'+cs.map(c=>'<i style="width:'+(bc[c]/m.total*100).toFixed(2)+'%;background:'+CAT_C[c]+'"></i>').join('')+'</div><div class="catleg">'+cs.map(c=>'<span><i style="background:'+CAT_C[c]+'"></i>'+CAT_L[c]+' '+Math.round(bc[c]/m.total*100)+'%</span>').join('')+'</div>'}
+  if(m.ps.length){h+='<div class="paid">'+m.ps.map(p=>'<div><span>'+esc(p)+'</span><b>花了 '+yen(m.spent[p]||0)+'</b><i>付了 '+yen(m.paid[p]||0)+'</i></div>').join('')+'</div>';
+    h+='<div class="settle"><span class="sec-l">結算</span>'+(m.tx.length?m.tx.map(x=>'<div class="s">'+esc(x.from)+' 要給 '+esc(x.to)+' <b>'+yen(x.amt)+'</b><span class="cn">≈ '+ntd(x.amt*rate)+'</span></div>').join(''):'<div class="cn">目前不用找錢</div>')+'</div>'}
+  h+='<div class="people"><span class="sec-l">分帳成員</span>'+S.meta.people.map(p=>'<span class="pchip">'+esc(p)+'<button type="button" data-rm-person="'+esc(p)+'" aria-label="移除 '+esc(p)+'">×</button></span>').join('')+'<button type="button" class="btn sm" id="add-person">＋ 成員</button></div></div>';
+  const V=[['day','依日期'],['shop','依店家'],['cat','依分類'],['person','依人']];
+  h+='<div class="viewseg" role="group" aria-label="檢視方式">'+V.map(([k,l])=>'<button type="button" data-mview="'+k+'" aria-pressed="'+(S.mview===k)+'">'+l+'</button>').join('')+'</div>';
+  if(!m.ex.length){h+='<div class="empty">還沒有花費紀錄。按右下角「記一筆」，或在行程裡點店家記帳</div></div>';el.innerHTML=h;return}
+  const ex=m.ex.slice().sort((a,b)=>((a.day||99)-(b.day||99))||((a.ts||0)-(b.ts||0)));
+  const grp=(keyf,labelf,subf)=>{const g=new Map();ex.forEach(e=>{const k=keyf(e);if(!g.has(k))g.set(k,{k,rows:[],sum:0});const x=g.get(k);x.rows.push(e);x.sum+=+e.amount||0});
+    return [...g.values()].map(x=>Object.assign(x,{label:labelf(x),sub:subf(x)}))};
+  let groups,max=0;
+  if(S.mview==='day')groups=grp(e=>e.day||0,x=>x.k?dayLabel(x.k):'未指定日期',x=>x.rows.length+' 筆'+(x.k&&(S.days.get('d'+x.k)||{}).title?'・'+S.days.get('d'+x.k).title:'')).sort((a,b)=>(a.k||99)-(b.k||99));
+  else if(S.mview==='shop')groups=grp(e=>e.shop||'（未填店家）',x=>x.k,x=>x.rows.length+' 筆'+([...new Set(x.rows.map(e=>e.what).filter(Boolean))].join('、')?'・'+[...new Set(x.rows.map(e=>e.what).filter(Boolean))].join('、'):'')).sort((a,b)=>b.sum-a.sum);
+  else if(S.mview==='cat'){groups=grp(e=>CAT_L[e.cat]?e.cat:'other',x=>CAT_L[x.k],x=>x.rows.length+' 筆・佔 '+(m.total?Math.round(x.sum/m.total*100):0)+'%').sort((a,b)=>b.sum-a.sum);max=groups.length?groups[0].sum:0}
+  else groups=grp(e=>e.payer||'（未填）',x=>x.k+' 付的',x=>x.rows.length+' 筆'+(m.spent[x.k]!=null?'・自己花了 '+yen(m.spent[x.k]):'')).sort((a,b)=>b.sum-a.sum);
+  h+=aggHTML(groups,rate,max)+'</div>';
+  el.innerHTML=h;
+  const inTrip=tn>=1&&tn<=NDAYS;
+  el.querySelectorAll('details.agg').forEach((d,i)=>{d.dataset.k=S.mview+':'+groups[i].k;
+    if(openKeys.includes(d.dataset.k))d.open=true;
+    else if(!hadAny&&S.mview==='day'&&(inTrip?groups[i].k===tn:i===groups.length-1))d.open=true})}
+
+/* ---------- writes ---------- */
+function canWrite(){if(!S.canWrite){toast('你目前只能檢視，請行程擁有者把你設為可編輯');return false}return true}
+function queue(key,fn){const p=(S.q[key]||Promise.resolve()).then(fn).catch(onWriteErr);S.q[key]=p;return p}
+function onWriteErr(e){const c=e&&e.code;
+  if(c==='invalid_argument'){S.canWrite=false;setSync('ro','只能檢視');render();toast('你目前只能檢視，改動沒有存到')}
+  else if(c==='quota_exceeded')toast('資料已滿，請先刪掉一些項目');
+  else if(c==='revoked'){S.canWrite=false;setSync('off','已中斷');render()}
+  else toast('同步失敗，請稍後再試一次')}
+const COLS={items:'items',lists:'lists',exps:'expenses'};
+function ref(store,id){return S.db.collection(COLS[store]).doc(id)}
+function patch(store,id,p,undoMsg){const it=S[store].get(id);if(!it||!canWrite())return;
+  const prev={};for(const k in p)prev[k]=it[k]===undefined?null:it[k];
+  S[store].set(id,Object.assign({},it,p));render();
+  queue(store+id,()=>ref(store,id).update(p));
+  if(undoMsg)toast(undoMsg,()=>patch(store,id,prev))}
+function create(store,data){const r=S.db.collection(COLS[store]).doc();S[store].set(r.id,Object.assign({id:r.id},data));queue(store+r.id,()=>r.set(data));return r.id}
+function remove(store,id,label){const it=S[store].get(id);if(!it||!canWrite())return;const data=Object.assign({},it);delete data.id;
+  S[store].delete(id);render();queue(store+id,()=>ref(store,id).delete());
+  toast('已刪除「'+label+'」',()=>{S[store].set(id,Object.assign({id},data));render();queue(store+id,()=>ref(store,id).set(data))})}
+function moveItem(id,day,slot,order){const it=S.items.get(id);if(!it)return;
+  if(it.day===day&&it.slot===slot&&it.order===order)return;
+  patch('items',id,{day,slot,order},'已移到 '+dayLabel(day)+(day?'・'+SLOT_L[slot]:''))}
+function addItems(rows){if(!canWrite()||!rows.length)return;const ids=[];
+  for(const r of rows){const o=maxOrder(r.day,r.slot)+1000;
+    ids.push(create('items',{day:r.day,slot:r.slot,order:o,kind:r.kind,time:r.time||'',title:r.title,area:r.area||'',note:r.note||'',desc:'',map:r.map||'',photos:[],done:false}))}
+  render();const first=rows[0];setActive(first.day,{noScroll:true});
+  toast('已新增 '+rows.length+' 項'+(rows.every(r=>r.day===first.day)?'到 '+dayLabel(first.day):''),()=>{ids.forEach(id=>{S.items.delete(id);queue('items'+id,()=>ref('items',id).delete())});render()})}
+function setDayTitle(n,title){if(!canWrite())return;S.days.set('d'+n,{title});render();queue('d'+n,()=>S.db.collection('days').doc('d'+n).set({title}))}
+function saveMeta(m){if(!canWrite())return;S.meta=Object.assign({},S.meta,m);render();const body={rate:+S.meta.rate||0,people:S.meta.people};queue('meta',()=>S.db.collection('meta').doc('settings').set(body))}
+
+/* ---------- toast ---------- */
+let toastT=0;
+function toast(msg,undo,ms){clearTimeout(toastT);let t=$('#toast');if(t)t.remove();
+  t=document.createElement('div');t.id='toast';t.className='toast';t.setAttribute('role','status');
+  t.innerHTML='<span></span>'+(undo?'<button type="button">復原</button>':'');t.firstChild.textContent=msg;
+  if(undo)t.querySelector('button').onclick=()=>{t.remove();undo()};
+  document.body.appendChild(t);toastT=setTimeout(()=>t.remove(),ms||(undo?6000:3200))}
+
+/* ---------- smart parse ---------- */
+const KW_SLOT=[[/早午餐|早餐|breakfast/i,'breakfast'],[/午餐|中餐|午飯|lunch/i,'lunch'],[/晚餐|晚飯|dinner/i,'dinner'],[/宵夜|晚上|夜景/,'evening'],[/上午|早上/,'morning'],[/下午|下午茶/,'afternoon']];
+const KW_KIND=[[/搭|機場|航班|JX\d|✈|新幹線|地鐵|電車|巴士|計程車|接機|出門|前往|轉車|Skyliner/i,'move'],[/check ?in|check ?out|入住|退房|飯店/i,'stay'],
+  [/洗衣|採買|打包|訂位|換錢|領|買票|預約|記得/,'todo'],
+  [/餐|吃|拉麵|燒肉|壽司|咖啡|cafe|café|coffee|pizza|漢堡|丼|咖哩|甜點|麵包|bread|bakery|食堂|居酒屋|牛排|豬排|鰻|蕎麥|烏龍|鬆餅|冰|酒/i,'food'],
+  [/買|shop|store|商店|百貨|outlet|藥妝|唐吉|BEAMS|UNIQLO|GU|書店|玩具/i,'shop']];
+const AREAS='原宿 表參道 澀谷 新宿 池袋 上野 淺草 淺草橋 藏前 押上 兩國 秋葉原 銀座 築地 東京車站 丸之內 日本橋 六本木 麻布台 麻布十番 神樂坂 中目黑 代官山 惠比壽 下北澤 吉祥寺 高円寺 自由之丘 品川 大井町 台場 舞濱 橫濱 鎌倉 江之島 福生 湯島 谷中 月島 豐洲 二子玉川 晴空塔'.split(' ');
+function guessSlot(kind,hour){if(hour==null)return null;
+  if(kind==='food')return hour<10?'breakfast':hour<15?'lunch':hour<17?'afternoon':'dinner';
+  return hour<12?'morning':hour<18?'afternoon':'evening'}
+function parseLine(line,def){let s=line.trim();if(!s)return null;const r={day:def.day,slot:null,kind:null,time:'',title:'',area:'',note:'',map:''};
+  const um=s.match(/https?:\/\/\S+/);if(um){r.map=um[0];s=s.replace(um[0],' ');
+    const pm=r.map.match(/\/maps\/place\/([^/@?]+)/);if(pm&&!s.trim()){try{s=decodeURIComponent(pm[1].replace(/\+/g,' '))}catch(e){}}}
+  let m=s.match(/(?:^|\s)(?:day|d)\s*(\d{1,2})(?=\s|$)/i);if(m&&+m[1]>=1&&+m[1]<=NDAYS){r.day=+m[1];s=s.replace(m[0],' ')}
+  else{m=s.match(new RegExp('(?:^|\\s)'+(START.getMonth()+1)+'\\s*[\\/月]\\s*(\\d{1,2})\\s*日?'));if(m){const n=+m[1]-START.getDate()+1;if(n>=1&&n<=NDAYS){r.day=n;s=s.replace(m[0],' ')}}}
+  let hour=null;m=s.match(/(\d{1,2})\s*[:：]\s*(\d{2})/);if(m&&+m[1]<24){hour=+m[1];r.time=String(+m[1]).padStart(2,'0')+':'+m[2];s=s.replace(m[0],' ')}
+  for(const [re,k] of KW_SLOT){const mm=s.match(re);if(mm){r.slot=k;if(/^(早午餐|早餐|午餐|中餐|晚餐|上午|下午|晚上|早上|宵夜)$/.test(mm[0]))s=s.replace(mm[0],' ');break}}
+  for(const [re,k] of KW_KIND)if(re.test(s+' '+line)){r.kind=k;break}
+  if(!r.kind)r.kind=r.slot&&/breakfast|lunch|dinner/.test(r.slot)?'food':'spot';
+  s=s.split(/\s+/).filter(w=>{if(!r.area&&AREAS.includes(w)){r.area=w;return false}return true}).join(' ');
+  r.title=s.replace(/\s+/g,' ').replace(/^[\s,，、|｜\-–—]+|[\s,，、|｜\-–—]+$/g,'').trim();
+  if(!r.title)r.title=r.map?'新地點（點進去改名）':'';
+  if(!r.title)return null;
+  if(r.day===0)r.slot='pool';
+  else if(!r.slot)r.slot=guessSlot(r.kind,hour)||(def.slot&&def.slot!=='pool'?def.slot:(r.kind==='food'?'lunch':'afternoon'));
+  return r}
+
+/* ---------- sheets ---------- */
+function openSheet(html,onMount){const L=$('#layer');L.innerHTML='<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true"><button type="button" class="sheet-x" aria-label="關閉">×</button>'+html+'</div></div>';
+  const sc=$('#scrim'),sh=sc.firstChild;sc.addEventListener('click',e=>{if(e.target===sc)closeSheet()});sh.querySelector('.sheet-x').onclick=closeSheet;
+  const bs=[...sh.children].filter(c=>c.classList.contains('btns'));if(bs.length)bs[bs.length-1].classList.add('foot');
+  onMount&&onMount(sh);
+  const pd=sh.querySelector('.dstrip [aria-pressed="true"]');if(pd){const st=pd.parentNode;st.scrollLeft=pd.offsetLeft-st.offsetLeft-st.clientWidth/2+pd.offsetWidth/2}}
+function closeSheet(){if(S.aiCtl){S.aiCtl.abort();S.aiCtl=null}$('#layer').innerHTML=''}
+function lightbox(src){const d=document.createElement('div');d.className='lb';d.innerHTML='<img alt=""><button type="button" aria-label="關閉">×</button>';d.querySelector('img').src=src;
+  d.addEventListener('click',()=>d.remove());document.body.appendChild(d)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const lb=$('.lb');if(lb){lb.remove();return}if(S.drag)endDrag(true);else closeSheet()}});
+function daySeg(sel,withPool,poolLabel){let h='<div class="seg dstrip" id="seg-day">';for(let n=withPool?0:1;n<=NDAYS;n++){const d=n?dayDate(n):null,wd=d&&d.getDay();
+  h+=n?'<button type="button" class="'+(wd===0||wd===6?'we':'')+'" data-v="'+n+'" aria-pressed="'+(sel===n)+'" aria-label="'+md(d)+' 週'+WK[wd]+'"><span class="w">'+WK[wd]+'</span><span class="n">'+d.getDate()+'</span></button>'
+    :'<button type="button" class="pool" data-v="0" aria-pressed="'+(sel===0)+'"><span class="w">'+(poolLabel||'口袋')+'</span><span class="n">未定</span></button>'}return h+'</div>'}
+function slotSeg(sel,day){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
+  return '<div class="seg" id="seg-slot">'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(sel===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
+function kindSeg(sel){return '<div class="seg" id="seg-kind">'+KINDS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(sel===k)+'">'+l+'</button>').join('')+'</div>'}
+function bindSeg(root,id,cb){const el=root.querySelector('#'+id);if(!el)return;el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||S.readSheet)return;
+  el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));cb(b.dataset.v)})}
+
+/* photos editor: works on a local array and calls onChange */
+function photosHTML(ids,ro){return '<div class="photos" id="photos">'+(ids||[]).map(id=>'<span class="ph-t" data-pid="'+esc(id)+'"><img src="'+esc(photoSrc(id))+'" alt="照片">'+(ro?'':'<button type="button" class="ph-rm" aria-label="移除照片">×</button>')+'</span>').join('')+
+  (!ro&&S.assets?'<label class="ph-add">＋<br>加照片<input type="file" accept="image/*" multiple id="ph-file"></label>':'')+'</div>'}
+function compress(file){return new Promise(res=>{if(!/^image\//.test(file.type)||file.type==='image/gif'||file.type==='image/svg+xml'){res(file);return}
+  const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{const M=1600,s=Math.min(1,M/Math.max(img.width,img.height));
+    if(s===1&&file.size<1.5e6){URL.revokeObjectURL(url);res(file);return}
+    const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    c.toBlob(b=>{URL.revokeObjectURL(url);res(b||file)},'image/jpeg',.85)};img.onerror=()=>{URL.revokeObjectURL(url);res(file)};img.src=url})}
+function bindPhotos(root,getIds,setIds){const box=root.querySelector('#photos');if(!box)return;
+  box.addEventListener('click',e=>{const rm=e.target.closest('.ph-rm');
+    if(rm){e.preventDefault();const t=rm.closest('.ph-t'),pid=t.dataset.pid;
+      if(!rm.classList.contains('arm')){rm.classList.add('arm');rm.textContent='確定刪除';setTimeout(()=>{if(rm.isConnected){rm.classList.remove('arm');rm.textContent='×'}},3000);return}
+      setIds(getIds().filter(x=>x!==pid));t.remove();if(S.assets)S.assets.delete(pid).catch(()=>{});toast('照片已刪除');return}
+    const im=e.target.closest('.ph-t img');if(im)lightbox(im.src)});
+  const inp=box.querySelector('#ph-file');if(!inp)return;
+  inp.addEventListener('change',async()=>{const files=[...inp.files];inp.value='';if(!files.length)return;
+    for(const f of files){const busy=document.createElement('span');busy.className='ph-busy';busy.textContent='上傳中…';box.insertBefore(busy,box.querySelector('.ph-add'));
+      try{const blob=await compress(f);const r=await S.assets.upload(blob,{contentType:blob.type||f.type});S.assetUrl[r.id]=r.url;
+        setIds(getIds().concat(r.id));const t=document.createElement('span');t.className='ph-t';t.dataset.pid=r.id;t.innerHTML='<img alt="照片"><button type="button" class="ph-rm" aria-label="移除照片">×</button>';t.querySelector('img').src=photoSrc(r.id);busy.replaceWith(t)}
+      catch(e){busy.remove();const c=e&&e.code;toast(c==='quota_exceeded'?'空間滿了，先刪掉幾張照片':c==='not_granted'?'你沒有上傳權限':'照片上傳失敗，請再試一次')}}})}
+
+function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrite;S.readSheet=ro;
+  const st={day:it.day,slot:it.slot,kind:it.kind||'spot',photos:(it.photos||[]).slice(),must:!!it.must};
+  openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
+    '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+
+    '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
+    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
+    '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
+    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
+    '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
+    '<div class="row2"><div class="fld"><label for="e-time">時間</label><input class="inp" id="e-time" inputmode="numeric" placeholder="例 12:30" value="'+esc(it.time)+'"></div>'+
+    '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
+    '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+
+    (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
+    (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
+    '<details class="more"'+(it.note?' open':'')+'><summary>更多資訊（備註、類型、地圖連結）</summary><div>'+
+    '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
+    '<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>'+
+    '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
+    '<div class="fld"><label for="e-map">Google 地圖連結</label><input class="inp" id="e-map" inputmode="url" placeholder="貼上地圖分享連結" value="'+esc(it.map)+'"></div>'+
+    '</div></details>'+
+    '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="e-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="e-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="e-save">儲存</button>')+'</div>',
+  root=>{
+    if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
+    const rebindSlot=()=>bindSeg(root,'seg-slot',v=>st.slot=v);
+    bindSeg(root,'seg-day',v=>{const n=+v;if(n===0)st.slot='pool';else if(st.slot==='pool')st.slot=st.kind==='food'?'lunch':'afternoon';st.day=n;
+      root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n);rebindSlot()});
+    rebindSlot();bindSeg(root,'seg-kind',v=>st.kind=v);bindSeg(root,'seg-must',v=>st.must=v==='1');
+    root.querySelector('#e-cancel').onclick=closeSheet;
+    const sf=root.querySelector('#e-staff');if(sf)sf.onclick=()=>showStaff(S.items.get(id)||it);
+    const ex=root.querySelector('#e-exp');if(ex)ex.onclick=()=>{if(!canWrite())return;closeSheet();openExp(null,{shop:it.title,day:it.day,cat:KIND2CAT[it.kind]||'other',itemId:it.id})};
+    if(ro)return;
+    /* photos save immediately so an upload is never lost if the sheet is cancelled */
+    bindPhotos(root,()=>st.photos,ids=>{st.photos=ids;const cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:ids}));queue('items'+id,()=>ref('items',id).update({photos:ids}));render()}});
+    const ai=root.querySelector('#e-ai');
+    if(ai)ai.onclick=async()=>{const ta=root.querySelector('#e-desc'),t=root.querySelector('#e-title').value.trim(),a=root.querySelector('#e-area').value.trim();if(!t)return;
+      if(S.aiCtl)S.aiCtl.abort();S.aiCtl=new AbortController();ai.disabled=true;ai.textContent='撰寫中…';const before=ta.value;
+      try{await S.sample('請用繁體中文（台灣用語）寫一段 30 到 70 字的簡介，給去日本旅遊的人看。地點：「'+t+'」'+(a?'，位於東京的'+a:'，在東京一帶')+'。類型：'+(KIND_L[st.kind]||'景點')+'。說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實；不確定的不要寫，也不要寫營業時間或價格。只回覆簡介本身，不要標題或引號。',
+          {signal:S.aiCtl.signal,modelTier:'quick',onText:({text})=>{ta.value=text}})}
+      catch(e){ta.value=before;if(e&&e.name!=='AbortError'&&e.code!=='aborted')toast(e&&e.code==='not_granted'?'需要先允許 AI 功能':'AI 暫時寫不出來，請再試一次')}
+      finally{if(ai.isConnected){ai.disabled=false;ai.textContent='✨ AI 寫簡介'}}};
+    root.querySelector('#e-del').onclick=()=>{closeSheet();remove('items',id,it.title)};
+    root.querySelector('#e-save').onclick=()=>{const v=k=>root.querySelector('#e-'+k).value.trim();
+      const p={};const f={title:v('title'),time:v('time'),area:v('area'),desc:v('desc'),note:v('note'),q:v('q'),map:v('map'),kind:st.kind};
+      if(!f.title){root.querySelector('#e-title').focus();return}
+      const cur=S.items.get(id)||it;for(const k in f)if((cur[k]||'')!==f[k])p[k]=f[k];
+      if(st.must!==!!cur.must)p.must=st.must;
+      if(st.day!==cur.day||st.slot!==cur.slot){p.day=st.day;p.slot=st.slot;p.order=maxOrder(st.day,st.slot)+1000}
+      closeSheet();if(Object.keys(p).length)patch('items',id,p,p.day!=null?'已移到 '+dayLabel(st.day)+(st.day?'・'+SLOT_L[st.slot]:''):'已儲存')}
+  })}
+
+function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&def.slot!=='pool'?def.slot:null};S.readSheet=false;
+  const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段</span><div class="seg" id="seg-aslot"><button type="button" data-v="" aria-pressed="'+(!d.slot)+'">自動</button>'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
+  openSheet('<h2>新增行程</h2>'+
+    '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或地點，例：一蘭拉麵 澀谷"></textarea><span class="hint2">可以貼 Google 地圖連結・寫「12:30」或「午餐」會自動排時段・換行可以一次加很多個</span></div>'+
+    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
+    '<div id="a-slot">'+slotChips()+'</div>'+
+    '<div class="preview" id="a-pv"></div>'+
+    '<div class="btns"><button type="button" class="btn pri block" id="a-ok" disabled>加入行程</button></div>',
+  root=>{const ta=root.querySelector('#a-text'),pv=root.querySelector('#a-pv'),ok=root.querySelector('#a-ok');let rows=[];
+    const grow=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px'};
+    const upd=()=>{rows=ta.value.split(/\n+/).map(l=>parseLine(l,d)).filter(Boolean);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
+      pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time?'<span class="itime">'+r.time+'</span>':'')+
+        '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
+      ok.disabled=!rows.length;ok.textContent=rows.length>1?'加入 '+rows.length+' 個行程':'加入行程'};
+    const bindSlot=()=>bindSeg(root,'seg-aslot',v=>{d.slot=v||null;upd()});
+    ta.addEventListener('input',()=>{grow();upd()});
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();ok.click()}});
+    bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot()}upd()});
+    bindSlot();
+    ok.onclick=()=>{if(!rows.length)return;closeSheet();addItems(rows)};
+    setTimeout(()=>ta.focus(),50)})}
+
+function openDayTitle(n){if(!canWrite())return;const cur=(S.days.get('d'+n)||{}).title||'';S.readSheet=false;
+  openSheet('<h2>Day '+n+'・'+md(dayDate(n))+'</h2><div class="fld"><label for="d-title">這天主要去哪</label><input class="inp" id="d-title" placeholder="例 上野・淺草" value="'+esc(cur)+'"></div>'+
+   '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="d-cancel">取消</button><button type="button" class="btn pri" id="d-ok">儲存</button></div>',
+  root=>{const i=root.querySelector('#d-title');setTimeout(()=>i.focus(),50);root.querySelector('#d-cancel').onclick=closeSheet;
+    const go=()=>{const v=i.value.trim();closeSheet();if(v!==cur)setDayTitle(n,v)};root.querySelector('#d-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+
+function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWrite;S.readSheet=ro;const st={day:r.day||0,photos:(r.photos||[]).slice()};
+  openSheet('<h2>'+esc(LT_L[r.type]||'清單')+'</h2>'+
+    '<div class="fld"><label for="l-title">項目</label><input class="inp" id="l-title" value="'+esc(r.title)+'"></div>'+
+    '<div class="fld"><label for="l-note">備註</label><textarea class="inp" id="l-note" style="min-height:64px" placeholder="'+(r.type==='book'?'確認碼、時間、人數':r.type==='buy'?'在哪買、幫誰買':'')+'">'+esc(r.note)+'</textarea></div>'+
+    (r.type!=='pack'?'<div class="fld"><span class="lbl">相關日期</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
+    (r.type!=='pack'?'<div class="fld"><span class="lbl">照片（票券截圖、商品照）</span>'+photosHTML(st.photos,ro)+'</div>':'')+
+    '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="l-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="l-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="l-save">儲存</button>')+'</div>',
+  root=>{if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
+    bindSeg(root,'seg-day',v=>st.day=+v);root.querySelector('#l-cancel').onclick=closeSheet;if(ro)return;
+    bindPhotos(root,()=>st.photos,ids=>{st.photos=ids;const cur=S.lists.get(id);if(cur){S.lists.set(id,Object.assign({},cur,{photos:ids}));queue('lists'+id,()=>ref('lists',id).update({photos:ids}));render()}});
+    root.querySelector('#l-del').onclick=()=>{closeSheet();remove('lists',id,r.title)};
+    root.querySelector('#l-save').onclick=()=>{const t=root.querySelector('#l-title').value.trim(),n=root.querySelector('#l-note').value.trim();if(!t){root.querySelector('#l-title').focus();return}
+      const cur=S.lists.get(id)||r,p={};if(t!==cur.title)p.title=t;if(n!==(cur.note||''))p.note=n;if(r.type!=='pack'&&st.day!==(cur.day||0))p.day=st.day;
+      closeSheet();if(Object.keys(p).length)patch('lists',id,p,'已儲存')}})}
+
+function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const ro=!S.canWrite;if(!id&&!canWrite())return;S.readSheet=ro;
+  const tn=todayN(),base=e||Object.assign({shop:'',what:'',amount:'',payer:ls.get(T.id+'-payer')||(S.meta.people[0]||''),split:'all',cat:'food',day:tn>=1&&tn<=NDAYS?tn:(S.active||0),itemId:''},pre||{});
+  const st={day:base.day||0,cat:CAT_L[base.cat]?base.cat:'other',split:base.split==='self'?'self':'all',itemId:base.itemId||''};
+  const shops=[...new Set([...[...S.items.values()].filter(i=>PLACE_KINDS.includes(i.kind)).map(i=>i.title),...[...S.exps.values()].map(x=>x.shop).filter(Boolean)])];
+  const ps=people();
+  openSheet('<h2>'+(id?'花費':'記一筆')+'</h2>'+
+    '<div class="fld"><label for="x-shop">店家／地點</label><input class="inp" id="x-shop" list="dl-shops" placeholder="例：一蘭拉麵 澀谷店" value="'+esc(base.shop)+'" autocomplete="off"><datalist id="dl-shops">'+shops.map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist></div>'+
+    '<div class="fld"><label for="x-what">吃了什麼／買了什麼</label><input class="inp" id="x-what" placeholder="例：拉麵兩碗、啤酒" value="'+esc(base.what)+'" autocomplete="off"></div>'+
+    '<div class="fld"><label for="x-amt">金額 ¥</label><input class="inp" id="x-amt" inputmode="decimal" placeholder="例 2400" value="'+esc(base.amount)+'" autocomplete="off"><span class="amt-hint" id="x-ntd"></span></div>'+
+    '<div class="fld"><span class="lbl">分類</span><div class="seg" id="seg-cat">'+CATS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.cat===k)+'">'+l+'</button>').join('')+'</div></div>'+
+    '<div class="fld"><label for="x-payer">誰付的</label><input class="inp" id="x-payer" placeholder="名字" value="'+esc(base.payer)+'" autocomplete="off">'+(ps.length?'<div class="qchips" id="x-pq">'+ps.map(p=>'<button type="button" data-p="'+esc(p)+'">'+esc(p)+'</button>').join('')+'</div>':'')+'</div>'+
+    '<div class="fld"><span class="lbl">怎麼算</span><div class="seg" id="seg-split"><button type="button" data-v="all" aria-pressed="'+(st.split==='all')+'">大家平分</button><button type="button" data-v="self" aria-pressed="'+(st.split==='self')+'">只算付的人</button></div></div>'+
+    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'未定')+'</div>'+
+    '<div class="btns">'+(id&&!ro?'<button type="button" class="btn danger" id="x-del">刪除</button>':'')+'<span class="sp"></span><button type="button" class="btn" id="x-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="x-save">'+(id?'儲存':'記一筆')+'</button>')+'</div>',
+  root=>{const q=k=>root.querySelector('#x-'+k);if(ro)root.querySelectorAll('input').forEach(x=>x.readOnly=true);
+    const hint=()=>{const a=parseAmt(q('amt').value);q('ntd').textContent=a>0?'≈ '+ntd(a*(+S.meta.rate||0)):''};hint();q('amt').addEventListener('input',hint);
+    const press=(sid,v)=>root.querySelectorAll('#'+sid+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));
+    bindSeg(root,'seg-day',v=>st.day=+v);bindSeg(root,'seg-cat',v=>st.cat=v);bindSeg(root,'seg-split',v=>st.split=v);
+    const link=()=>{const it=[...S.items.values()].find(i=>i.title===q('shop').value.trim());
+      if(it){st.itemId=it.id;const c=KIND2CAT[it.kind];if(c){st.cat=c;press('seg-cat',c)}if(it.day&&!id){st.day=it.day;press('seg-day',it.day)}}else st.itemId=''};
+    q('shop').addEventListener('change',link);
+    const pq=q('pq');if(pq&&!ro)pq.addEventListener('click',ev=>{const b=ev.target.closest('button');if(b)q('payer').value=b.dataset.p});
+    q('cancel').onclick=closeSheet;if(ro)return;
+    if(id)q('del').onclick=()=>{closeSheet();remove('exps',id,e.shop||e.what||'花費')};
+    q('save').onclick=()=>{if(q('shop').value.trim()!==(base.shop||''))link();
+      const shop=q('shop').value.trim(),what=q('what').value.trim(),a=parseAmt(q('amt').value),py=q('payer').value.trim();
+      if(!shop&&!what){q('shop').focus();toast('請填店家或買了什麼');return}if(!(a>0)){q('amt').focus();toast('請輸入金額');return}
+      const data={shop,what,amount:a,payer:py,split:st.split,cat:st.cat,day:st.day,itemId:st.itemId};
+      closeSheet();if(py){ls.set(T.id+'-payer',py);if(!S.meta.people.includes(py))saveMeta({people:S.meta.people.concat(py)})}
+      if(id){const cur=S.exps.get(id)||e,p={};for(const k in data)if((cur[k]==null?'':cur[k])!==data[k])p[k]=data[k];if(Object.keys(p).length)patch('exps',id,p,'已儲存')}
+      else{create('exps',Object.assign(data,{ts:Date.now()}));render();toast('已記一筆 '+yen(a)+(shop?'・'+shop:''))}};
+    if(!id)setTimeout(()=>q(base.shop?'amt':'shop').focus(),50)})}
+const parseAmt=s=>{const v=parseFloat(String(s).replace(/[,，¥円\s]/g,''));return isFinite(v)?Math.round(v):NaN};
+
+function openPrompt(title,label,val,ph,mode,onOk){S.readSheet=false;
+  openSheet('<h2>'+esc(title)+'</h2><div class="fld"><label for="p-in">'+esc(label)+'</label><input class="inp" id="p-in" '+(mode?'inputmode="'+mode+'" ':'')+'placeholder="'+esc(ph)+'" value="'+esc(val)+'"></div>'+
+   '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="p-cancel">取消</button><button type="button" class="btn pri" id="p-ok">確定</button></div>',
+  root=>{const i=root.querySelector('#p-in');setTimeout(()=>i.focus(),50);root.querySelector('#p-cancel').onclick=closeSheet;
+    const go=()=>{const v=i.value.trim();if(onOk(v)!==false)closeSheet()};root.querySelector('#p-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+
+/* ---------- search ---------- */
+function openSearch(){S.readSheet=false;
+  openSheet('<h2>搜尋</h2><div class="fld"><label for="s-in">店名、地區、清單、花費</label><input class="inp" id="s-in" type="search" placeholder="例：燒肉、淺草、護照" autocomplete="off"></div><div class="sres" id="s-res"></div>',
+  root=>{const i=root.querySelector('#s-in'),out=root.querySelector('#s-res');setTimeout(()=>i.focus(),50);
+    const hl=(s,q)=>{const t=esc(s);if(!q)return t;const eq=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return t.replace(new RegExp(eq,'gi'),m=>'<mark>'+m+'</mark>')};
+    const run=()=>{const q=i.value.trim().toLowerCase();if(!q){out.innerHTML='';return}const res=[];
+      const has=(...f)=>f.some(x=>String(x||'').toLowerCase().includes(q));
+      for(const it of S.items.values())if(has(it.title,it.area,it.note,it.desc,it.q))res.push({k:'i',id:it.id,t:it.title,w:(it.day?dayLabel(it.day)+'・'+SLOT_L[it.slot]:'口袋名單')+(it.area?'・'+it.area:''),s:it.day*10+(SLOT_I[it.slot]||0)});
+      for(const r of S.lists.values())if(has(r.title,r.note))res.push({k:'l',id:r.id,t:r.title,w:'清單・'+(LT_L[r.type]||''),s:900});
+      for(const e of S.exps.values())if(has(e.shop,e.what,e.payer))res.push({k:'e',id:e.id,t:(e.shop||e.what)+(e.shop&&e.what?'・'+e.what:''),w:'記帳・'+yen(+e.amount||0)+(e.payer?'・'+e.payer+' 付':'')+(e.day?'・'+md(dayDate(e.day)):''),s:950});
+      res.sort((a,b)=>a.s-b.s);
+      out.innerHTML=res.length?res.slice(0,40).map(r=>'<button type="button" data-k="'+r.k+'" data-id="'+esc(r.id)+'"><b>'+hl(r.t,i.value.trim())+'</b><span>'+esc(r.w)+'</span></button>').join(''):'<div class="empty">找不到「'+esc(i.value.trim())+'」</div>'};
+    i.addEventListener('input',run);
+    out.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;closeSheet();goTo(b.dataset.k,b.dataset.id)})})}
+function goTo(k,id){let sel;
+  if(k==='i'){const it=S.items.get(id);if(!it)return;setActive(it.day);sel='.item[data-id="'+CSS.escape(id)+'"]'}
+  else if(k==='l'){const r=S.lists.get(id);if(!r)return;setActive(r.type==='pack'?0:(r.day||0));sel='[data-lid="'+CSS.escape(id)+'"]'}
+  else{const r=S.exps.get(id);if(!r)return;setActive(r.day||0);
+    sel='#board [data-eid="'+CSS.escape(id)+'"]'}
+  setTimeout(()=>{const el=document.querySelector(sel);if(!el)return;
+    if(desk.matches&&k==='i'){const col=el.closest('.col'),b=$('#board');if(col)b.scrollTo({left:col.offsetLeft-b.offsetLeft-16})}
+    el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')},120)}
+
+function setActive(n,opt){S.active=n;ls.set(T.id+'-day',n);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',+c.dataset.day===n));
+  document.querySelectorAll('.col').forEach(c=>{c.classList.toggle('active',+c.dataset.col===n);c.classList.remove('pop')});
+  {const ac=document.querySelector('.col.active');if(ac){void ac.offsetWidth;ac.classList.add('pop')}}
+  const chip=document.querySelector('.chip[data-day="'+n+'"]'),st=$('#strip');
+  if(chip){const target=chip.offsetLeft-st.offsetLeft-st.clientWidth/2+chip.offsetWidth/2;st.scrollTo({left:target,behavior:'smooth'})}
+  if(desk.matches){const col=document.querySelector('.col[data-col="'+n+'"]'),b=$('#board');if(col&&!(opt&&opt.noScroll))b.scrollTo({left:col.offsetLeft-b.offsetLeft-16,behavior:'smooth'})}
+  else if(!(opt&&opt.noScroll)){const y=$('.bar-wrap').getBoundingClientRect().top+scrollY-($('#now').hidden?0:0);const hy=$('#app .hero').offsetHeight;if(scrollY>hy)scrollTo({top:hy,behavior:'smooth'})}
+  if(!S.drag)renderNow();pushPresence()}
+
+/* ---------- drag & drop ---------- */
+function startDrag(e,grip){if(!S.canWrite){toast('你目前只能檢視，不能移動');return}
+  if(e.button!=null&&e.button!==0)return;e.preventDefault();if(S.drag)endDrag(true);
+  const el=grip.closest('.item'),r=el.getBoundingClientRect();
+  const ghost=el.cloneNode(true);ghost.classList.add('ghost');ghost.style.width=r.width+'px';ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';document.body.appendChild(ghost);
+  const ph=document.createElement('div');ph.className='ph';ph.style.height=r.height+'px';
+  const op=sibItem(el,-1),on=sibItem(el,1);
+  el.after(ph);el.classList.add('src');
+  S.drag={id:el.dataset.id,el,ghost,ph,grip,pid:e.pointerId,list0:el.parentNode,prev0:op&&op.dataset.id,next0:on&&on.dataset.id,
+    dx:e.clientX-r.left,dy:e.clientY-r.top,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,chip:null,chipT:0,raf:0};
+  try{grip.setPointerCapture(e.pointerId)}catch(_){}
+  document.body.classList.add('dragging');
+  window.addEventListener('pointermove',onDragMove,true);window.addEventListener('pointerup',onDragUp,true);window.addEventListener('pointercancel',onDragCancel,true);
+  S.drag.raf=requestAnimationFrame(autoScroll)}
+function onDragMove(e){const d=S.drag;if(!d||e.pointerId!==d.pid)return;e.preventDefault();d.x=e.clientX;d.y=e.clientY;
+  if(!d.moved&&Math.hypot(d.x-d.sx,d.y-d.sy)>4)d.moved=true;
+  d.ghost.style.left=(d.x-d.dx)+'px';d.ghost.style.top=(d.y-d.dy)+'px';hit()}
+function hit(){const d=S.drag;const t=document.elementFromPoint(d.x,d.y);if(!t)return;
+  const chip=t.closest('.chip');
+  if(chip){if(d.chip!==chip){if(d.chip)d.chip.classList.remove('drop');d.chip=chip;chip.classList.add('drop');clearTimeout(d.chipT);
+      d.chipT=setTimeout(()=>{if(S.drag&&S.drag.chip===chip){setActive(+chip.dataset.day,{noScroll:true})}},500)}return}
+  if(d.chip){d.chip.classList.remove('drop');d.chip=null;clearTimeout(d.chipT)}
+  const list=t.closest('.list');if(!list)return;
+  const its=[...list.querySelectorAll('.item:not(.src)')];let before=null;
+  for(const it of its){const rr=it.getBoundingClientRect();if(d.y<rr.top+rr.height/2){before=it;break}}
+  if(before){if(d.ph.nextElementSibling!==before||d.ph.parentNode!==list)list.insertBefore(d.ph,before)}
+  else if(d.ph.parentNode!==list||sibItem(d.ph,1))list.appendChild(d.ph)}
+function autoScroll(){const d=S.drag;if(!d)return;let moved=false;
+  const sb=$('.bar-wrap').getBoundingClientRect().bottom,H=innerHeight;
+  if(d.y>sb&&d.y<sb+56&&scrollY>0){scrollBy(0,-12);moved=true}else if(d.y>H-72){scrollBy(0,12);moved=true}
+  const st=$('#strip'),str=st.getBoundingClientRect();
+  if(d.y>=str.top&&d.y<=str.bottom){if(d.x<str.left+48&&st.scrollLeft>0){st.scrollLeft-=10;moved=true}else if(d.x>str.right-48&&st.scrollLeft<st.scrollWidth-st.clientWidth){st.scrollLeft+=10;moved=true}}
+  if(desk.matches){const b=$('#board'),br=b.getBoundingClientRect();
+    if(d.x<br.left+64&&b.scrollLeft>0){b.scrollLeft-=16;moved=true}else if(d.x>br.right-64&&b.scrollLeft<b.scrollWidth-b.clientWidth){b.scrollLeft+=16;moved=true}}
+  if(moved)hit();d.raf=requestAnimationFrame(autoScroll)}
+function onDragUp(e){if(S.drag&&e.pointerId===S.drag.pid)endDrag(false)}
+function onDragCancel(e){if(S.drag&&e.pointerId===S.drag.pid)endDrag(true)}
+function sibItem(el,dir){let s=dir<0?el.previousElementSibling:el.nextElementSibling;while(s&&(!s.classList.contains('item')||s.classList.contains('src')))s=dir<0?s.previousElementSibling:s.nextElementSibling;return s}
+function endDrag(cancel){const d=S.drag;if(!d)return;
+  window.removeEventListener('pointermove',onDragMove,true);window.removeEventListener('pointerup',onDragUp,true);window.removeEventListener('pointercancel',onDragCancel,true);
+  try{d.grip.releasePointerCapture(d.pid)}catch(_){}
+  cancelAnimationFrame(d.raf);clearTimeout(d.chipT);
+  let tgt=null;const it=S.items.get(d.id);
+  if(!cancel&&d.moved&&it){
+    if(d.chip){const day=+d.chip.dataset.day;const slot=day===0?'pool':(it.slot==='pool'?(it.kind==='food'?'lunch':'afternoon'):it.slot);
+      tgt=day===it.day?null:{day,slot,order:maxOrder(day,slot)+1000}}
+    else if(d.ph.parentNode&&d.ph.parentNode.classList.contains('list')){const list=d.ph.parentNode,day=+list.dataset.day,slot=list.dataset.slot;
+      const p=sibItem(d.ph,-1),n=sibItem(d.ph,1);
+      const same=list===d.list0&&(p&&p.dataset.id)===d.prev0&&(n&&n.dataset.id)===d.next0;
+      if(!same){const pi=p&&S.items.get(p.dataset.id),ni=n&&S.items.get(n.dataset.id);const po=pi?pi.order:null,no=ni?ni.order:null;
+        const order=po!=null&&no!=null?(po+no)/2:po!=null?po+1000:no!=null?no-1000:1000;tgt={day,slot,order}}}}
+  if(d.chip)d.chip.classList.remove('drop');
+  d.ghost.remove();d.ph.remove();d.el.classList.remove('src');document.body.classList.remove('dragging');
+  S.drag=null;
+  if(tgt)moveItem(d.id,tgt.day,tgt.slot,tgt.order);
+  else if(S.dirty)render();
+  else renderNow()}
+
+/* ---------- events ---------- */
+document.addEventListener('pointerdown',e=>{const g=e.target.closest('.grip');if(g)startDrag(e,g)});
+document.addEventListener('click',e=>{const t=e.target;let el;
+  if(S.lpFired){S.lpFired=false;e.preventDefault();return}
+  if(S.drag||!t.isConnected||t.closest('#layer')||t.closest('a'))return;
+  if(t.closest('#mbar')){openMoney();return}
+  if((el=t.closest('[data-exp-day]'))){openExp(null,{day:+el.dataset.expDay});return}
+  if((el=t.closest('[data-todo-day]'))){openTodoAdd(+el.dataset.todoDay);return}
+  if(t.closest('#search-btn')){openSearch();return}
+  if((el=t.closest('.chip'))){setActive(+el.dataset.day);return}
+  if((el=t.closest('.now-done'))){const it=S.items.get(el.dataset.id);if(it)patch('items',it.id,{done:true},'已完成「'+it.title+'」');return}
+  if((el=t.closest('.lchk'))){const id=el.closest('.crow').dataset.lid,r=S.lists.get(id);if(r)patch('lists',id,{done:!r.done});return}
+  if((el=t.closest('.chk'))&&el.closest('.item')){const id=el.closest('.item').dataset.id,it=S.items.get(id);if(it)patch('items',id,{done:!it.done});return}
+  if((el=t.closest('.ithumbs img'))){lightbox(el.src);return}
+  if((el=t.closest('.ibody'))){openEdit(el.closest('.item').dataset.id);return}
+  if((el=t.closest('.lbody'))){openListEdit(el.closest('.crow').dataset.lid);return}
+  if((el=t.closest('.ebody'))){openExp(el.closest('.erow').dataset.eid);return}
+  if((el=t.closest('.slot-add'))){openAdd({day:+el.dataset.day,slot:el.dataset.slot});return}
+  if((el=t.closest('[data-edit-day]'))){openDayTitle(+el.dataset.editDay);return}
+  if(t.closest('#fab')){if(S.tab==='money')openExp(null);else openAdd({day:S.active,slot:S.active===0?'pool':null});return}
+  const c=t.closest('.col');if(c&&desk.matches&&+c.dataset.col!==S.active)setActive(+c.dataset.col,{noScroll:true})});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('ibody')){e.preventDefault();openEdit(e.target.closest('.item').dataset.id)}});
+document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();if(!canWrite())return;
+  if(f.classList.contains('addrow')){const i=f.querySelector('input'),v=i.value.trim();if(!v)return;
+    const lines=v.split(/[\n]+/).map(s=>s.trim()).filter(Boolean);lines.forEach((l,k)=>create('lists',{type:f.dataset.type,title:l,note:'',done:false,day:+f.dataset.day||0,photos:[],ts:Date.now()+k}));
+    const iid=i.id;i.value='';render();const ni=document.getElementById(iid);if(ni){ni.value='';ni.focus({preventScroll:true})}}
+});
+desk.addEventListener('change',()=>render());
+$('#cam-file').addEventListener('change',async e=>{const inp=e.target,files=[...inp.files],id=S.camFor;inp.value='';if(!files.length||!id||!S.assets)return;
+  toast('照片上傳中…');let n=0;
+  for(const f of files){try{const blob=await compress(f);const r=await S.assets.upload(blob,{contentType:blob.type||f.type});S.assetUrl[r.id]=r.url;
+      const cur=S.items.get(id);if(!cur)break;const ids=(cur.photos||[]).concat(r.id);S.items.set(id,Object.assign({},cur,{photos:ids}));queue('items'+id,()=>ref('items',id).update({photos:ids}));n++;render()}
+    catch(err){const c=err&&err.code;toast(c==='quota_exceeded'?'空間滿了，先刪掉幾張照片':c==='not_granted'?'你沒有上傳權限':'照片上傳失敗，請再試一次');return}}
+  if(n)toast('已加 '+n+' 張照片')});
+
+/* ---------- quick actions (long-press / right-click) ---------- */
+const AI={done:'<path d="m4 10 4 4 8-9"/>',map:'<path d="M10 18s6-5.6 6-10.3A6 6 0 0 0 4 7.7C4 12.4 10 18 10 18z"/><circle cx="10" cy="7.8" r="2.2"/>',staff:'<rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 8h6M7 12h4"/>',exp:'<path d="M5 3l5 6 5-6M10 9v8M6.5 10h7M6.5 13h7"/>',cam:'<path d="M3 7h3l1.5-2.5h5L14 7h3v9H3z"/><circle cx="10" cy="11" r="3"/>',edit:'<path d="M4 16h3l9-9-3-3-9 9zM11.5 5.5l3 3"/>',del:'<path d="M4 6h12M8 6V4h4v2M6 6l1 11h6l1-11"/>'};
+const aico=k=>'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+AI[k]+'</svg>';
+function openActions(id){const it=S.items.get(id);if(!it)return;const place=PLACE_KINDS.includes(it.kind),w=S.canWrite;S.readSheet=!w;
+  const b=(k,l,cls)=>'<button type="button" class="abtn'+(cls?' '+cls:'')+'" data-act="'+k+'">'+aico(k)+l+'</button>';
+  openSheet('<h2>'+esc(it.title)+'</h2><div class="acts">'+
+    (w?b('done',it.done?'取消完成':'標記完成'):'')+
+    (place||safeUrl(it.map)?'<a class="abtn" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" data-act="map">'+aico('map')+'開 Google 地圖</a>':'')+
+    (place?b('staff','給店員／司機看'):'')+
+    (w&&place?b('exp','在這裡記一筆'):'')+(w&&place&&S.assets?b('cam','加照片'):'')+
+    b('edit',w?'編輯詳細內容':'看詳細內容')+(w?b('del','刪除','danger'):'')+'</div>'+
+    (w?'<div class="fld"><span class="lbl">移到別天</span>'+daySeg(it.day,true)+'</div>':''),
+  root=>{root.addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;if(k==='map'){closeSheet();return}e.stopPropagation();
+      if(k==='done'){closeSheet();patch('items',id,{done:!it.done},it.done?'已取消完成':'已完成「'+it.title+'」')}
+      else if(k==='staff'){closeSheet();showStaff(it)}
+      else if(k==='exp'){closeSheet();openExp(null,{shop:it.title,day:it.day,cat:KIND2CAT[it.kind]||'other',itemId:it.id})}
+      else if(k==='cam'){closeSheet();S.camFor=id;$('#cam-file').click()}
+      else if(k==='edit'){openEdit(id)}
+      else if(k==='del'){closeSheet();remove('items',id,it.title)}});
+    bindSeg(root,'seg-day',v=>{const n=+v;if(n===it.day)return;const slot=n===0?'pool':(it.slot==='pool'?(it.kind==='food'?'lunch':'afternoon'):it.slot);closeSheet();moveItem(id,n,slot,maxOrder(n,slot)+1000)})})}
+function showStaff(it){if(!it)return;const jp=(it.q||'').trim()||it.title;const d=document.createElement('div');d.className='staff';d.setAttribute('role','dialog');d.setAttribute('aria-label','給店員看');
+  d.innerHTML='<span class="s-l">請帶我去這裡</span><div class="s-n"></div><div class="s-a"></div><div class="s-p">すみません、ここに行きたいです。</div><div class="btns"><a class="btn map-big" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn pri" id="staff-x">關閉</button></div>';
+  d.querySelector('.s-n').textContent=jp;d.querySelector('.s-a').textContent=it.area||'';d.querySelector('a').href=mapUrl(it);
+  d.querySelector('#staff-x').onclick=()=>d.remove();document.body.appendChild(d)}
+/* long-press a card on touch screens */
+let lp=null;
+document.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||S.drag)return;const it=e.target.closest('.item');if(!it||e.target.closest('.grip,a,button:not(.ibody)'))return;
+  lp={id:it.dataset.id,x:e.clientX,y:e.clientY,t:setTimeout(()=>{if(!lp||$('#scrim'))return;S.lpFired=true;openActions(lp.id);lp=null},520)}},true);
+const lpCancel=e=>{if(lp&&(e.type!=='pointermove'||Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10)){clearTimeout(lp.t);lp=null}};
+['pointermove','pointerup','pointercancel'].forEach(t=>document.addEventListener(t,lpCancel,true));
+document.addEventListener('contextmenu',e=>{const it=e.target.closest('.item');if(!it||e.target.closest('a'))return;e.preventDefault();if(lp){clearTimeout(lp.t);lp=null}if(!$('#scrim'))openActions(it.dataset.id)});
+/* swipe left / right on the itinerary to change days */
+let sw=null;
+$('#board').addEventListener('touchstart',e=>{if(S.drag||e.touches.length!==1||e.target.closest('.grip,input,textarea'))return;const t=e.touches[0];sw={x:t.clientX,y:t.clientY,at:Date.now()}},{passive:true});
+$('#board').addEventListener('touchend',e=>{if(!sw||S.drag){sw=null;return}const t=e.changedTouches[0],dx=t.clientX-sw.x,dy=t.clientY-sw.y,dt=Date.now()-sw.at;sw=null;
+  if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy)&&dt<700)stepDay(dx<0?1:-1)},{passive:true});
+function stepDay(d){const n=Math.min(NDAYS,Math.max(0,S.active+d));if(n===S.active)return;setActive(n);
+  const c=$('.col.active');if(c){c.classList.remove('slide-l','slide-r');void c.offsetWidth;c.classList.add(d>0?'slide-l':'slide-r')}}
+/* keyboard: ← → change day, N add, / search */
+document.addEventListener('keydown',e=>{if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey||$('#scrim')||$('.staff')||$('.lb'))return;const tg=e.target;if(tg&&(tg.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName)))return;
+  if(e.key==='ArrowRight'){e.preventDefault();stepDay(1)}else if(e.key==='ArrowLeft'){e.preventDefault();stepDay(-1)}
+  else if(e.key==='n'||e.key==='N'){if(S.canWrite){e.preventDefault();openAdd({day:S.active,slot:S.active===0?'pool':null})}}
+  else if(e.key==='/'){e.preventDefault();openSearch()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const st=$('.staff');if(st)st.remove()}});
+/* offline: keep the last synced trip in this browser so it opens without signal */
+const CK=T.id+'-cache-v1';let cacheT=0;
+function saveCache(){if(!S.synced)return;clearTimeout(cacheT);cacheT=setTimeout(()=>{try{localStorage.setItem(CK,JSON.stringify({at:Date.now(),items:[...S.items.values()],days:[...S.days.entries()],lists:[...S.lists.values()],exps:[...S.exps.values()],meta:S.meta}))}catch(e){}},800)}
+function loadCache(){try{const c=JSON.parse(localStorage.getItem(CK)||'null');if(!c||!Array.isArray(c.items))return null;
+  S.items=new Map(c.items.map(x=>[x.id,x]));S.days=new Map(c.days||[]);S.lists=new Map((c.lists||[]).map(x=>[x.id,x]));S.exps=new Map((c.exps||[]).map(x=>[x.id,x]));if(c.meta)S.meta=c.meta;return c}catch(e){return null}}
+addEventListener('offline',()=>{setSync('off','離線中');toast('沒有網路，先顯示上次的行程',null,4000)});
+addEventListener('online',()=>{if(S.db)setSync(S.canWrite?'live':'ro',S.canWrite?'即時同步':'只能檢視')});
+
+/* ---------- boot ---------- */
+const cached=loadCache();countdown();render();if(cached)setSync('wait','更新中');
+(async function boot(){
+  const C=window.claude,use=n=>C&&C.use?C.use(n).catch(()=>null):Promise.resolve(null);
+  const db=await use('db');
+  if(!db){if(cached){setSync('off','離線');notice('<b>目前離線</b>顯示的是上次同步的行程（'+new Date(cached.at).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'），連上網路後重新整理就會更新。')}else{setSync('off','未連線');notice('<b>還看不到共用行程</b>請登入 claude.ai 後再開這個頁面，就能看到大家一起編的行程。')}return}
+  S.db=db;
+  const u=await use('user');S.user=u;let can=null;try{if(u)can=await u.can('data.write')}catch(e){}
+  S.canWrite=can!==false;setSync(S.canWrite?'wait':'ro',S.canWrite?'同步中':'只能檢視');
+  let firstItems=true;
+  db.collection('items').onSnapshot(snap=>{const m=new Map();for(const d of snap.docs)m.set(d.id,Object.assign({id:d.id},d.data()));S.items=m;
+      if(!snap.metadata.fromCache){S.synced=true;setSync(S.canWrite?'live':'ro',S.canWrite?'即時同步':'只能檢視');notice(m.size?'':'<b>行程還是空的</b>按右下角「新增」加入第一個地點。')}
+      render();if(firstItems&&m.size){firstItems=false;renderNow();if(!ls.get(T.id+'-tip1')){ls.set(T.id+'-tip1','1');setTimeout(()=>toast(matchMedia('(pointer:coarse)').matches?'小技巧：左右滑可以換天，長按行程有快捷選單':'小技巧：← → 換天、N 新增、在行程上按右鍵有快捷選單',null,6000),1200)}}},
+    ()=>{setSync('off','已中斷');notice('<b>同步中斷了</b>重新整理頁面就會再連上。')});
+  db.collection('days').onSnapshot(snap=>{const m=new Map();for(const d of snap.docs)m.set(d.id,d.data());S.days=m;render()},()=>{});
+  db.collection('lists').onSnapshot(snap=>{const m=new Map();for(const d of snap.docs)m.set(d.id,Object.assign({id:d.id},d.data()));S.lists=m;render()},()=>{});
+  db.collection('expenses').onSnapshot(snap=>{const m=new Map();for(const d of snap.docs)m.set(d.id,Object.assign({id:d.id},d.data()));S.exps=m;render()},()=>{});
+  db.doc('meta/settings').onSnapshot(s=>{if(s.exists){const v=s.data();S.meta={rate:+v.rate||0.21,people:Array.isArray(v.people)?v.people.slice():[]};render()}},()=>{});
+  use('assets').then(a=>{S.assets=a;if(a)render()});
+  use('sample').then(s=>{S.sample=s});
+  use('room').then(r=>{if(!r)return;S.room=r;try{r.onPeers(onPeersChange)}catch(e){}pushPresence()});
+})();
+setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
+};
+</script>
+
+<script>
+/* Platform layer for the self-hosted travel notebook.
+   - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
+   - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
+     and provides window.claude.use(name) backed by Supabase so the trip page code runs unchanged. */
+(function () {
+  const SB_URL = 'https://lldplsrmkqynvqzviixh.supabase.co';
+  const SB_KEY = 'sb_publishable_3FNQ4ecG07d1kagoRao-fA_ttaNsAwX';
+  const sb = window.__sbClient || window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' } });
+  window.__sb = sb;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const err = (code, message) => ({ code, message: message || code });
+  const clone = v => JSON.parse(JSON.stringify(v));
+  const rid = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 20) : Math.random().toString(36).slice(2, 12) + Date.now().toString(36));
+  const TH = window.__THEMES || {};
+  const art = k => (TH[k] || TH.travel || { svg: '' }).svg;
+  const WK = '日一二三四五六';
+  const tripId = new URLSearchParams(location.search).get('t');
+  let session = null, access = { admin: false, shared: 0 }, TRIP = null, role = 'view';
+
+  /* ---------- small UI helpers (own sheet, styled by the page CSS) ---------- */
+  function gate(html) {
+    let g = $('#gate'); if (!g) { g = document.createElement('div'); g.id = 'gate'; document.body.appendChild(g); }
+    g.innerHTML = html; g.hidden = false; document.body.classList.add('gated');
+    const b = g.querySelector('[data-login]'); if (b) b.onclick = () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname + location.search, queryParams: { prompt: 'select_account' } } });
+    const o = g.querySelector('[data-logout]'); if (o) o.onclick = logout;
+  }
+  async function logout() { await sb.auth.signOut(); try { Object.keys(localStorage).filter(k => /-cache-v1$/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.href = location.pathname; }
+  window.__logout = logout;
+  function sheet(html, mount) {
+    let L = $('#player'); if (!L) { L = document.createElement('div'); L.id = 'player'; document.body.appendChild(L); }
+    L.innerHTML = '<div class="scrim" id="pscrim"><div class="sheet" role="dialog" aria-modal="true"><button type="button" class="sheet-x" aria-label="關閉">×</button>' + html + '</div></div>';
+    const sc = $('#pscrim'), sh = sc.firstChild; const close = () => { L.innerHTML = ''; };
+    sc.addEventListener('click', e => { if (e.target === sc) close(); }); sh.querySelector('.sheet-x').onclick = close;
+    const bs = [...sh.children].filter(c => c.classList.contains('btns')); if (bs.length) bs[bs.length - 1].classList.add('foot');
+    mount && mount(sh, close); return close;
+  }
+  function ptoast(msg) { let t = $('#ptoast'); if (t) t.remove(); t = document.createElement('div'); t.id = 'ptoast'; t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+  const fmtDate = s => { const d = new Date(s + 'T00:00:00'); return (d.getMonth() + 1) + '/' + d.getDate() + '（' + WK[d.getDay()] + '）'; };
+  const addDays = (s, n) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const today0 = () => { const t = window.__NRT_NOW ? new Date(window.__NRT_NOW) : new Date(); t.setHours(0, 0, 0, 0); return t; };
+  function tripStatus(T) {
+    const s = new Date(T.start + 'T00:00:00'), n = Math.round((today0() - s) / 864e5) + 1;
+    if (n < 1) return { k: 'soon', t: '還有 ' + (1 - n) + ' 天出發' };
+    if (n <= T.days) return { k: 'now', t: '旅行中・Day ' + n };
+    return { k: 'past', t: '已結束' };
+  }
+
+  /* ---------- auth ---------- */
+  async function signIn() {
+    try { const { data } = await sb.auth.getSession(); session = data.session; } catch (e) { session = null; }
+    const hashErr = new URLSearchParams(location.hash.slice(1)).get('error_description') || new URLSearchParams(location.search).get('error_description');
+    if (!session) {
+      if (!navigator.onLine && tripId) return 'offline';
+      gate('<div class="gate-card">' + art('travel') + '<h1>旅行手帳</h1><p>' + (hashErr ? '這個 Google 帳號還沒有被邀請。請用受邀的帳號登入，或請手帳主人邀請你。' : '這是私人的旅行手帳，只有受邀的人能看。') + '</p><button type="button" class="btn pri block" data-login>用 Google 登入</button></div>');
+      return 'out';
+    }
+    const { data, error } = await sb.rpc('my_access');
+    if (error) return navigator.onLine ? 'error' : 'offline';
+    access = data || access;
+    if (!access.admin && !(access.shared > 0)) {
+      gate('<div class="gate-card">' + art('travel') + '<h1>還沒有被邀請</h1><p>' + esc(session.user.email) + ' 目前沒有被分享任何旅行，請請手帳主人邀請你。</p><button type="button" class="btn block" data-logout>換帳號登入</button></div>');
+      await sb.auth.signOut(); return 'denied';
+    }
+    return 'ok';
+  }
+  function footer() {
+    const f = $('#site-foot'); if (!f || !session) return;
+    f.innerHTML = '目前登入：<span></span>' + (access.admin ? '（管理者）' : '') + '・<button type="button">登出</button>';
+    f.querySelector('span').textContent = session.user.email || ''; f.querySelector('button').onclick = logout;
+  }
+
+  /* ---------- bookshelf ---------- */
+  async function shelf() {
+    document.title = '我的旅行手帳';
+    const app = $('#app'); if (app) app.hidden = true;
+    let el = $('#shelf'); if (!el) { el = document.createElement('main'); el.id = 'shelf'; el.className = 'shelf gut wrapc'; document.body.insertBefore(el, app); }
+    const [{ data: trips }, { data: shares }] = await Promise.all([sb.from('trips').select('id,data,created_at'), access.admin ? sb.from('trip_shares').select('trip_id,email,role') : Promise.resolve({ data: [] })]);
+    const cnt = {}; (shares || []).forEach(s => { cnt[s.trip_id] = (cnt[s.trip_id] || 0) + 1; });
+    const list = (trips || []).map(r => Object.assign({ id: r.id }, r.data)).filter(t => t.start);
+    const order = { now: 0, soon: 1, past: 2 };
+    list.sort((a, b) => { const sa = tripStatus(a), sb2 = tripStatus(b); return (order[sa.k] - order[sb2.k]) || (sa.k === 'past' ? b.start.localeCompare(a.start) : a.start.localeCompare(b.start)); });
+    el.innerHTML = '<header class="shelf-h"><div class="hero-art">' + art('travel') + '</div><h1>我的旅行手帳</h1><p>' + (list.length ? '共 ' + list.length + ' 趟旅行' : (access.admin ? '還沒有旅行，建立第一本吧' : '目前沒有分享給你的旅行')) + '</p></header>' +
+      '<div class="shelf-grid">' + list.map(t => { const st = tripStatus(t); return '<a class="tcard ' + st.k + '" href="?t=' + encodeURIComponent(t.id) + '"><div class="tcover">' + art(t.theme) + '</div><div class="tbody"><b>' + esc(t.title) + '</b><span>' + fmtDate(t.start) + ' – ' + fmtDate(addDays(t.start, t.days - 1)) + '・' + t.days + ' 天</span><span class="tst">' + st.t + (access.admin ? '・分享 ' + (cnt[t.id] || 0) + ' 人' : '') + '</span></div></a>'; }).join('') +
+      (access.admin ? '<button type="button" class="tcard tnew" id="new-trip"><span class="plus">＋</span><b>新旅行</b></button>' : '') + '</div>' +
+      '<footer class="site-foot" id="site-foot"></footer>';
+    footer();
+    const nb = $('#new-trip'); if (nb) nb.onclick = () => tripForm(null);
+  }
+
+  /* ---------- trip settings (create / edit / delete) ---------- */
+  function tripForm(T) {
+    const isNew = !T; T = T || { title: '', dest: '', theme: 'travel', start: addDays(today0().toISOString().slice(0, 10), 30), days: 5, out: {}, back: {}, hotel: {} };
+    const f = (id, label, val, ph, type) => '<div class="fld"><label for="' + id + '">' + label + '</label><input class="inp" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(val == null ? '' : val) + '" placeholder="' + esc(ph || '') + '" autocomplete="off"></div>';
+    const themes = Object.keys(TH).map(k => '<button type="button" data-v="' + k + '" aria-pressed="' + (T.theme === k) + '" class="thbtn"><span class="thart">' + TH[k].svg + '</span>' + TH[k].label + '</button>').join('');
+    sheet('<h2>' + (isNew ? '新旅行' : '旅行設定') + '</h2>' +
+      f('tf-title', '旅行名稱', T.title, '例：27 京都賞楓') + f('tf-dest', '目的地', T.dest, '例：京都') +
+      '<div class="row2">' + f('tf-start', '出發日', T.start, '', 'date') + f('tf-days', '天數', T.days, '例 5', 'number') + '</div>' +
+      '<div class="fld"><span class="lbl">封面插圖</span><div class="seg thseg" id="tf-theme">' + themes + '</div></div>' +
+      '<details class="more"' + (isNew ? '' : ' open') + '><summary>航班與住宿（可之後再填）</summary><div>' +
+      '<div class="row2">' + f('tf-on', '去程航班', T.out.no, '例 JX804') + f('tf-ot', '起飛 → 抵達', [T.out.dep, T.out.arr].filter(Boolean).join('-'), '例 15:00-19:00') + '</div>' +
+      '<div class="row2">' + f('tf-of', '出發機場', T.out.fromCode ? T.out.fromCode + ' ' + (T.out.from || '') : '', '例 TPE 桃園 T1') + f('tf-oa', '抵達機場', T.out.toCode ? T.out.toCode + ' ' + (T.out.to || '') : '', '例 NRT 成田 T2') + '</div>' +
+      '<div class="row2">' + f('tf-bn', '回程航班', T.back.no, '例 JX805') + f('tf-bt', '起飛 → 抵達', [T.back.dep, T.back.arr].filter(Boolean).join('-'), '例 20:10-23:20') + '</div>' +
+      f('tf-hn', '住宿', T.hotel.name, '例 大井町 TRACKS 大都會大飯店') + f('tf-hx', '住宿備註', T.hotel.note, '例 最後一天 11:00 退房') +
+      '</div></details>' +
+      (isNew ? '' : '<div class="fld"><span class="lbl">刪除這趟旅行</span><button type="button" class="btn danger" id="tf-del">刪除旅行（所有行程、記帳、清單都會刪除）</button></div>') +
+      '<div class="btns"><button type="button" class="btn pri block" id="tf-ok">' + (isNew ? '建立旅行' : '儲存') + '</button></div>',
+      (root, close) => {
+        let theme = T.theme;
+        root.querySelector('#tf-theme').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; theme = b.dataset.v; root.querySelectorAll('#tf-theme button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+        const v = id => root.querySelector('#' + id).value.trim();
+        const split = s => { const m = s.split(/[-~→]/).map(x => x.trim()); return [m[0] || '', m[1] || '']; };
+        const ap = s => { const m = s.match(/^([A-Za-z]{3})\s*(.*)$/); return m ? [m[1].toUpperCase(), m[2]] : ['', s]; };
+        const del = root.querySelector('#tf-del');
+        if (del) del.onclick = async () => {
+          if (!del.classList.contains('arm')) { del.classList.add('arm'); del.textContent = '再按一次確定刪除'; return; }
+          await sb.from('docs').delete().eq('trip_id', T.id); const { error } = await sb.from('trips').delete().eq('id', T.id);
+          if (error) { ptoast('刪除失敗：' + error.message); return; } location.href = location.pathname;
+        };
+        root.querySelector('#tf-ok').onclick = async () => {
+          const title = v('tf-title'), start = v('tf-start'), days = parseInt(v('tf-days'), 10);
+          if (!title) { root.querySelector('#tf-title').focus(); ptoast('請填旅行名稱'); return; }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) { ptoast('請選出發日'); return; }
+          if (!(days >= 1 && days <= 60)) { ptoast('天數請填 1 到 60'); return; }
+          const [od, oa] = split(v('tf-ot')), [bd, ba] = split(v('tf-bt')), [ofc, of] = ap(v('tf-of')), [oac, oaN] = ap(v('tf-oa'));
+          const data = Object.assign({}, isNew ? {} : T, { title, dest: v('tf-dest'), theme, start, days,
+            out: { no: v('tf-on'), dep: od, arr: oa, fromCode: ofc, from: of, toCode: oac, to: oaN },
+            back: { no: v('tf-bn'), dep: bd, arr: ba, fromCode: oac, from: oaN, toCode: ofc, to: of },
+            hotel: { name: v('tf-hn'), note: v('tf-hx') } });
+          delete data.id;
+          if (isNew) {
+            const id = (title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0, 12) || 'trip') + '-' + rid().slice(0, 6);
+            const { error } = await sb.from('trips').insert({ id, data });
+            if (error) { ptoast('建立失敗：' + error.message); return; }
+            location.href = '?t=' + encodeURIComponent(id);
+          } else {
+            const { error } = await sb.from('trips').update({ data, updated_at: new Date().toISOString() }).eq('id', T.id);
+            if (error) { ptoast('儲存失敗：' + error.message); return; }
+            close(); location.reload();
+          }
+        };
+      });
+  }
+
+  /* ---------- sharing (admin) ---------- */
+  async function shareSheet() {
+    const draw = async (root) => {
+      const { data } = await sb.from('trip_shares').select('email,role').eq('trip_id', TRIP.id).order('created_at');
+      const list = root.querySelector('#sh-list');
+      list.innerHTML = (data || []).length ? data.map(s => '<li class="crow"><span class="cbody"><span class="ct">' + esc(s.email) + '</span></span><span class="seg shrole" data-email="' + esc(s.email) + '"><button type="button" data-v="edit" aria-pressed="' + (s.role === 'edit') + '">可編輯</button><button type="button" data-v="view" aria-pressed="' + (s.role === 'view') + '">只能看</button></span><button type="button" class="ibtn" data-rm="' + esc(s.email) + '" aria-label="移除 ' + esc(s.email) + '">×</button></li>').join('') : '<div class="empty">還沒有分享給任何人，只有你看得到</div>';
+    };
+    sheet('<h2>分享「' + esc(TRIP.title) + '」</h2><p class="hint2">只有這裡列出的 Google 帳號能登入看到這趟旅行。沒被邀請的人就算拿到網址也進不來。</p>' +
+      '<div class="fld"><label for="sh-email">邀請 Gmail</label><input class="inp" id="sh-email" type="email" placeholder="例：friend@gmail.com" autocomplete="off"></div>' +
+      '<div class="fld"><span class="lbl">權限</span><div class="seg" id="sh-role"><button type="button" data-v="edit" aria-pressed="true">可編輯</button><button type="button" data-v="view" aria-pressed="false">只能看</button></div></div>' +
+      '<button type="button" class="btn pri" id="sh-add">邀請</button>' +
+      '<div class="fld"><span class="lbl">已分享</span><ul class="clist" id="sh-list"></ul></div>' +
+      '<div class="btns"><button type="button" class="btn block" id="sh-done">完成</button></div>',
+      (root, close) => {
+        let r = 'edit';
+        root.querySelector('#sh-role').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; r = b.dataset.v; root.querySelectorAll('#sh-role button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+        root.querySelector('#sh-done').onclick = close;
+        root.querySelector('#sh-add').onclick = async () => {
+          const em = root.querySelector('#sh-email').value.trim().toLowerCase();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { ptoast('請輸入正確的 Email'); return; }
+          const { error } = await sb.from('trip_shares').upsert({ trip_id: TRIP.id, email: em, role: r });
+          if (error) { ptoast('邀請失敗：' + error.message); return; }
+          root.querySelector('#sh-email').value = ''; ptoast('已邀請 ' + em); draw(root);
+        };
+        root.querySelector('#sh-list').addEventListener('click', async e => {
+          const rm = e.target.closest('[data-rm]');
+          if (rm) { if (!rm.classList.contains('arm')) { rm.classList.add('arm'); rm.textContent = '確定'; return; } await sb.from('trip_shares').delete().eq('trip_id', TRIP.id).eq('email', rm.dataset.rm); ptoast('已移除'); draw(root); return; }
+          const b = e.target.closest('.shrole button'); if (b) { const em = b.parentNode.dataset.email; await sb.from('trip_shares').update({ role: b.dataset.v }).eq('trip_id', TRIP.id).eq('email', em); ptoast('已更新權限'); draw(root); }
+        });
+        draw(root);
+      });
+  }
+
+  /* ---------- trip hero (built from the trip settings) ---------- */
+  function hero(T) {
+    const end = addDays(T.start, T.days - 1), o = T.out || {}, b = T.back || {}, h = T.hotel || {};
+    const plane = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+    const hasFly = o.no || o.fromCode || o.toCode;
+    return '<div class="hero-top"><div class="brand"><h1>' + esc(T.title) + '</h1><span class="sub">' + esc(T.dest || '') + ' ' + T.days + ' 天' + (T.days > 1 ? ' ' + (T.days - 1) + ' 夜' : '') + '</span></div>' +
+      '<span class="sync" id="sync" data-s="wait"><i></i><span id="sync-t">連線中</span></span></div>' +
+      '<div class="hero-art">' + art(T.theme) + '</div>' +
+      '<div class="pass"><div class="pass-main">' +
+      (hasFly ? '<div class="fly-row"><div class="ap"><b>' + esc(o.fromCode || '出發') + '</b><span>' + esc(o.from || '') + '</span></div><div class="fly"><span class="fn">' + esc(o.no || '') + '</span><span class="fline">' + plane + '</span><span class="ft">' + fmtDate(T.start) + (o.dep ? o.dep + (o.arr ? ' → ' + o.arr : '') : '') + '</span></div><div class="ap r"><b>' + esc(o.toCode || '抵達') + '</b><span>' + esc(o.to || '') + '</span></div></div>'
+        : '<div class="fly-row"><div class="ap"><b>' + fmtDate(T.start) + '</b><span>出發</span></div><div class="fly"><span class="fline">' + plane + '</span></div><div class="ap r"><b>' + fmtDate(end) + '</b><span>回程</span></div></div>') +
+      ((b.no || h.name) ? '<div class="pass-meta">' + (b.no ? '<div><span>回程 ' + fmtDate(end) + '</span><b>' + esc(b.no) + '</b><small class="nb">' + esc([b.dep, b.arr].filter(Boolean).join(' → ')) + '</small></div>' : '<div></div>') +
+        (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + esc(h.name) + '</b><small class="nb">' + esc(h.note || '') + '</small></div>' : '') + '</div>' : '') +
+      '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>';
+  }
+
+  /* ---------- db adapter (collection/doc API over docs table, scoped to one trip) ---------- */
+  const cache = new Map(), colSubs = new Map(), docSubs = new Map(), loaded = new Map();
+  const mapOf = c => { if (!cache.has(c)) cache.set(c, new Map()); return cache.get(c); };
+  const qsnap = c => { const docs = [...mapOf(c).entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([id, v]) => ({ id, exists: true, data: () => clone(v), metadata: { fromCache: false, hasPendingWrites: false } })); return { docs, size: docs.length, empty: !docs.length, metadata: { fromCache: false, hasPendingWrites: false }, docChanges: () => [] }; };
+  const dsnap = (c, id) => { const v = mapOf(c).get(id); return { id, exists: !!v, data: () => v && clone(v), metadata: { fromCache: false, hasPendingWrites: false } }; };
+  function emit(c, id) { (colSubs.get(c) || []).forEach(fn => { try { fn(qsnap(c)); } catch (e) { console.error(e); } }); if (id != null) (docSubs.get(c + '/' + id) || []).forEach(fn => { try { fn(dsnap(c, id)); } catch (e) { console.error(e); } }); }
+  function load(c) { if (!loaded.has(c)) loaded.set(c, (async () => { const { data, error } = await sb.from('docs').select('id,data').eq('trip_id', TRIP.id).eq('col', c); if (error) throw err('unavailable', error.message); const m = mapOf(c); m.clear(); for (const r of data) m.set(r.id, r.data); })()); return loaded.get(c); }
+  let rt = null;
+  function realtime() {
+    if (rt) return;
+    rt = sb.channel('docs-' + TRIP.id).on('postgres_changes', { event: '*', schema: 'public', table: 'docs', filter: 'trip_id=eq.' + TRIP.id }, p => {
+      const row = p.eventType === 'DELETE' ? p.old : p.new; if (!row || !row.col || (row.trip_id && row.trip_id !== TRIP.id)) return;
+      if (p.eventType === 'DELETE') mapOf(row.col).delete(row.id); else mapOf(row.col).set(row.id, row.data); emit(row.col, row.id);
+    }).subscribe(st => { if (st === 'SUBSCRIBED') for (const c of colSubs.keys()) { loaded.delete(c); load(c).then(() => emit(c)).catch(() => {}); } });
+  }
+  async function write(fn) { const { error } = await fn(); if (error) throw err(/permission|policy|rls|42501/i.test(error.message + error.code) ? 'invalid_argument' : 'unavailable', error.message); }
+  function docRef(c, id) {
+    return { id, path: c + '/' + id,
+      async get() { await load(c); return dsnap(c, id); },
+      async set(data) { const v = clone(data); mapOf(c).set(id, v); emit(c, id); await write(() => sb.from('docs').upsert({ trip_id: TRIP.id, col: c, id, data: v, updated_at: new Date().toISOString() })); },
+      async update(patch) { await load(c); const cur = mapOf(c).get(id); if (!cur) throw err('invalid_argument', 'missing'); const v = Object.assign({}, cur, clone(patch)); mapOf(c).set(id, v); emit(c, id); await write(() => sb.from('docs').update({ data: v, updated_at: new Date().toISOString() }).eq('trip_id', TRIP.id).eq('col', c).eq('id', id)); },
+      async delete() { mapOf(c).delete(id); emit(c, id); await write(() => sb.from('docs').delete().eq('trip_id', TRIP.id).eq('col', c).eq('id', id)); },
+      onSnapshot(next, onErr) { const k = c + '/' + id; if (!docSubs.has(k)) docSubs.set(k, new Set()); docSubs.get(k).add(next); if (!colSubs.has(c)) colSubs.set(c, new Set()); realtime(); load(c).then(() => next(dsnap(c, id))).catch(e => onErr && onErr(e)); return () => docSubs.get(k).delete(next); } };
+  }
+  const db = { collection(c) { return { path: c, doc(id) { return docRef(c, id || rid()); }, async add(d) { const r = docRef(c, rid()); await r.set(d); return r; }, onSnapshot(next, onErr) { if (!colSubs.has(c)) colSubs.set(c, new Set()); colSubs.get(c).add(next); realtime(); load(c).then(() => next(qsnap(c))).catch(e => onErr && onErr(e)); return () => colSubs.get(c).delete(next); } }; }, doc(p) { const [c, i] = p.split('/'); return docRef(c, i); } };
+
+  const names = {}, nameOf = u => (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || (u.email || '').split('@')[0];
+  const user = { async can() { return role === 'edit'; }, async canEdit() { return role === 'edit'; }, async isOwner() { return access.admin; }, async id() { return session && session.user.id; }, async me() { return { id: session.user.id, name: nameOf(session.user), email: session.user.email }; }, async profiles(ids) { const o = {}; ids.forEach(i => { o[i] = Object.assign({ id: i, name: '', color: '' }, names[i] || {}); }); return o; } };
+  let ch = null, myState = {};
+  const room = { async presence(p) { myState = Object.assign({}, myState, p, { name: nameOf(session.user) }); if (ch) await ch.track(myState); },
+    onPeers(fn) { ch = sb.channel('room-' + TRIP.id, { config: { presence: { key: session.user.id } } }); ch.on('presence', { event: 'sync' }, () => { const st = ch.presenceState(), peers = []; for (const k of Object.keys(st)) { const p = st[k][0] || {}; names[k] = { name: p.name || '', color: '' }; peers.push({ peer: k, by: k, isMe: k === session.user.id, sameTab: k === session.user.id, kind: 'viewer', guest: false, presence: p, updatedAt: Date.now() }); } fn({ peers, joined: [], left: [], updated: [] }); }).subscribe(s => { if (s === 'SUBSCRIBED') ch.track(myState); }); return () => sb.removeChannel(ch); } };
+  const urls = {}, pending = new Set(); let waiters = [];
+  window.__photoUrl = (id, onReady) => { if (urls[id]) return urls[id]; if (onReady) waiters.push(onReady); if (!pending.has(id)) { pending.add(id); queueMicrotask(async () => { const ids = [...pending]; pending.clear(); const { data } = await sb.storage.from('photos').createSignedUrls(ids, 604800); (data || []).forEach(r => { if (r.signedUrl) urls[r.path] = r.signedUrl; }); const w = waiters; waiters = []; w.forEach(f => f()); }); } return 'data:image/gif;base64,R0lGODlhAQABAAAAACw='; };
+  const assets = { async upload(blob, opts) { const type = (opts && opts.contentType) || blob.type || 'image/jpeg', ext = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), path = TRIP.id + '/' + rid() + '.' + ext; const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: type, upsert: false }); if (error) throw err(/quota|size/i.test(error.message) ? 'quota_exceeded' : 'unavailable', error.message); const { data } = await sb.storage.from('photos').createSignedUrl(path, 604800); urls[path] = data && data.signedUrl; return { id: path, url: urls[path], sizeBytes: blob.size, contentType: type }; }, async delete(id) { await sb.storage.from('photos').remove([id]); } };
+
+  /* ---------- boot ---------- */
+  (async () => {
+    const st = await signIn();
+    if (!tripId) { if (st === 'ok') { document.body.classList.remove('gated'); await shelf(); } return; }
+    // trip page
+    let ok = st === 'ok';
+    if (ok) {
+      const { data } = await sb.from('trips').select('id,data').eq('id', tripId).maybeSingle();
+      if (!data) { gate('<div class="gate-card">' + art('travel') + '<h1>找不到這趟旅行</h1><p>可能已被刪除，或還沒有分享給你。</p><a class="btn pri block" href="' + location.pathname + '">回我的旅行</a></div>'); return; }
+      TRIP = Object.assign({ id: data.id }, data.data);
+      if (access.admin) role = 'edit'; else { const { data: sh } = await sb.from('trip_shares').select('role').eq('trip_id', tripId).eq('email', (session.user.email || '').toLowerCase()).maybeSingle(); role = sh && sh.role === 'edit' ? 'edit' : 'view'; }
+      try { localStorage.setItem('trip-meta-' + tripId, JSON.stringify(TRIP)); } catch (e) {}
+    } else if (st === 'offline') {
+      try { TRIP = JSON.parse(localStorage.getItem('trip-meta-' + tripId) || 'null'); } catch (e) {}
+      if (!TRIP) { gate('<div class="gate-card"><h1>目前離線</h1><p>這台裝置還沒有存過這趟旅行，連上網路後再打開。</p></div>'); return; }
+    } else return;
+    document.body.classList.remove('gated'); $('#app').hidden = false;
+    document.title = TRIP.title + '｜旅行手帳';
+    $('#trip-hero').innerHTML = hero(TRIP);
+    const bar = $('.bar'); if (bar) {
+      const back = document.createElement('a'); back.className = 'backlink'; back.href = location.pathname; back.innerHTML = '‹ 我的旅行'; bar.insertBefore(back, bar.firstChild);
+      if (ok && access.admin) {
+        const s = document.createElement('button'); s.type = 'button'; s.className = 'icon-btn pill-btn'; s.textContent = '分享'; s.onclick = shareSheet; bar.appendChild(s);
+        const g = document.createElement('button'); g.type = 'button'; g.className = 'icon-btn'; g.setAttribute('aria-label', '旅行設定'); g.textContent = '⚙'; g.onclick = () => tripForm(TRIP); bar.appendChild(g);
+      }
+    }
+    window.claude = { use: async name => ok ? ({ db, user, room, assets }[name] || null) : null };
+    window.__bootTrip(TRIP);
+    footer();
+  })();
+})();
+
+</script>
+</body>
+</html>
