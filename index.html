@@ -615,7 +615,10 @@ body.gated #app{display:none}
 .whoami b{font-weight:400;color:var(--ink);font-size:14px;overflow-wrap:anywhere}
 .whoami .who-r{padding:0 8px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--ink);line-height:20px}
 .whoami button{all:unset;cursor:pointer;margin-left:auto;padding:2px 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:12px;line-height:20px;white-space:nowrap}
-.gis-box{display:flex;justify-content:center;min-height:44px}
+.login-wrap{position:relative}
+.gis-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.01;overflow:hidden;cursor:pointer}
+.gis-over>div,.gis-over iframe{transform:scale(1.25);transform-origin:center}
+.login-wrap:hover .btn,.login-wrap:focus-within .btn{filter:brightness(.97)}
 
 </style>
 
@@ -1404,9 +1407,12 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
         if (error) { gate('<div class="gate-card">' + art('travel') + '<h1>還沒有被邀請</h1><p>這個 Google 帳號沒有被分享任何旅行，請請手帳主人邀請你。</p><button type="button" class="btn pri block" data-login>換帳號登入</button></div>'); return; }
         location.reload();
       } });
-      const box = document.createElement('div'); box.className = 'gis-box'; fallback.parentNode.insertBefore(box, fallback);
-      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'zh-TW', width: Math.min(320, box.clientWidth || 320) });
-      fallback.classList.remove('pri'); fallback.textContent = '登入不了？改用其他方式';
+      // one button only: Google's button sits invisibly on top of ours, so the look stays ours but the
+      // click goes through Google (chooser shows 「旅行手帳」). If Google's script never loads, our button
+      // underneath falls back to the redirect sign-in.
+      const wrap = document.createElement('div'); wrap.className = 'login-wrap'; fallback.parentNode.insertBefore(wrap, fallback); wrap.appendChild(fallback);
+      const box = document.createElement('div'); box.className = 'gis-over'; wrap.appendChild(box);
+      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'zh-TW', width: Math.min(400, Math.max(200, wrap.clientWidth)) });
     };
     document.head.appendChild(sc);
   }
