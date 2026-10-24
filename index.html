@@ -821,6 +821,13 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pool"]){d
 /* the floating 新增行程 button must never sit on top of an add box */
 body:has(.addrow input:focus) .fab,body:has(.sheet) .fab{opacity:0;pointer-events:none}
 .col[data-col="0"]{padding-bottom:96px}
+/* 出發前: add only via the floating button — no inline add boxes */
+.col[data-col="0"] .addrow{display:none!important}
+.col[data-col="0"]{padding-bottom:88px}
+/* floating add button: just a round ＋ (the label stays for screen readers) */
+.fab{width:60px!important;height:60px!important;min-width:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;gap:0!important}
+.fab svg{width:26px!important;height:26px!important}
+.fab #fab-t{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 </style>
 
@@ -1010,7 +1017,7 @@ function rowHTML(r,withTag){return '<li class="crow'+(r.done?' done':'')+'" data
   '<button type="button" class="cbody lbody">'+(withTag&&LT_TAG[r.type]?'<span class="kind ltype '+LT_TAG[r.type][1]+'">'+LT_TAG[r.type][0]+'</span>':'')+'<span class="ct">'+esc(r.title)+'</span>'+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button>'+(!withTag&&S.canWrite&&!r.done?'<span class="lgrip" role="button" aria-label="拖曳調整順序"><svg viewBox="0 0 12 20" width="12" height="20" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></span>':'<span></span>')+'</li>'}
 function listBlock(type,title,rows,day){const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
   return '<section class="dsec" data-sec="'+type+'">'+'<div class="dsec-h">'+dicon(type==='pack'?'pack':'todo')+'<b>'+title+'</b>'+(rows.length?'<small>'+done+' / '+rows.length+' 完成</small>':'')+'</div>'+
-    (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'')+
+    (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'<p class="pool-help">'+esc(t.empty)+'。按右下角「＋」新增。</p>')+
     (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增：'+esc(t.ph.replace(/^例：/,''))+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section>'}
 function daySections(n){const rate=+S.meta.rate||0;
   const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
@@ -1666,7 +1673,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));fabSync()},true);
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
 const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增想買',money:'記一筆',pool:'新增口袋'};
-function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程'}
+function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}}
 function quickAdd(type){const L=LTYPES.find(x=>x.k===type);
   openPrompt('新增'+(L?L.l:''),'要加什麼？','',L?L.ph:'','text',v=>{const t=String(v).trim();if(!t)return false;
     create('lists',{type,title:t,note:'',done:false,day:0,photos:[],ts:Date.now(),order:Date.now()});render();toast('已加到'+(L?L.l:'清單'))})}
@@ -1706,7 +1713,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.44';
+window.__BUILD='1.45';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
