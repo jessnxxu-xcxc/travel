@@ -640,12 +640,13 @@ body.gated #app{display:none}
 .dstrip button[aria-pressed="true"] .n{background:var(--coral)!important;border:var(--bw) solid var(--ink)!important;color:var(--ink)!important}
 .dstrip button[aria-pressed="true"] .w{color:var(--ink);font-weight:700}
 .dstrip .pool .n{font-size:12px;border-style:dashed!important}
-/* phones: keep the flight home + hotel visible as a compact row under the ticket */
-@media (max-width:520px){
-  .pass-meta{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;margin-top:10px}
-  .pass-meta b{font-size:14px}
-}
 .seg.dstrip button,.seg.dstrip button[aria-pressed="true"]{background:transparent!important}
+.step{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:16px}
+.stepn{display:grid;place-items:center;width:28px;height:28px;border:2px solid var(--ink);border-radius:50%;background:var(--yellow);font-weight:400!important;font-size:14px}
+.invite small{font-size:14px;line-height:1.6;color:var(--ink)}
+#sh-list .crow{grid-template-columns:minmax(0,1fr) auto auto;row-gap:8px}
+#sh-list .sh-send{grid-column:1/-1;justify-self:start;height:36px;padding:0 14px;background:var(--water)!important}
+.rolehint{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
 
 </style>
 
@@ -1658,19 +1659,21 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
     const draw = async (root) => {
       const { data } = await sb.from('trip_shares').select('email,role').eq('trip_id', TRIP.id).order('created_at');
       const list = root.querySelector('#sh-list');
-      list.innerHTML = (data || []).length ? data.map(s => '<li class="crow"><span class="cbody"><span class="ct">' + esc(s.email) + '</span></span><span class="seg shrole" data-email="' + esc(s.email) + '"><button type="button" data-v="edit" aria-pressed="' + (s.role === 'edit') + '">可編輯</button><button type="button" data-v="view" aria-pressed="' + (s.role === 'view') + '">只能看</button></span><button type="button" class="ibtn" data-rm="' + esc(s.email) + '" aria-label="移除 ' + esc(s.email) + '">×</button></li>').join('') : '<div class="empty">還沒有分享給任何人，只有你看得到</div>';
+      list.innerHTML = (data || []).length ? data.map(s => '<li class="crow"><span class="cbody"><span class="ct">' + esc(s.email) + '</span></span><span class="seg shrole" data-email="' + esc(s.email) + '"><button type="button" data-v="edit" aria-pressed="' + (s.role === 'edit') + '">可編輯</button><button type="button" data-v="view" aria-pressed="' + (s.role === 'view') + '">只能看</button></span><button type="button" class="ibtn" data-rm="' + esc(s.email) + '" aria-label="移除 ' + esc(s.email) + '">×</button><button type="button" class="btn sm sh-send" data-send="' + esc(s.email) + '">傳邀請給他</button></li>').join('') : '<div class="empty">名單是空的，只有你看得到這趟旅行</div>';
     };
-    sheet('<h2>分享「' + esc(TRIP.title) + '」</h2><p class="hint2">只有這裡列出的 Google 帳號能登入看到這趟旅行。沒被邀請的人就算拿到網址也進不來。</p>' +
-      '<div class="fld"><label for="sh-email">邀請 Gmail</label><input class="inp" id="sh-email" type="email" placeholder="例：friend@gmail.com" autocomplete="off"></div>' +
-      '<div class="fld"><span class="lbl">權限</span><div class="seg" id="sh-role"><button type="button" data-v="edit" aria-pressed="true">可編輯</button><button type="button" data-v="view" aria-pressed="false">只能看</button></div></div>' +
-      '<button type="button" class="btn pri" id="sh-add">邀請</button>' +
-      '<div class="invite" id="sh-inv" hidden></div>' +
-      '<div class="fld"><span class="lbl">已分享</span><ul class="clist" id="sh-list"></ul></div>' +
-      '<div class="btns"><button type="button" class="btn" id="sh-copy">複製邀請訊息</button><button type="button" class="btn pri" id="sh-done">完成</button></div>',
+    sheet('<h2>分享「' + esc(TRIP.title) + '」</h2><p class="hint2">兩個步驟：先把對方的 Gmail 加進名單，再把邀請訊息傳給他。只有名單上的帳號能登入，沒加的人拿到網址也進不來。</p>' +
+      '<div class="step"><b class="stepn">1</b><span>加入對方的 Gmail</span></div>' +
+      '<div class="fld"><input class="inp" id="sh-email" type="email" inputmode="email" placeholder="例：friend@gmail.com" autocomplete="off" aria-label="對方的 Gmail"></div>' +
+      '<div class="fld"><span class="lbl">他可以做什麼</span><div class="seg" id="sh-role"><button type="button" data-v="edit" aria-pressed="true">可編輯</button><button type="button" data-v="view" aria-pressed="false">只能看</button></div><small class="rolehint" id="sh-rh">可以改行程、記帳、打勾清單</small></div>' +
+      '<button type="button" class="btn pri" id="sh-add">加入名單</button>' +
+      '<div class="step"><b class="stepn">2</b><span>傳邀請給對方</span></div>' +
+      '<p class="hint2" id="sh-hint2">加進名單後，按名單裡的「傳邀請給他」，把網址傳給對方（LINE 之類）。</p><div class="invite" id="sh-inv" hidden></div>' +
+      '<div class="fld"><span class="lbl">名單（可以登入的人）</span><ul class="clist" id="sh-list"></ul></div>' +
+      '<div class="btns"><button type="button" class="btn pri block" id="sh-done">完成</button></div>',
       (root, close) => {
         let r = 'edit';
-        root.querySelector('#sh-role').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; r = b.dataset.v; root.querySelectorAll('#sh-role button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
-        root.querySelector('#sh-done').onclick = close; root.querySelector('#sh-copy').onclick = copyInvite;
+        root.querySelector('#sh-role').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; r = b.dataset.v; root.querySelector('#sh-rh').textContent = r === 'edit' ? '可以改行程、記帳、打勾清單' : '只能看行程和記帳，不能修改'; root.querySelectorAll('#sh-role button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+        root.querySelector('#sh-done').onclick = close;
         root.querySelector('#sh-add').onclick = async () => {
           const em = root.querySelector('#sh-email').value.trim().toLowerCase();
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { ptoast('請輸入正確的 Email'); return; }
@@ -1679,6 +1682,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
           root.querySelector('#sh-email').value = ''; draw(root); showInvite(root, em);
         };
         root.querySelector('#sh-list').addEventListener('click', async e => {
+          const sd = e.target.closest('[data-send]'); if (sd) { copyInvite(); return; }
           const rm = e.target.closest('[data-rm]');
           if (rm) { if (!rm.classList.contains('arm')) { rm.classList.add('arm'); rm.textContent = '確定'; return; } await sb.from('trip_shares').delete().eq('trip_id', TRIP.id).eq('email', rm.dataset.rm); ptoast('已移除'); draw(root); return; }
           const b = e.target.closest('.shrole button'); if (b) { const em = b.parentNode.dataset.email; await sb.from('trip_shares').update({ role: b.dataset.v }).eq('trip_id', TRIP.id).eq('email', em); ptoast('已更新權限'); draw(root); }
@@ -1698,9 +1702,9 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
     catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); ptoast('已複製邀請訊息，貼到 LINE 就好'); }
   }
   function showInvite(root, em) {
-    const box = root.querySelector('#sh-inv'); box.hidden = false;
-    box.innerHTML = '<b>已邀請</b><span></span><button type="button" class="btn pri">複製邀請訊息</button>';
-    box.querySelector('span').textContent = em + '，把邀請訊息傳給對方就完成了';
+    const box = root.querySelector('#sh-inv'); box.hidden = false; const h2 = root.querySelector('#sh-hint2'); if (h2) h2.hidden = true;
+    box.innerHTML = '<b>✓ 已加入 <span></span></b><small>最後一步：把邀請訊息傳給對方（LINE 之類），他用這個 Gmail 登入就看得到。</small><button type="button" class="btn pri">傳邀請訊息</button>';
+    box.querySelector('span').textContent = em;
     box.querySelector('button').onclick = copyInvite;
   }
 
