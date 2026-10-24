@@ -686,6 +686,12 @@ html.pwa #gate{padding-top:56px}
 .chip.pool.active .c-left{color:var(--ink)}
 .whoami .sync{height:24px;padding:0 8px;font-size:12px;border-width:2px;margin:0}
 @media (max-width:480px){.whoami .who-l{display:none}.whoami b{font-size:13px}}
+.ft-row{display:none}
+/* phones: the date/time gets its own line under the airports so it never breaks */
+@media (max-width:520px){
+  .fly .ft{display:none!important}
+  .ft-row{display:block;margin-top:6px;text-align:center;font-size:14px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+}
 
 </style>
 
@@ -1515,7 +1521,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.26';
+window.__BUILD='1.27';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -1799,7 +1805,8 @@ window.__BUILD='1.26';
       '<span class="sync" id="sync" data-s="wait"><i></i><span id="sync-t">連線中</span></span></div>' +
       '<div class="hero-art">' + art(T.theme) + '</div>' +
       '<div class="pass"><div class="pass-main">' +
-      (hasFly ? '<div class="fly-row"><div class="ap"><b>' + esc(o.fromCode || '出發') + '</b><span>' + esc(o.from || '') + '</span></div><div class="fly"><span class="fn">' + esc(o.no || '') + '</span><span class="fline">' + plane + '</span><span class="ft">' + fmtDate(oDate) + (o.dep ? o.dep + (o.arr ? ' → ' + o.arr : '') : '') + '</span></div><div class="ap r"><b>' + esc(o.toCode || '抵達') + '</b><span>' + esc(o.to || '') + '</span></div></div>'
+      (hasFly ? '<div class="fly-row"><div class="ap"><b>' + esc(o.fromCode || '出發') + '</b><span>' + esc(o.from || '') + '</span></div><div class="fly"><span class="fn">' + esc(o.no || '') + '</span><span class="fline">' + plane + '</span><span class="ft">' + fmtDate(oDate) + (o.dep ? o.dep + (o.arr ? ' → ' + o.arr : '') : '') + '</span></div><div class="ap r"><b>' + esc(o.toCode || '抵達') + '</b><span>' + esc(o.to || '') + '</span></div></div>' +
+        '<div class="ft-row">' + fmtDate(oDate) + ' ' + (o.dep ? o.dep + (o.arr ? ' → ' + o.arr : '') : '') + '</div>'
         : '<div class="fly-row"><div class="ap"><b>' + fmtDate(T.start) + '</b><span>出發</span></div><div class="fly"><span class="fline">' + plane + '</span></div><div class="ap r"><b>' + fmtDate(end) + '</b><span>回程</span></div></div>') +
       ((b.no || h.name) ? '<div class="pass-meta">' + (b.no ? '<div><span>' + bLabel + fmtDate(bDate) + '</span><b>' + esc(b.no) + '</b><small class="nb">' + esc([b.dep, b.arr].filter(Boolean).join(' → ')) + '</small></div>' : '<div></div>') +
         (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + (h.map ? '<a class="hotel-l" href="' + esc(h.map) + '" target="_blank" rel="noopener">' + esc(h.name) + ' 📍</a>' : esc(h.name)) + '</b><small class="nb">' + esc(h.note || '') + '</small></div>' : '') + '</div>' : '') +
