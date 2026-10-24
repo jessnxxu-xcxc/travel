@@ -611,6 +611,10 @@ body.gated #app{display:none}
 .invite{display:grid;gap:8px;padding:14px 16px;border:var(--bw) solid var(--ink);border-radius:18px;background:var(--green)}
 .invite b{font-weight:400;font-size:16px}.invite span{font-size:14px;word-break:keep-all;overflow-wrap:anywhere}
 #sh-done,#sh-copy{flex:1}
+.whoami{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding-top:10px;font-size:12px;color:var(--muted)}
+.whoami b{font-weight:400;color:var(--ink);font-size:14px;overflow-wrap:anywhere}
+.whoami .who-r{padding:0 8px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--ink);line-height:20px}
+.whoami button{all:unset;cursor:pointer;margin-left:auto;padding:2px 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:12px;line-height:20px;white-space:nowrap}
 
 </style>
 
@@ -1428,7 +1432,17 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
     }
     return 'ok';
   }
+  // who is signed in, always visible at the very top (switching accounts = 登出 then sign in again)
+  function whoami() {
+    if (!session || $('#whoami')) return;
+    const w = document.createElement('div'); w.id = 'whoami'; w.className = 'whoami gut wrapc';
+    w.innerHTML = '<span class="who-l">目前登入</span><b></b>' + (access.admin ? '<span class="who-r">管理者</span>' : (role === 'edit' && tripId ? '<span class="who-r">可編輯</span>' : (tripId ? '<span class="who-r">只能看</span>' : ''))) + '<button type="button">登出／換帳號</button>';
+    w.querySelector('b').textContent = session.user.email || '';
+    w.querySelector('button').onclick = logout;
+    document.body.insertBefore(w, document.body.firstChild);
+  }
   function footer() {
+    whoami();
     const f = $('#site-foot'); if (!f || !session) return;
     f.innerHTML = '目前登入：<span></span>' + (access.admin ? '（管理者）' : '') + '・<button type="button">登出</button>';
     f.querySelector('span').textContent = session.user.email || ''; f.querySelector('button').onclick = logout;
