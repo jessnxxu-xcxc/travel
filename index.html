@@ -787,6 +787,7 @@ input,textarea,select,.inp{font-size:16px!important}
 .backlink{gap:6px}
 .backlink svg{flex-shrink:0}
 @media (max-width:480px){.backlink span{display:none}}
+.fld label .opt{font-size:12px;color:var(--muted);font-weight:400;margin-left:4px}
 
 </style>
 
@@ -1296,8 +1297,8 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
   const shops=[...new Set([...[...S.items.values()].filter(i=>PLACE_KINDS.includes(i.kind)).map(i=>i.title),...[...S.exps.values()].map(x=>x.shop).filter(Boolean)])];
   const ps=people();
   openSheet('<h2>'+(id?'花費':'記一筆')+'</h2>'+
-    '<div class="fld"><label for="x-shop">店家／地點</label><input class="inp" id="x-shop" list="dl-shops" placeholder="例：一蘭拉麵 澀谷店" value="'+esc(base.shop)+'" autocomplete="off"><datalist id="dl-shops">'+shops.map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist></div>'+
-    '<div class="fld"><label for="x-what">吃了什麼／買了什麼</label><input class="inp" id="x-what" placeholder="例：拉麵兩碗、啤酒" value="'+esc(base.what)+'" autocomplete="off"></div>'+
+    '<div class="fld"><label for="x-shop">記什麼</label><input class="inp" id="x-shop" list="dl-shops" placeholder="例：機票、一蘭拉麵、BEAMS" value="'+esc(base.shop)+'" autocomplete="off"><datalist id="dl-shops">'+shops.map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist></div>'+
+    '<div class="fld"><label for="x-what">細節 <small class="opt">選填</small></label><input class="inp" id="x-what" placeholder="例：星宇來回兩人、拉麵兩碗" value="'+esc(base.what)+'" autocomplete="off"></div>'+
     '<div class="fld"><span class="lbl">金額</span><div class="seg cur-seg" id="seg-cur"><button type="button" data-v="JPY" aria-pressed="'+(st.cur==='JPY')+'">¥ 日圓</button><button type="button" data-v="TWD" aria-pressed="'+(st.cur==='TWD')+'">NT$ 台幣</button></div><input class="inp" id="x-amt" aria-label="金額" inputmode="decimal" placeholder="例 2400" value="'+esc(st.cur==='TWD'&&base.orig?base.orig:base.amount)+'" autocomplete="off"><span class="amt-hint" id="x-ntd"></span></div>'+
     '<div class="fld"><span class="lbl">分類</span><div class="seg" id="seg-cat">'+CATS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.cat===k)+'">'+l+'</button>').join('')+'</div></div>'+
     
@@ -1631,7 +1632,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.39';
+window.__BUILD='1.40';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
