@@ -919,7 +919,7 @@ function dayItems(n){return [...S.items.values()].filter(i=>i.day===n&&SLOT_I[i.
 function maxOrder(day,slot){let m=0;for(const it of S.items.values())if(it.day===day&&it.slot===slot&&it.order>m)m=it.order;return m}
 
 /* ---------- render ---------- */
-function render(){if(S.drag){S.dirty=true;return}S.dirty=false;
+function render(){if(S.drag){S.dirty=true;return}S.dirty=false;fixTwd();
   document.body.classList.toggle('ro',!S.canWrite);
   renderPeers();renderStrip();renderNow();renderBoard();renderMbar();if($('#money'))renderMoney();saveCache()}
 function peersOn(day){return S.peers.filter(p=>p.presence&&p.presence.tab==='plan'&&p.presence.day===day)}
@@ -1058,7 +1058,7 @@ function money(){const ps=people(),ex=[...S.exps.values()];const paid={},spent={
   let i=0,j=0;while(i<dr.length&&j<cr.length){const amt=Math.min(-dr[i].b,cr[j].b);tx.push({from:dr[i].p,to:cr[j].p,amt});dr[i].b+=amt;cr[j].b-=amt;if(-dr[i].b<0.5)i++;if(cr[j].b<0.5)j++}
   return{ps:all,total,paid,spent,tx,ex}}
 function eRow(e,rate){const meta=[e.what&&e.shop?e.what:'',CAT_L[e.cat]||'',e.split==='self'&&e.payer?e.payer+' 個人':'💰旅遊基金',PAY_L[e.pay]||'',e.cur==='TWD'&&e.orig?'台幣 NT$'+(+e.orig).toLocaleString():'',(e.photos||[]).length?'📎 收據':''].filter(Boolean).join('・');
-  return '<div class="erow" data-eid="'+esc(e.id)+'"><button type="button" class="cbody ebody"><span class="ct">'+esc(e.shop||e.what||'（未填）')+'</span>'+(meta?'<span class="cn">'+esc(meta)+'</span>':'')+'</button><div class="eamt">'+yen(+e.amount||0)+'<small>≈ '+ntd((+e.amount||0)*rate)+'</small></div></div>'}
+  return '<div class="erow" data-eid="'+esc(e.id)+'"><button type="button" class="cbody ebody"><span class="ct">'+esc(e.shop||e.what||'（未填）')+'</span>'+(meta?'<span class="cn">'+esc(meta)+'</span>':'')+'</button><div class="eamt">'+(e.cur==='TWD'&&+e.orig>0?ntd(+e.orig)+'<small>≈ '+yen(+e.amount||0)+'</small>':yen(+e.amount||0)+'<small>≈ '+ntd((+e.amount||0)*rate)+'</small>')+'</div></div>'}
 function aggHTML(groups,rate,max){return groups.map(g=>'<details class="agg"><summary><span class="cbody"><span class="ct">'+esc(g.label)+'</span><span class="cn">'+esc(g.sub)+'</span>'+(max?'<span class="abar"><i style="width:'+(g.sum/max*100).toFixed(1)+'%;--bc:'+(CAT_C[g.k]||'var(--sakura)')+'"></i></span>':'')+'</span><span class="eamt">'+yen(g.sum)+'<small>≈ '+ntd(g.sum*rate)+'</small></span></summary><div class="rows">'+g.rows.map(e=>eRow(e,rate)).join('')+'</div></details>').join('')}
 function renderMoney(){const el=$('#money'),m=money(),rate=+S.meta.rate||0,tn=todayN();
   const openKeys=[...el.querySelectorAll('details[open]')].map(d=>d.dataset.k);const hadAny=!!el.querySelector('details.agg');
@@ -1601,6 +1601,8 @@ document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closes
 function preMoneyHTML(){const rate=+S.meta.rate||0,ex=[...S.exps.values()].filter(e=>!(e.day>0)).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
   return '<section class="dsec"><div class="dsec-h"><b>出發前花費</b>'+(sum?'<span class="dsum">'+yen(sum)+'</span><small>≈ '+ntd(sum*rate)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="0" aria-label="記一筆出發前花費">＋ 記一筆</button></div>'+
     (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'<p class="pool-help">機票、住宿訂金、旅平險、網卡、門票…出國前先付的錢記在這裡，會一起算進總花費。可以直接記台幣。</p>')+'</section>'}
+/* expenses entered in NT$ keep their NT$ amount; the yen figure is recomputed from today's rate */
+function fixTwd(){const r=+S.meta.rate||0;if(!r)return;for(const e of S.exps.values())if(e.cur==='TWD'&&+e.orig>0)e.amount=Math.round(+e.orig/r)}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1629,7 +1631,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.38';
+window.__BUILD='1.39';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
