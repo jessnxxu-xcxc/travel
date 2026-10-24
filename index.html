@@ -738,7 +738,7 @@ html.pwa #gate{padding-top:56px}
 .slot-h .sico{width:28px!important;height:28px!important}
 .slot-h .sico svg{width:14px;height:14px}
 .slot-h b{font-size:14px}
-.slot-add{width:32px!important;height:32px!important;font-size:18px!important}
+.slot-h .slot-add{width:32px!important;height:32px!important;font-size:18px!important}
 .item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:inline-flex!important;font-size:12px;line-height:16px;padding:0 6px}
 /* ===== calmer itinerary: one strong element (place cards), everything else quiet ===== */
 .tl .slot{border-top:0!important;padding-block:6px!important}
@@ -760,6 +760,27 @@ html.pwa #gate{padding-top:56px}
 .col .dsec-h .sico{display:none!important}
 .col .dsec-h b{background:none!important;font-size:16px;color:var(--ink)}
 .col .dsec-h small{color:var(--muted)}
+/* framed = has a real place (景點／美食／購物／住宿); plain = 交通、待辦、and place items without a location (e.g. 飛機餐) */
+.item.is-stay{border:2px solid var(--ink)!important;background:var(--surface)!important;border-radius:18px!important}
+.item.is-stay .imeta .kind{display:inline-flex!important}
+.item.is-stay .ititle{font-size:18px}
+.item.no-loc{border:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.item.no-loc .imeta .kind{display:none}
+.item.no-loc .ititle{font-size:15px;font-weight:400}
+/* list-section add buttons (今日要辦／今日花費): just a ＋ like the time slots */
+.dsec-h .slot-add{width:32px!important;height:32px!important;min-width:32px;padding:0!important;border:0!important;background:transparent!important;font-size:0!important;margin-left:auto;display:grid;place-items:center}
+.dsec-h .slot-add::before{content:'＋';font-size:20px;line-height:1;color:var(--muted)}
+/* ＋ buttons: round outline so they read as buttons */
+.tl .slot-add,.dsec-h .slot-add{border:2px solid var(--ink)!important;border-radius:50%!important;background:#fff!important;color:var(--ink)!important;width:32px!important;height:32px!important}
+.dsec-h .slot-add::before{color:var(--ink)}
+/* ===== button size system: L 36 (toolbar + ＋), M 32 (all check circles), S 24 tall (small pills) ===== */
+.bar .icon-btn,.bar .backlink,.tl .slot-add,.dsec-h .slot-add{box-sizing:border-box!important;width:36px!important;height:36px!important;min-width:36px}
+.bar .pill-btn{width:auto!important;height:36px!important;box-sizing:border-box}
+.bar #mbar{height:36px!important;box-sizing:border-box}
+.ibtn.chk,.item .chk,.dsec .clist .lchk{box-sizing:border-box!important;width:32px!important;height:32px!important;min-width:32px!important;border-width:2px!important;font-size:14px!important}
+.mapl,.route,.wx{box-sizing:border-box;height:24px!important;line-height:20px;padding:0 10px!important;font-size:12px!important}
+.route svg{width:14px;height:14px}
+.item .iacts{min-height:32px}.item .chk{flex:0 0 32px!important;aspect-ratio:1}
 
 </style>
 
@@ -910,7 +931,7 @@ function renderStrip(){const tn=todayN();let h='';
 function thumbs(ids){if(!ids||!ids.length)return '';return '<span class="ithumbs">'+ids.slice(0,3).map(id=>'<img src="'+esc(photoSrc(id))+'" alt="" loading="lazy">').join('')+(ids.length>3?'<span>+'+(ids.length-3)+'</span>':'')+'</span>'}
 function itemHTML(it){
   const showMap=PLACE_KINDS.includes(it.kind)&&!!(it.area||it.q)||!!safeUrl(it.map);
-  return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+(it.done?' done':'')+'" data-id="'+esc(it.id)+'">'+
+  return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+(PLACE_KINDS.includes(it.kind)&&!(it.area||it.q||safeUrl(it.map))?' no-loc':'')+(it.done?' done':'')+'" data-id="'+esc(it.id)+'">'+
    '<button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'"><svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></button>'+
    '<div class="ibody" role="button" tabindex="0"><span class="imeta">'+(it.must?'<span class="must">★ 必去</span>':'')+(it.time?'<span class="itime">'+esc(it.time)+'</span>':'')+
    '<span class="kind k-'+esc(KIND_L[it.kind]?it.kind:'spot')+'">'+esc(KIND_L[it.kind]||'景點')+'</span>'+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+(showMap?'<a class="mapl" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'地圖</a>':'')+'</span>'+
@@ -1596,7 +1617,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.35';
+window.__BUILD='1.36';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
