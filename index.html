@@ -628,7 +628,6 @@ body.gated #app{display:none}
   .bar .icon-btn{flex-shrink:0}
   .bar #mbar small{display:none}
   .bar .peers{max-width:52px;overflow:hidden;flex-shrink:1}
-  .backlink::before{content:'‹';font-size:20px;line-height:1}
   .bar .pill-btn{padding:0 10px}
 }
 /* 「哪一天」picker: no boxes, just weekday + a round date like the calendar strip at the top */
@@ -784,6 +783,10 @@ html.pwa #gate{padding-top:56px}
 body.ro .slot-add{display:none!important}
 /* iPhone zooms the page when a focused field's text is under 16px — keep every field at 16px */
 input,textarea,select,.inp{font-size:16px!important}
+.pre-split{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px;font-size:14px;color:var(--muted)}
+.backlink{gap:6px}
+.backlink svg{flex-shrink:0}
+@media (max-width:480px){.backlink span{display:none}}
 
 </style>
 
@@ -955,7 +958,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();
   for(let n=0;n<=NDAYS;n++){
     const act=S.active===n?' active':'';
     if(n===0){h+='<section class="col'+act+'" data-col="0"><header class="col-h"><div class="col-t"><span class="col-n">BEFORE</span><span class="col-title" style="cursor:default">出發前準備</span><span class="pool-desc">行李、還沒定日期的訂位和想買、想去但還沒排的地方</span></div></header>'+
-      listBlock('todo','行前待辦',listRows('todo'),0)+listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位／票券（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('buy','想買（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+
+      listBlock('todo','行前待辦',listRows('todo'),0)+listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位／票券（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('buy','想買（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+preMoneyHTML()+
       '<section class="dsec"><div class="dsec-h">'+dicon('pin')+'<b>口袋名單</b></div><p class="pool-help">還沒決定哪天去的店或景點先記在這裡（備選）。行程有空檔時，把它<b>拖到某一天</b>，或點開改「哪一天」。</p>'+(S.canWrite?'<form class="addrow pooladd"><input class="inp" id="add-pool-0" aria-label="新增到口袋名單" placeholder="例：teamLab、阿美橫丁的某家店" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+'</section></section>';continue}
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
@@ -1077,7 +1080,7 @@ function renderMoney(){const el=$('#money'),m=money(),rate=+S.meta.rate||0,tn=to
   const grp=(keyf,labelf,subf)=>{const g=new Map();ex.forEach(e=>{const k=keyf(e);if(!g.has(k))g.set(k,{k,rows:[],sum:0});const x=g.get(k);x.rows.push(e);x.sum+=+e.amount||0});
     return [...g.values()].map(x=>Object.assign(x,{label:labelf(x),sub:subf(x)}))};
   let groups,max=0;
-  if(S.mview==='day')groups=grp(e=>e.day||0,x=>x.k?dayLabel(x.k):'未指定日期',x=>x.rows.length+' 筆'+(x.k&&(S.days.get('d'+x.k)||{}).title?'・'+S.days.get('d'+x.k).title:'')).sort((a,b)=>(a.k||99)-(b.k||99));
+  if(S.mview==='day')groups=grp(e=>e.day||0,x=>x.k?dayLabel(x.k):'出發前（機票、保險…）',x=>x.rows.length+' 筆'+(x.k&&(S.days.get('d'+x.k)||{}).title?'・'+S.days.get('d'+x.k).title:'')).sort((a,b)=>(a.k||99)-(b.k||99));
   else if(S.mview==='shop')groups=grp(e=>e.shop||'（未填店家）',x=>x.k,x=>x.rows.length+' 筆'+([...new Set(x.rows.map(e=>e.what).filter(Boolean))].join('、')?'・'+[...new Set(x.rows.map(e=>e.what).filter(Boolean))].join('、'):'')).sort((a,b)=>b.sum-a.sum);
   else if(S.mview==='cat'){groups=grp(e=>CAT_L[e.cat]?e.cat:'other',x=>CAT_L[x.k],x=>x.rows.length+' 筆・佔 '+(m.total?Math.round(x.sum/m.total*100):0)+'%').sort((a,b)=>b.sum-a.sum);max=groups.length?groups[0].sum:0}
   else if(S.mview==='pay')groups=grp(e=>PAY_L[e.pay]?e.pay:'cash',x=>PAY_L[x.k],x=>x.rows.length+' 筆・佔 '+(m.total?Math.round(x.sum/m.total*100):0)+'%').sort((a,b)=>b.sum-a.sum);
@@ -1166,7 +1169,7 @@ function lightbox(src){const d=document.createElement('div');d.className='lb';d.
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const lb=$('.lb');if(lb){lb.remove();return}if(S.drag)endDrag(true);else closeSheet()}});
 function daySeg(sel,withPool,poolLabel){let h='<div class="seg dstrip" id="seg-day">';for(let n=withPool?0:1;n<=NDAYS;n++){const d=n?dayDate(n):null,wd=d&&d.getDay();
   h+=n?'<button type="button" class="'+(wd===0||wd===6?'we':'')+'" data-v="'+n+'" aria-pressed="'+(sel===n)+'" aria-label="'+md(d)+' 週'+WK[wd]+'"><span class="w">'+WK[wd]+'</span><span class="n">'+d.getDate()+'</span></button>'
-    :'<button type="button" class="pool" data-v="0" aria-pressed="'+(sel===0)+'"><span class="w">'+(poolLabel||'口袋')+'</span><span class="n">未定</span></button>'}return h+'</div>'}
+    :'<button type="button" class="pool" data-v="0" aria-pressed="'+(sel===0)+'"><span class="w">'+(poolLabel||'口袋')+'</span><span class="n">'+(poolLabel==='出發前'?'✈︎':'未定')+'</span></button>'}return h+'</div>'}
 function slotSeg(sel,day){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
   return '<div class="seg" id="seg-slot">'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(sel===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
 function kindSeg(sel){return '<div class="seg" id="seg-kind">'+KINDS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(sel===k)+'">'+l+'</button>').join('')+'</div>'}
@@ -1288,7 +1291,7 @@ function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWr
       closeSheet();if(Object.keys(p).length)patch('lists',id,p,'已儲存')}})}
 
 function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const ro=!S.canWrite;if(!id&&!canWrite())return;S.readSheet=ro;
-  const tn=todayN(),base=e||Object.assign({shop:'',what:'',amount:'',payer:ls.get(T.id+'-payer')||(S.meta.people[0]||''),split:'all',cat:'food',day:tn>=1&&tn<=NDAYS?tn:(S.active||0),itemId:''},pre||{});
+  const tn=todayN(),base=e||Object.assign({shop:'',what:'',amount:'',payer:ls.get(T.id+'-payer')||(S.meta.people[0]||''),split:'all',cat:pre&&pre.day===0?'other':'food',day:tn>=1&&tn<=NDAYS?tn:(S.active||0),itemId:''},pre||{});
   const st={day:base.day||0,cat:CAT_L[base.cat]?base.cat:'other',split:base.split==='self'?'self':'all',itemId:base.itemId||'',own:base.split==='self'&&base.payer?base.payer:'',pay:PAY_L[base.pay]?base.pay:(ls.get(T.id+'-pay')||'cash'),cur:base.cur==='TWD'?'TWD':'JPY',photos:(base.photos||[]).slice()};
   const shops=[...new Set([...[...S.items.values()].filter(i=>PLACE_KINDS.includes(i.kind)).map(i=>i.title),...[...S.exps.values()].map(x=>x.shop).filter(Boolean)])];
   const ps=people();
@@ -1301,7 +1304,7 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
     '<div class="fld"><span class="lbl">怎麼付</span><div class="seg" id="seg-pay">'+PAYS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.pay===k)+'">'+l+'</button>').join('')+'</div></div>'+
     '<div class="fld"><span class="lbl">收據／照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><span class="lbl">這筆是誰的</span><div class="seg" id="seg-own"><button type="button" data-v="" aria-pressed="'+(!st.own)+'">💰旅遊基金</button>'+[...new Set(S.meta.people.concat(st.own?[st.own]:[]))].map(p=>'<button type="button" data-v="'+esc(p)+'" aria-pressed="'+(st.own===p)+'">'+esc(p)+'</button>').join('')+'</div>'+(ro?'':'<input class="inp own-new" id="x-ownnew" placeholder="其他人：輸入名字（例：老公）" autocomplete="off">')+'<small class="rolehint">吃喝玩樂、門票、交通選「💰旅遊基金」；個人的購物選名字</small></div>'+
-    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'未定')+'</div>'+
+    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'出發前')+'</div>'+
     '<div class="btns">'+(id&&!ro?'<button type="button" class="btn danger" id="x-del">刪除</button>':'')+'<span class="sp"></span><button type="button" class="btn" id="x-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="x-save">'+(id?'儲存':'記一筆')+'</button>')+'</div>',
   root=>{const q=k=>root.querySelector('#x-'+k);if(ro)root.querySelectorAll('input').forEach(x=>x.readOnly=true);
     const hint=()=>{const a=parseAmt(q('amt').value),r=+S.meta.rate||0;q('ntd').textContent=a>0?(st.cur==='TWD'?'≈ '+yen(r?a/r:0):'≈ '+ntd(a*r)):''};hint();q('amt').addEventListener('input',hint);
@@ -1578,7 +1581,9 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 
 /* money extras: payment method + budget */
 const PAYS=[['cash','現金'],['card','信用卡'],['ic','Suica／IC卡'],['other','其他']],PAY_L=Object.fromEntries(PAYS);
-function budgetHTML(total,rate){const bud=+S.meta.budget||0;
+function budgetHTML(total,rate){const bud=+S.meta.budget||0,pre=[...S.exps.values()].filter(e=>!(e.day>0)).reduce((s,e)=>s+(+e.amount||0),0),split=pre&&total?'<div class="pre-split"><span>出發前 '+yen(pre)+'</span><span>旅途中 '+yen(total-pre)+'</span></div>':'';
+  return split+budgetHTML0(total,rate,bud)}
+function budgetHTML0(total,rate,bud){
   if(!bud)return S.canWrite?'<button type="button" class="linkbtn budget-set" id="budget-btn">＋ 設定旅費預算</button>':'';
   const pct=Math.round(total/bud*100),left=bud-total;
   return '<div class="budget'+(pct>=100?' over':pct>=80?' warn':'')+'"><div class="bud-top"><span>預算 '+yen(bud)+'</span><button type="button" class="linkbtn" id="budget-btn">修改</button></div>'+
@@ -1592,6 +1597,10 @@ window.__wxReload=()=>{try{localStorage.removeItem(T.id+'-wx2')}catch(e){}return
 document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('form.pooladd');if(!f)return;e.preventDefault();e.stopPropagation();
   const i=f.querySelector('input'),t=i.value.trim();if(!t){i.focus();return}i.value='';
   addItems([{day:0,slot:'pool',kind:/餐|食|麵|丼|拉麵|咖啡|cafe|café|甜點|燒肉|壽司|bar/i.test(t)?'food':/店|買|shop|百貨|藥妝/i.test(t)?'shop':'spot',title:t}])},true);
+/* 出發前花費: expenses with no trip day (day 0) — tickets, insurance, SIM… */
+function preMoneyHTML(){const rate=+S.meta.rate||0,ex=[...S.exps.values()].filter(e=>!(e.day>0)).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
+  return '<section class="dsec"><div class="dsec-h"><b>出發前花費</b>'+(sum?'<span class="dsum">'+yen(sum)+'</span><small>≈ '+ntd(sum*rate)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="0" aria-label="記一筆出發前花費">＋ 記一筆</button></div>'+
+    (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'<p class="pool-help">機票、住宿訂金、旅平險、網卡、門票…出國前先付的錢記在這裡，會一起算進總花費。可以直接記台幣。</p>')+'</section>'}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1620,7 +1629,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.37';
+window.__BUILD='1.38';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -1989,7 +1998,7 @@ window.__BUILD='1.37';
     document.title = TRIP.title + '｜旅行手帳';
     $('#trip-hero').innerHTML = hero(TRIP);
     const bar = $('.bar'); if (bar) {
-      const back = document.createElement('a'); back.className = 'backlink'; back.href = location.pathname; back.innerHTML = '‹ 我的旅行'; bar.insertBefore(back, bar.firstChild);
+      const back = document.createElement('a'); back.className = 'backlink'; back.href = location.pathname; back.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>我的旅行</span>'; back.setAttribute('aria-label', '回我的旅行'); bar.insertBefore(back, bar.firstChild);
       if (ok && access.admin) {
         const s = document.createElement('button'); s.type = 'button'; s.className = 'icon-btn pill-btn'; s.textContent = '分享'; s.onclick = shareSheet; bar.appendChild(s);
         const g = document.createElement('button'); g.type = 'button'; g.className = 'icon-btn'; g.setAttribute('aria-label', '旅行設定'); g.textContent = '⚙'; g.onclick = () => tripForm(TRIP); bar.appendChild(g);
