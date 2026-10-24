@@ -958,6 +958,10 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 .col[data-col="0"] .pool-slot .item .grip{order:1}
 .col[data-col="0"] .pool-slot .item .ititle{font-size:16px!important}
 .col[data-col="0"] .pool-slot .item .ipic{width:48px;height:48px}
+/* edit sheet: the old "更多資訊" fold is always open and drawn as plain fields */
+.sheet details.more.allopen{border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0}
+.sheet details.more.allopen>summary{display:none}
+.sheet details.more.allopen>div{padding:0!important}
 
 </style>
 
@@ -1382,7 +1386,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
     (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
-    '<details class="more"'+(it.note?' open':'')+'><summary>更多資訊（備註、類型、地圖連結）</summary><div>'+
+    '<details class="more allopen" open><summary>更多資訊</summary><div>'+
     '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
     '<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>'+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
@@ -1881,12 +1885,32 @@ async function findPics(){
       const cur=S.items.get(it.id);if(!cur||cur.pic!==undefined)return;S.items.set(it.id,Object.assign({},cur,{pic}));queue('items'+it.id,()=>ref('items',it.id).update({pic}))});
     render()}}
   finally{PIC_BUSY=false}}
-function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size)findPics();else if(++n<20)setTimeout(go,1500)})()}
+/* places typed without an area (e.g. 小町通商店街) get one from AI, so they count as real places: framed card, tag and a Google Maps link.
+   aq marks "already asked" so each item is asked once; '' back from AI = not a findable place (飛機餐) and it stays a plain row. */
+let AREA_BUSY=false;
+async function findAreas(){
+  if(AREA_BUSY||!S.sample||!canWrite())return;
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.area&&!it.q&&!safeUrl(it.map)&&it.aq===undefined).slice(0,40);
+  if(!todo.length)return;AREA_BUSY=true;
+  try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
+    const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的項目，括號裡是那天的主要地區。請替每一項寫出它在 Google 地圖上所在的地區名稱（繁體中文，2 到 6 個字，例如「鎌倉」「澀谷」「江之島」）。如果不是一個找得到的實際地點（例如「飛機餐」「自由活動」），填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["鎌倉",""]。\n'+
+      part.map((it,k)=>{const dt=it.day?(S.days.get('d'+it.day)||{}).title:'';return (k+1)+'. '+it.title.slice(0,30)+(dt?'（'+String(dt).slice(0,16)+'）':'')}).join('\n');
+    let names;try{const r=await S.sample(prompt);names=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(names)||names.length!==part.length)continue;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.area||cur.aq!==undefined)return;
+      const v=typeof names[k]==='string'?names[k].trim().slice(0,12):'',p=v?{area:v,aq:1}:{aq:1};
+      S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
+    render()}}
+  finally{AREA_BUSY=false}}
+async function fillPlaces(){await findAreas();await findPics()}
+/* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
+function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
   patch('items',b.dataset.id,{pic:'none'},'已拿掉圖片');const f=b.closest('.picfld');if(f)f.remove()});
 
 /* 訂位／票券 in date order (undated last); same-day items keep their own order */
 const byDate=(a,b)=>(a.done-b.done)||((a.day>0?a.day:99)-(b.day>0?b.day:99));
+window.__fillPlaces=fillPlaces;
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -1915,7 +1939,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.55';
+window.__BUILD='1.56';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
