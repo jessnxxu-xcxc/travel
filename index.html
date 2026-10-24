@@ -655,7 +655,7 @@ body.gated #app{display:none}
 .hotel-l{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .hotel-m{display:none}
 @media (max-width:520px){
-  .hotel-m{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);text-decoration:none;font-size:14px;min-width:0}
+  .hotel-m{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--ink);color:var(--ink);text-decoration:none;font-size:14px;min-width:0}
   .hotel-m b{font-weight:400;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hotel-m em{font-style:normal;font-size:12px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:var(--water);line-height:22px;flex-shrink:0}
 }
@@ -684,6 +684,8 @@ html.pwa #gate{padding-top:56px}
 .site-foot .ver span{font-size:12px;color:var(--muted);letter-spacing:.02em}
 .chip.pool .c-left{font-size:12px;line-height:16px;color:var(--muted);white-space:nowrap}
 .chip.pool.active .c-left{color:var(--ink)}
+.whoami .sync{height:24px;padding:0 8px;font-size:12px;border-width:2px;margin:0}
+@media (max-width:480px){.whoami .who-l{display:none}.whoami b{font-size:13px}}
 
 </style>
 
@@ -1513,7 +1515,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.25';
+window.__BUILD='1.26';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -1615,9 +1617,11 @@ window.__BUILD='1.25';
   function whoami() {
     if (!session || $('#whoami')) return;
     const w = document.createElement('div'); w.id = 'whoami'; w.className = 'whoami gut wrapc';
-    w.innerHTML = '<span class="who-l">目前登入</span><b></b>' + (access.admin ? '<span class="who-r">管理者</span>' : (role === 'edit' && tripId ? '<span class="who-r">可編輯</span>' : (tripId ? '<span class="who-r">只能看</span>' : ''))) + '<button type="button">登出／換帳號</button>';
+    w.innerHTML = '<span class="who-l">目前登入</span><b></b>' + (access.admin ? '<span class="who-r">管理者</span>' : (role === 'edit' && tripId ? '<span class="who-r">可編輯</span>' : (tripId ? '<span class="who-r">只能看</span>' : ''))) + '<button type="button">登出</button>';
     w.querySelector('b').textContent = session.user.email || '';
     w.querySelector('button').onclick = logout;
+    // the sync status lives in this row instead of taking a line of its own under the title
+    const sy = $('#sync'); if (sy) w.insertBefore(sy, w.querySelector('button'));
     document.body.insertBefore(w, document.body.firstChild);
   }
   /* ---------- backup: one readable .html file (itinerary, money, lists) with the raw data inside ---------- */
@@ -1799,8 +1803,8 @@ window.__BUILD='1.25';
         : '<div class="fly-row"><div class="ap"><b>' + fmtDate(T.start) + '</b><span>出發</span></div><div class="fly"><span class="fline">' + plane + '</span></div><div class="ap r"><b>' + fmtDate(end) + '</b><span>回程</span></div></div>') +
       ((b.no || h.name) ? '<div class="pass-meta">' + (b.no ? '<div><span>' + bLabel + fmtDate(bDate) + '</span><b>' + esc(b.no) + '</b><small class="nb">' + esc([b.dep, b.arr].filter(Boolean).join(' → ')) + '</small></div>' : '<div></div>') +
         (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + (h.map ? '<a class="hotel-l" href="' + esc(h.map) + '" target="_blank" rel="noopener">' + esc(h.name) + ' 📍</a>' : esc(h.name)) + '</b><small class="nb">' + esc(h.note || '') + '</small></div>' : '') + '</div>' : '') +
-      '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>' +
-      (h.name ? (h.map ? '<a class="hotel-m" href="' + esc(h.map) + '" target="_blank" rel="noopener">' : '<div class="hotel-m">') + '<span>🏨</span><b>' + esc(h.name) + '</b>' + (h.map ? '<em>地圖</em></a>' : '</div>') : '');
+      (h.name ? (h.map ? '<a class="hotel-m" href="' + esc(h.map) + '" target="_blank" rel="noopener">' : '<div class="hotel-m">') + '<span>🏨</span><b>' + esc(h.name) + '</b>' + (h.map ? '<em>地圖</em></a>' : '</div>') : '') +
+      '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>';
   }
 
   /* ---------- db adapter (collection/doc API over docs table, scoped to one trip) ---------- */
