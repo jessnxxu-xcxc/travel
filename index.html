@@ -814,6 +814,7 @@ body[data-pt="todo"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="todo"]),
 body[data-pt="pack"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pack"]),
 body[data-pt="book"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="book"]),
 body[data-pt="buy"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="buy"]),
+body[data-pt="ticket"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="ticket"]),
 body[data-pt="money"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="money"]),
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pool"]){display:none!important}
 .dsec .clist+.addrow{margin-top:10px}
@@ -1027,7 +1028,7 @@ const SLOT_L={pool:'口袋名單'};SLOTS.forEach(s=>SLOT_L[s.k]=s.l);
 const SLOT_I={};SLOTS.forEach((s,i)=>SLOT_I[s.k]=i);
 const KINDS=[['food','美食'],['spot','景點'],['shop','購物'],['move','交通'],['stay','住宿'],['todo','待辦']];
 const KIND_L=Object.fromEntries(KINDS);
-const LTYPES=[{k:'todo',l:'行前待辦',ph:'例：買 eSIM、買迪士尼門票、換日幣',empty:'出發前要處理的事（買票、換錢、保險…），辦好就打勾'},{k:'book',l:'訂位',ph:'例：USHIGORO 銀座、燒肉 TAKEDA',empty:'要先預約的餐廳放這裡，訂好就打勾'},{k:'pack',l:'行李',ph:'例：護照、行動電源',empty:'出發前要帶的東西，收進行李就打勾'},{k:'buy',l:'購物',ph:'例：藥妝、Tokyo Banana',empty:'購物的東西記在這裡，買到就打勾'}];
+const LTYPES=[{k:'todo',l:'行前待辦',ph:'例：買 eSIM、買迪士尼門票、換日幣',empty:'出發前要處理的事（買票、換錢、保險…），辦好就打勾'},{k:'book',l:'訂位',ph:'例：USHIGORO 銀座、燒肉 TAKEDA',empty:'要先預約的餐廳放這裡，訂好就打勾'},{k:'ticket',l:'票券',ph:'例：迪士尼門票、Skyliner、晴空塔展望台',empty:'門票、車票放這裡，QR code 或票券截圖可以一起存著'},{k:'pack',l:'行李',ph:'例：護照、行動電源',empty:'出發前要帶的東西，收進行李就打勾'},{k:'buy',l:'購物',ph:'例：藥妝、Tokyo Banana',empty:'購物的東西記在這裡，買到就打勾'}];
 const LT_L=Object.fromEntries(LTYPES.map(t=>[t.k,t.l]));
 const START=new Date(T.start+'T00:00:00'),NDAYS=T.days,WK='日一二三四五六';
 const PLACE_KINDS=['food','spot','shop'];
@@ -1113,7 +1114,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();
   for(let n=0;n<=NDAYS;n++){
     const act=S.active===n?' active':'';
     if(n===0){h+='<section class="col'+act+'" data-col="0"><header class="col-h"><div class="col-t"><span class="col-n">BEFORE</span><span class="col-title" style="cursor:default">出發前準備</span></div></header>'+preTabsHTML()+
-      listBlock('todo','行前待辦',listRows('todo'),0)+listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位／票券（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('buy','購物（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+preMoneyHTML()+
+      listBlock('todo','行前待辦',listRows('todo'),0)+listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('ticket','票券',listRows('ticket'),0)+listBlock('buy','購物（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+preMoneyHTML()+
       '<section class="dsec" data-sec="pool"><div class="dsec-h">'+dicon('pin')+'<b>口袋名單</b></div><p class="pool-help">還沒決定哪天去的店或景點先記在這裡（備選）。行程有空檔時，把它<b>拖到某一天</b>，或點開改「哪一天」。</p>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+(S.canWrite?'<form class="addrow pooladd"><input class="inp" id="add-pool-0" aria-label="新增到口袋名單" placeholder="＋ 新增：teamLab、阿美橫丁的某家店" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section></section>';continue}
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
@@ -1126,7 +1127,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();
 
 const DICO={pin:'<path d="M8 14s4.5-4.2 4.5-7.5a4.5 4.5 0 0 0-9 0C3.5 9.8 8 14 8 14z"/><circle cx="8" cy="6.5" r="1.6"/>',money:'<path d="M3.5 2.5 8 8l4.5-5.5M8 8v5.5M5 8.5h6M5 11h6"/>',todo:'<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="m5.5 8 2 2 3.5-4"/>',pack:'<rect x="3" y="5" width="10" height="8.5" rx="1.5"/><path d="M6 5V3.5h4V5M3 9h10"/>'};
 const dicon=k=>'<span class="sico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+DICO[k]+'</svg></span>';
-const LT_TAG={todo:['待辦','k-todo'],book:['訂位','k-spot'],buy:['購物','k-shop'],pack:['行李','k-move']};
+const LT_TAG={todo:['待辦','k-todo'],book:['訂位','k-spot'],ticket:['票券','k-food'],buy:['購物','k-shop'],pack:['行李','k-move']};
 function rowHTML(r,withTag){return '<li class="crow'+(r.done?' done':'')+'" data-lid="'+esc(r.id)+'"><button type="button" class="ibtn chk lchk" aria-label="打勾" aria-pressed="'+(r.done?'true':'false')+'">✓</button>'+
   '<button type="button" class="cbody lbody">'+(withTag&&LT_TAG[r.type]?'<span class="kind ltype '+LT_TAG[r.type][1]+'">'+LT_TAG[r.type][0]+'</span>':'')+'<span class="ct">'+esc(r.title)+'</span>'+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button>'+(!withTag&&S.canWrite&&!r.done?'<span class="lgrip" role="button" aria-label="拖曳調整順序"><svg viewBox="0 0 12 20" width="12" height="20" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></span>':'<span></span>')+'</li>'}
 function listBlock(type,title,rows,day){const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
@@ -1135,8 +1136,8 @@ function listBlock(type,title,rows,day){const t=LTYPES.find(x=>x.k===type),done=
     (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增：'+esc(t.ph.replace(/^例：/,''))+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section>'}
 function daySections(n){const rate=+S.meta.rate||0;
   const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
-  const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
-  return '<section class="dsec">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
+  const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
+  return '<section class="dsec">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
       (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>'+
     '<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
       (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>'}
@@ -1153,7 +1154,7 @@ function openMoney(){S.readSheet=false;
       if(t.closest('#rate-btn')){if(canWrite())openPrompt('日圓匯率','1 日圓 = 多少台幣（留空＝自動用最新匯率）',S.meta.rateAuto===false?String(S.meta.rate):'','自動：'+(FX.rate||S.meta.rate),'decimal',v=>{if(!String(v).trim()){saveMeta({rateAuto:true});applyFx();render();toast('已改回自動匯率');setTimeout(openMoney,0);return}const r=parseFloat(v);if(!(r>0&&r<10)){toast('請輸入像 0.21 這樣的數字');return false}saveMeta({rate:r,rateAuto:false});setTimeout(openMoney,0)});return}})})}
 function openTodoAdd(day){if(!canWrite())return;S.readSheet=false;const st={type:'todo'};
   openSheet('<h2>今日要辦・'+md(dayDate(day))+'</h2><div class="fld"><label for="t-title">要辦什麼？</label><input class="inp" id="t-title" placeholder="例：迪士尼門票、USHIGORO 訂位、Tokyo Banana" autocomplete="off"></div>'+
-    '<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-ttype"><button type="button" data-v="todo" aria-pressed="true">待辦</button><button type="button" data-v="book" aria-pressed="false">訂位</button><button type="button" data-v="buy" aria-pressed="false">要買的</button></div></div>'+
+    '<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-ttype"><button type="button" data-v="todo" aria-pressed="true">待辦</button><button type="button" data-v="book" aria-pressed="false">訂位</button><button type="button" data-v="ticket" aria-pressed="false">票券</button><button type="button" data-v="buy" aria-pressed="false">購物</button></div></div>'+
     '<div class="btns"><button type="button" class="btn pri block" id="t-ok">加入</button></div>',
   root=>{const i=root.querySelector('#t-title');setTimeout(()=>i.focus(),50);bindSeg(root,'seg-ttype',v=>st.type=v);
     const go=()=>{const v=i.value.trim();if(!v){i.focus();return}create('lists',{type:st.type,title:v,note:'',done:false,day,photos:[],ts:Date.now()});closeSheet();render();toast('已加到 '+dayLabel(day))};
@@ -1433,8 +1434,8 @@ function openDayTitle(n){if(!canWrite())return;const cur=(S.days.get('d'+n)||{})
 function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWrite;S.readSheet=ro;const st={day:r.day||0,type:r.type,photos:(r.photos||[]).slice()};
   openSheet('<h2>'+esc(LT_L[r.type]||'清單')+'</h2>'+
     '<div class="fld"><label for="l-title">項目</label><input class="inp" id="l-title" value="'+esc(r.title)+'"></div>'+
-    (r.type!=='pack'&&!ro?'<div class="fld"><span class="lbl">放在哪一類</span><div class="seg" id="seg-ltype">'+[['todo','待辦'],['book','訂位'],['buy','購物']].map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(r.type===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
-    '<div class="fld"><label for="l-note">備註</label><textarea class="inp" id="l-note" style="min-height:64px" placeholder="'+(r.type==='book'?'確認碼、時間、人數':r.type==='buy'?'在哪買、幫誰買':'')+'">'+esc(r.note)+'</textarea></div>'+
+    (r.type!=='pack'&&!ro?'<div class="fld"><span class="lbl">放在哪一類</span><div class="seg" id="seg-ltype">'+[['todo','待辦'],['book','訂位'],['ticket','票券'],['buy','購物']].map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(r.type===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
+    '<div class="fld"><label for="l-note">備註</label><textarea class="inp" id="l-note" style="min-height:64px" placeholder="'+(r.type==='book'||r.type==='ticket'?'確認碼、時間、人數':r.type==='buy'?'在哪買、幫誰買':'')+'">'+esc(r.note)+'</textarea></div>'+
     (r.type!=='pack'?'<div class="fld"><span class="lbl">相關日期</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
     (r.type!=='pack'?'<div class="fld"><span class="lbl">照片（票券截圖、商品照）</span>'+photosHTML(st.photos,ro)+'</div>':'')+
     '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="l-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="l-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="l-save">儲存</button>')+'</div>',
@@ -1778,10 +1779,10 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
     patch('lists',me.id,{order})};
   addEventListener('pointermove',move,{passive:false});addEventListener('pointerup',up);addEventListener('pointercancel',up)},true);
 /* 出發前 tabs: one list at a time (remembered per device) */
-const PRE_TABS=[['todo','待辦'],['pack','行李'],['book','訂位'],['buy','購物'],['money','花費'],['pool','口袋']];
+const PRE_TABS=[['todo','待辦'],['pack','行李'],['book','訂位'],['ticket','票券'],['buy','購物'],['money','花費'],['pool','口袋']];
 function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_TABS.some(t=>t[0]===v)?v:'todo'}
 function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeout(fabSync,0);
-  const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&!(r.day>0)&&!r.done).length;
+  const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&(k==='todo'||k==='ticket'||!(r.day>0))&&!r.done).length;
   return '<div class="pretabs" role="tablist">'+PRE_TABS.map(([k,l])=>{const n=left(k);return '<button type="button" role="tab" data-pt="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>'}).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.pretabs [data-pt]');if(!b)return;e.preventDefault();e.stopPropagation();
   const v=b.dataset.pt;try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}document.body.dataset.pt=v;
@@ -1886,7 +1887,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.51';
+window.__BUILD='1.52';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -2015,7 +2016,7 @@ window.__BUILD='1.51';
         its.map(i => '<li>' + (SL[i.slot] ? '<span class="m">' + SL[i.slot] + (i.time ? ' ' + esc(i.time) : '') + '</span> ' : '') + '<b>' + esc(i.title) + '</b>' + (i.area ? ' <span class="m">' + esc(i.area) + '</span>' : '') + (i.desc ? '<br><span class="m">' + esc(i.desc) + '</span>' : '') + (i.note ? '<br><span class="m">備註：' + esc(i.note) + '</span>' : '') + '</li>').join('') + '</ul>';
     }
     if (exps.length) h += '<h2>記帳</h2><table><tr><th>日</th><th>店／項目</th><th>金額</th><th>誰付</th></tr>' + exps.sort((a, b) => (a.day || 0) - (b.day || 0)).map(e => '<tr><td>' + (e.day ? 'Day ' + e.day : '') + '</td><td>' + esc(e.shop || '') + (e.what ? '・' + esc(e.what) : '') + '</td><td>' + yen(e.amt) + '</td><td>' + esc(e.payer || '') + '</td></tr>').join('') + '<tr><th></th><th>合計</th><th>' + yen(exps.reduce((s, e) => s + (+e.amt || 0), 0)) + '</th><th></th></tr></table>';
-    const LT = { todo: '待辦', book: '訂位', buy: '購物', pack: '行李' };
+    const LT = { todo: '待辦', book: '訂位', ticket: '票券', buy: '購物', pack: '行李' };
     Object.keys(LT).forEach(t => { const ls = lists.filter(l => l.type === t); if (ls.length) h += '<h2>' + LT[t] + '</h2><ul>' + ls.map(l => '<li>' + (l.done ? '✓ ' : '') + esc(l.title || l.text || '') + (l.day ? ' <span class="m">Day ' + l.day + '</span>' : '') + '</li>').join('') + '</ul>'; });
     h += '<script type="application/json" id="backup-data">' + JSON.stringify({ trip: TRIP, rows }).replace(/</g, '\\u003c') + '<\/script></body></html>';
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([h], { type: 'text/html' }));
