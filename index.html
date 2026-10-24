@@ -647,6 +647,11 @@ body.gated #app{display:none}
 #sh-list .crow{grid-template-columns:minmax(0,1fr) auto auto;row-gap:8px}
 #sh-list .sh-send{grid-column:1/-1;justify-self:start;height:36px;padding:0 14px;background:var(--water)!important}
 .rolehint{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
+.gonext{display:block}
+/* 「新旅行」is a slim dashed button, not a full card */
+.tnew{min-height:0!important;display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:8px;padding:16px;grid-column:1/-1}
+.tnew .plus{font-size:24px}
+.tnew b{font-size:16px}
 
 </style>
 
@@ -820,7 +825,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();
     if(n===0){h+='<section class="col'+act+'" data-col="0"><header class="col-h"><div class="col-t"><span class="col-n">BEFORE</span><span class="col-title" style="cursor:default">出發前準備</span><span class="pool-desc">行李、還沒定日期的訂位和想買、想去但還沒排的地方</span></div></header>'+
       listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位／票券（還沒定日期）',listRows('book').filter(r=>!(r.day>0)),0)+listBlock('buy','想買（還沒定日期）',listRows('buy').filter(r=>!(r.day>0)),0)+
       '<section class="dsec"><div class="dsec-h"><b>口袋名單</b><small>想去但還沒排的地方，之後拖到某一天</small></div>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+'</section></section>';continue}
-    const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrl(n);
+    const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
       '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+wxChip(n)+(ru?'<a class="route" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
       (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
@@ -1409,11 +1414,19 @@ async function loadFx(){
 const fxLabel=()=>S.meta.rateAuto!==false&&FX.rate?'（自動・'+FX.at+'）':(S.meta.rateAuto===false?'（手動）':'');
 
 /* how to get there: link from each place to the next place of the same day (Google Maps transit directions) */
-let NEXT={};
-function buildNext(){NEXT={};for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)&&placeQuery(i));for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
-function goNext(it){const nx=NEXT[it.id];if(!nx)return '';
-  const u='https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(placeQuery(it))+'&destination='+encodeURIComponent(placeQuery(nx));
-  return '<a class="gonext" href="'+esc(u)+'" target="_blank" rel="noopener">🚃 怎麼去下一站：'+esc(nx.title)+'</a>'}
+let NEXT={},FIRST=new Set();
+const HOTEL=()=>T.hotel?(T.hotel.q||T.hotel.name||''):'';
+const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
+function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)&&placeQuery(i));if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
+function goNext(it){let h='';
+  if(FIRST.has(it.id))h+='<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店怎麼過來</a>';
+  const nx=NEXT[it.id];if(nx)h+='<a class="gonext" href="'+esc(transit(placeQuery(it),placeQuery(nx)))+'" target="_blank" rel="noopener">🚃 怎麼去下一站：'+esc(nx.title)+'</a>';
+  return h}
+/* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
+function routeUrlH(n){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).map(placeQuery).filter(Boolean);
+  const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,9);if(!u.length)return '';
+  const all=(n>1&&HOTEL()?[HOTEL()]:[]).concat(u);if(all.length===1)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(all[0]);
+  return 'https://www.google.com/maps/dir/'+all.map(encodeURIComponent).join('/')}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1584,7 +1597,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 
   /* ---------- bookshelf ---------- */
   async function shelf() {
-    document.title = '我的旅行手帳';
+    document.title = '旅行手帳';
     const app = $('#app'); if (app) app.hidden = true;
     let el = $('#shelf'); if (!el) { el = document.createElement('main'); el.id = 'shelf'; el.className = 'shelf gut wrapc'; document.body.insertBefore(el, app); }
     const [{ data: trips }, { data: shares }] = await Promise.all([sb.from('trips').select('id,data,created_at'), access.admin ? sb.from('trip_shares').select('trip_id,email,role') : Promise.resolve({ data: [] })]);
@@ -1592,7 +1605,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
     const list = (trips || []).map(r => Object.assign({ id: r.id }, r.data)).filter(t => t.start);
     const order = { now: 0, soon: 1, past: 2 };
     list.sort((a, b) => { const sa = tripStatus(a), sb2 = tripStatus(b); return (order[sa.k] - order[sb2.k]) || (sa.k === 'past' ? b.start.localeCompare(a.start) : a.start.localeCompare(b.start)); });
-    el.innerHTML = '<header class="shelf-h"><div class="hero-art">' + art('travel') + '</div><h1>我的旅行手帳</h1><p>' + (list.length ? '共 ' + list.length + ' 趟旅行' : (access.admin ? '還沒有旅行，建立第一本吧' : '目前沒有分享給你的旅行')) + '</p></header>' +
+    el.innerHTML = '<header class="shelf-h"><div class="hero-art">' + art('travel') + '</div><h1>旅行手帳</h1><p>' + (list.length ? '共 ' + list.length + ' 趟旅行' : (access.admin ? '還沒有旅行，建立第一本吧' : '目前沒有分享給你的旅行')) + '</p></header>' +
       '<div class="shelf-grid">' + list.map(t => { const st = tripStatus(t); return '<a class="tcard ' + st.k + '" href="?t=' + encodeURIComponent(t.id) + '"><div class="tcover">' + art(t.theme) + '</div><div class="tbody"><b>' + esc(t.title) + '</b><span>' + fmtDate(t.start) + ' – ' + fmtDate(addDays(t.start, t.days - 1)) + '・' + t.days + ' 天</span><span class="tst">' + st.t + (access.admin ? '・分享 ' + (cnt[t.id] || 0) + ' 人' : '') + '</span></div></a>'; }).join('') +
       (access.admin ? '<button type="button" class="tcard tnew" id="new-trip"><span class="plus">＋</span><b>新旅行</b></button>' : '') + '</div>' +
       '<footer class="site-foot" id="site-foot"></footer>';
