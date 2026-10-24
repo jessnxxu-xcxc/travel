@@ -1056,7 +1056,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     const ai=root.querySelector('#e-ai');
     if(ai)ai.onclick=async()=>{const ta=root.querySelector('#e-desc'),t=root.querySelector('#e-title').value.trim(),a=root.querySelector('#e-area').value.trim();if(!t)return;
       if(S.aiCtl)S.aiCtl.abort();S.aiCtl=new AbortController();ai.disabled=true;ai.textContent='撰寫中…';const before=ta.value;
-      try{await S.sample('請用繁體中文（台灣用語）寫一段 30 到 70 字的簡介，給去日本旅遊的人看。地點：「'+t+'」'+(a?'，位於東京的'+a:'，在東京一帶')+'。類型：'+(KIND_L[st.kind]||'景點')+'。說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實；不確定的不要寫，也不要寫營業時間或價格。只回覆簡介本身，不要標題或引號。',
+      try{await S.sample('請用繁體中文（台灣用語）寫一段 30 到 70 字的簡介，給去日本旅遊的人看。地點：「'+t+'」'+(a?'，位於'+(T.dest||'')+'的'+a:(T.dest?'，在'+T.dest+'一帶':''))+'。類型：'+(KIND_L[st.kind]||'景點')+'。說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實；不確定的不要寫，也不要寫營業時間或價格。只回覆簡介本身，不要標題或引號。',
           {signal:S.aiCtl.signal,modelTier:'quick',onText:({text})=>{ta.value=text}})}
       catch(e){ta.value=before;if(e&&e.name!=='AbortError'&&e.code!=='aborted')toast(e&&e.code==='not_granted'?'需要先允許 AI 功能':'AI 暫時寫不出來，請再試一次')}
       finally{if(ai.isConnected){ai.disabled=false;ai.textContent='✨ AI 寫簡介'}}};
