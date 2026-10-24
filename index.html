@@ -943,6 +943,9 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 .clist .crow .cbody:has(.ithumbs)>.kind{grid-row:2;justify-self:start}
 .clist .crow .cbody:has(.ithumbs)>.ct{grid-row:3;align-self:auto}
 .clist .crow .cbody:has(.ithumbs)>.cn{grid-row:4;align-self:auto}
+/* 新增行程: 加入並填細節 and 加入行程 side by side, same size */
+.btns:has(#a-more:not([hidden])){flex-wrap:nowrap!important;gap:8px}
+.btns:has(#a-more:not([hidden])) #a-more,.btns:has(#a-more:not([hidden])) #a-ok{flex:1 1 0!important;width:auto!important;min-width:0}
 
 </style>
 
@@ -1274,7 +1277,7 @@ function addItems(rows){if(!canWrite()||!rows.length)return;const ids=[];
   for(const r of rows){const o=maxOrder(r.day,r.slot)+1000;
     ids.push(create('items',{day:r.day,slot:r.slot,order:o,kind:r.kind,time:r.time||'',title:r.title,area:r.area||'',note:r.note||'',desc:'',map:r.map||'',photos:[],done:false}))}
   render();const first=rows[0];setActive(first.day,{noScroll:true});
-  toast('已新增 '+rows.length+' 項'+(rows.every(r=>r.day===first.day)?'到 '+dayLabel(first.day):''),()=>{ids.forEach(id=>{S.items.delete(id);queue('items'+id,()=>ref('items',id).delete())});render()})}
+  toast('已新增 '+rows.length+' 項'+(rows.every(r=>r.day===first.day)?'到 '+dayLabel(first.day):''),()=>{ids.forEach(id=>{S.items.delete(id);queue('items'+id,()=>ref('items',id).delete())});render()});return ids}
 function setDayTitle(n,title){if(!canWrite())return;S.days.set('d'+n,{title});render();queue('d'+n,()=>S.db.collection('days').doc('d'+n).set({title}))}
 function saveMeta(m){if(!canWrite())return;S.meta=Object.assign({},S.meta,m);render();const body={rate:+S.meta.rate||0,people:S.meta.people,rateAuto:S.meta.rateAuto!==false,budget:+S.meta.budget||0};queue('meta',()=>S.db.collection('meta').doc('settings').set(body))}
 
@@ -1410,19 +1413,19 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div class="preview" id="a-pv"></div>'+
-    '<div class="btns"><button type="button" class="btn pri block" id="a-ok" disabled>加入行程</button></div>',
+    '<div class="btns"><button type="button" class="btn" id="a-more" hidden>加入並填細節</button><button type="button" class="btn pri block" id="a-ok" disabled>加入行程</button></div>',
   root=>{const ta=root.querySelector('#a-text'),pv=root.querySelector('#a-pv'),ok=root.querySelector('#a-ok');let rows=[];
     const grow=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px'};
     const upd=()=>{rows=ta.value.split(/\n+/).map(l=>parseLine(l,d)).filter(Boolean);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time?'<span class="itime">'+r.time+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
-      ok.disabled=!rows.length;ok.textContent=rows.length>1?'加入 '+rows.length+' 個行程':'加入行程'};
+      ok.disabled=!rows.length;ok.textContent=rows.length>1?'加入 '+rows.length+' 個行程':'加入行程';root.querySelector('#a-more').hidden=rows.length!==1};
     const bindSlot=()=>bindSeg(root,'seg-aslot',v=>{d.slot=v||null;upd()});
     ta.addEventListener('input',()=>{grow();upd()});
     ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();ok.click()}});
     bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot()}upd()});
     bindSlot();
-    ok.onclick=()=>{if(!rows.length)return;closeSheet();addItems(rows)};
+    ok.onclick=()=>{if(!rows.length)return;closeSheet();addItems(rows)};root.querySelector('#a-more').onclick=()=>{if(rows.length!==1)return;closeSheet();const ids=addItems(rows);if(ids&&ids[0])setTimeout(()=>openEdit(ids[0]),300)};
     setTimeout(()=>ta.focus(),50)})}
 
 function openDayTitle(n){if(!canWrite())return;const cur=(S.days.get('d'+n)||{}).title||'';S.readSheet=false;
@@ -1790,22 +1793,32 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
 const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增購物',money:'記一筆',pool:'新增口袋'};
 function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}}
-/* adding to a checklist: a name, photos, or both (購物 is often just a screenshot of the thing) */
-function quickAdd(type){const L=LTYPES.find(x=>x.k===type)||{l:'清單',ph:''},st={photos:[]};S.readSheet=false;
-  openSheet('<h2>新增'+esc(L.l)+'</h2><div class="fld"><label for="q-in">要加什麼'+(S.assets?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L.ph)+'" autocomplete="off"></div>'+
-    (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
+/* adding to a checklist: the same fields as editing it (name, note, date, photos) — name or a photo is enough (購物 is often just a screenshot).
+   opt.day presets the date; opt.pick shows the 待辦／訂位／票券／購物 switch (used by a day's 今日要辦 ＋) */
+const PICK_TYPES=[['todo','待辦'],['book','訂位'],['ticket','票券'],['buy','購物']];
+function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[],day:opt.day||0,type},L=()=>LTYPES.find(x=>x.k===st.type)||{l:'清單',ph:''},full=type!=='pack';S.readSheet=false;
+  const notePh=t=>t==='book'||t==='ticket'?'確認碼、時間、人數':t==='buy'?'在哪買、幫誰買、大概多少錢':'';
+  openSheet('<h2>'+(opt.pick?'今日要辦・'+md(dayDate(st.day)):'新增'+esc(L().l))+'</h2>'+
+    (opt.pick?'<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-qtype">'+PICK_TYPES.map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(x[0]===type)+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
+    '<div class="fld"><label for="q-in">要加什麼'+(S.assets&&full?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L().ph)+'" autocomplete="off"></div>'+
+    '<div class="fld"><label for="q-note">備註<span class="opt">選填</span></label><textarea class="inp" id="q-note" style="min-height:64px" placeholder="'+esc(notePh(type))+'"></textarea></div>'+
+    (full?'<div class="fld"><span class="lbl">相關日期<span class="opt">選填</span></span>'+daySeg(st.day,true,'不限')+'</div>':'')+
+    (S.assets&&full?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="q-cancel">取消</button><button type="button" class="btn pri" id="q-ok">加入</button></div>',
-  root=>{const i=root.querySelector('#q-in');if(type!=='buy')setTimeout(()=>i.focus(),50);
+  root=>{const i=root.querySelector('#q-in'),nt=root.querySelector('#q-note');if(type!=='buy')setTimeout(()=>i.focus(),50);
+    if(full)bindSeg(root,'seg-day',v=>st.day=+v);
+    bindSeg(root,'seg-qtype',v=>{st.type=v;i.placeholder=L().ph;nt.placeholder=notePh(v)});
     bindPhotos(root,()=>st.photos,ids=>{st.photos=ids});root.querySelector('#q-cancel').onclick=closeSheet;
-    const go=()=>{const t=i.value.trim();if(!t&&!st.photos.length){toast('寫個名字，或加一張照片');return}
+    const go=()=>{const t=i.value.trim(),n=nt.value.trim();if(!t&&!st.photos.length){toast(full?'寫個名字，或加一張照片':'寫個名字');return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
-      create('lists',{type,title:t||'照片',note:'',done:false,day:0,photos:st.photos.slice(),ts:Date.now(),order:Date.now()});closeSheet();render();toast('已加到'+L.l)};
+      create('lists',{type:st.type,title:t||'照片',note:n,done:false,day:full?st.day:0,photos:st.photos.slice(),ts:Date.now(),order:Date.now()});closeSheet();render();toast('已加到'+L().l+(full&&st.day?'（'+dayLabel(st.day)+'）':''))};
     root.querySelector('#q-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+/* a day's 今日要辦 ＋ uses the same sheet (this later declaration replaces the page's simpler one) */
+function openTodoAdd(day){quickAdd('todo',{day,pick:true})}
 document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('#fab');if(!f||S.active!==0)return;e.preventDefault();e.stopPropagation();if(!canWrite())return;
   const tab=preTab();
   if(tab==='money')openExp(null,{day:0});
-  else if(tab==='pool')openPrompt('新增口袋名單','想去的店或景點','','例：teamLab 豐洲','text',v=>{const t=String(v).trim();if(!t)return false;
-    addItems([{day:0,slot:'pool',kind:/餐|食|麵|丼|咖啡|cafe|café|甜點|燒肉|壽司|bar/i.test(t)?'food':/店|買|shop|百貨|藥妝/i.test(t)?'shop':'spot',title:t}])});
+  else if(tab==='pool')openAdd({day:0,slot:'pool'});
   else quickAdd(tab)},true);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.chip,.pretabs [data-pt]'))setTimeout(fabSync,0)},false);
 window.__fabSync=()=>setTimeout(fabSync,0);
@@ -1887,7 +1900,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.52';
+window.__BUILD='1.53';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
