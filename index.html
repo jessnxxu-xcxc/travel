@@ -659,6 +659,18 @@ body.gated #app{display:none}
   .hotel-m b{font-weight:400;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hotel-m em{font-style:normal;font-size:12px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:var(--water);line-height:22px;flex-shrink:0}
 }
+.legs{display:grid;gap:8px}
+.leg{display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--ink);border-radius:18px;background:#fff;color:var(--ink);text-decoration:none}
+.leg-i{font-size:18px;flex-shrink:0}
+.leg-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:14px;word-break:keep-all;overflow-wrap:anywhere}
+.leg-t b{font-weight:400}.leg-a{color:var(--muted)}
+.leg-go{flex-shrink:0;font-size:12px;padding:0 10px;line-height:24px;border:2px solid var(--ink);border-radius:999px;background:var(--water)}
+.leg-all{margin-top:12px;text-align:center;text-decoration:none;display:flex!important;justify-content:center;align-items:center;min-height:48px}
+/* added to home screen: iOS blurs content right under the status bar, so give the top more room */
+@media (display-mode: standalone){
+  .whoami{padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
+  #gate{padding-top:calc(env(safe-area-inset-top,0px) + 24px)}
+}
 
 </style>
 
@@ -834,7 +846,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();
       '<section class="dsec"><div class="dsec-h"><b>口袋名單</b><small>想去但還沒排的地方，之後拖到某一天</small></div>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+'</section></section>';continue}
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
-      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+wxChip(n)+(ru?'<a class="route" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
+      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
       (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
@@ -1434,6 +1446,17 @@ function routeUrlH(n){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind
   const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,9);if(!u.length)return '';
   const all=(n>1&&HOTEL()?[HOTEL()]:[]).concat(u);if(all.length===1)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(all[0]);
   return 'https://www.google.com/maps/dir/'+all.map(encodeURIComponent).join('/')}
+/* 今日路線: a sheet with every leg of the day as a one-tap transit route, plus the whole-day overview */
+function openRoute(n){
+  const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)&&placeQuery(i)),seen=new Set(),stops=ps.filter(i=>{const q=placeQuery(i);return !seen.has(q)&&seen.add(q)});
+  const H=n>1&&n<NDAYS+1&&HOTEL()?{title:'飯店',q:HOTEL()}:null,pts=stops.map(i=>({title:i.title,q:placeQuery(i)}));
+  const legs=[];const seq=(H?[H]:[]).concat(pts).concat(H&&n<NDAYS?[{title:'回飯店',q:H.q}]:[]);
+  for(let i=0;i<seq.length-1;i++)legs.push([seq[i],seq[i+1]]);
+  const row=(a,b)=>'<a class="leg" href="'+esc(transit(a.q,b.q))+'" target="_blank" rel="noopener"><span class="leg-i">🚃</span><span class="leg-t"><b>'+esc(a.title)+'</b><span class="leg-a">→</span><b>'+esc(b.title)+'</b></span><span class="leg-go">路線</span></a>';
+  openSheet('<h2>Day '+n+' 怎麼走</h2><p class="hint2">每一段點下去會打開 Google 地圖的電車路線。</p>'+
+    (legs.length?'<div class="legs">'+legs.map(([a,b])=>row(a,b)).join('')+'</div>':'<div class="empty">這天還沒有地點</div>')+
+    (routeUrlH(n)?'<a class="btn block leg-all" href="'+esc(routeUrlH(n))+'" target="_blank" rel="noopener">🗺️ 看整天全貌（多點地圖）</a>':''))}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.route[data-rd]');if(!a)return;e.preventDefault();e.stopPropagation();openRoute(+a.dataset.rd)},true);
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1597,9 +1620,9 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
   function footer() {
     whoami();
     const f = $('#site-foot'); if (!f || !session) return;
-    f.innerHTML = '目前登入：<span></span>' + (access.admin ? '（管理者）' : '') + '・<button type="button">登出</button>';
-    f.querySelector('span').textContent = session.user.email || ''; f.querySelector('button').onclick = logout;
-    if (TRIP) { const x = document.createElement('button'); x.type = 'button'; x.textContent = '匯出備份'; x.onclick = exportBackup; f.appendChild(document.createTextNode('・')); f.appendChild(x); }
+    // who is signed in already shows at the top; the footer only keeps the backup
+    f.innerHTML = '';
+    if (TRIP) { const x = document.createElement('button'); x.type = 'button'; x.textContent = '匯出備份'; x.onclick = exportBackup; f.appendChild(x); }
   }
 
   /* ---------- bookshelf ---------- */
