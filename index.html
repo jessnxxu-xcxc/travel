@@ -781,6 +781,9 @@ html.pwa #gate{padding-top:56px}
 .mapl,.route,.wx{box-sizing:border-box;height:24px!important;line-height:20px;padding:0 10px!important;font-size:12px!important}
 .route svg{width:14px;height:14px}
 .item .iacts{min-height:32px}.item .chk{flex:0 0 32px!important;aspect-ratio:1}
+body.ro .slot-add{display:none!important}
+/* iPhone zooms the page when a focused field's text is under 16px — keep every field at 16px */
+input,textarea,select,.inp{font-size:16px!important}
 
 </style>
 
@@ -1617,7 +1620,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.36';
+window.__BUILD='1.37';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
