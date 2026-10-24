@@ -965,6 +965,12 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 /* edit sheet: 日文店名 and Google 地圖連結 are filled in automatically now (AI area + map search), so the fields are hidden.
    The inputs stay in the sheet, so any value already saved is kept when the item is saved again. */
 .sheet .fld:has(#e-q),.sheet .fld:has(#e-map){display:none!important}
+/* 旅費總覽: the 依分類／依日期… switch scrolls inside the sheet instead of pushing it wider than the phone */
+.sheet>*{min-width:0}
+.viewseg{width:auto!important;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.viewseg::-webkit-scrollbar{display:none}
+/* small text links (匯率、設定預算…) get a finger-sized tap area */
+.sheet .linkbtn{display:inline-flex;align-items:center;min-height:32px}
 
 </style>
 
@@ -1253,7 +1259,7 @@ function renderMoney(){const el=$('#money'),m=money(),rate=+S.meta.rate||0,tn=to
   h+='<div class="people"><span class="sec-l">個人購物的人</span>'+S.meta.people.map(p=>'<span class="pchip">'+esc(p)+'<button type="button" data-rm-person="'+esc(p)+'" aria-label="移除 '+esc(p)+'">×</button></span>').join('')+'<button type="button" class="btn sm" id="add-person">＋ 成員</button></div></div>';
   const V=[['day','依日期'],['shop','依店家'],['cat','依分類'],['pay','依付款'],['person','依歸屬']];
   h+='<div class="viewseg" role="group" aria-label="檢視方式">'+V.map(([k,l])=>'<button type="button" data-mview="'+k+'" aria-pressed="'+(S.mview===k)+'">'+l+'</button>').join('')+'</div>';
-  if(!m.ex.length){h+='<div class="empty">還沒有花費紀錄。按右下角「記一筆」，或在行程裡點店家記帳</div></div>';el.innerHTML=h;return}
+  if(!m.ex.length){h+='<div class="empty">還沒有花費紀錄。按右下角「＋」記一筆，或在行程裡點店家記帳</div></div>';el.innerHTML=h;return}
   const ex=m.ex.slice().sort((a,b)=>((a.day||99)-(b.day||99))||((a.ts||0)-(b.ts||0)));
   const grp=(keyf,labelf,subf)=>{const g=new Map();ex.forEach(e=>{const k=keyf(e);if(!g.has(k))g.set(k,{k,rows:[],sum:0});const x=g.get(k);x.rows.push(e);x.sum+=+e.amount||0});
     return [...g.values()].map(x=>Object.assign(x,{label:labelf(x),sub:subf(x)}))};
@@ -1924,7 +1930,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
       '<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-akind"><button type="button" data-v="" aria-pressed="true">自動</button>'+KINDS.map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="false">'+k[1]+'</button>').join('')+'</div></div>'+
-      '<div class="fld"><label for="a-time">時間<span class="opt">選填</span></label><input class="inp" id="a-time" inputmode="numeric" placeholder="例 12:30" autocomplete="off"></div>'+
+      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填</span></label><input class="inp" id="a-time" inputmode="numeric" placeholder="例 12:30" autocomplete="off"></div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
@@ -1943,7 +1949,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     const bindSlot=()=>bindSeg(root,'seg-aslot',v=>{d.slot=v||null;upd()});
     ta.addEventListener('input',()=>{grow();upd()});tm.addEventListener('input',upd);nt.addEventListener('input',upd);
     ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();ok.click()}});
-    bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot()}upd()});
+    bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot();root.querySelector('#a-timef').hidden=d.day===0}upd()});
     bindSeg(root,'seg-akind',v=>{d.kind=v;upd()});bindSlot();
     bindPhotos(root,()=>d.photos,ids=>{d.photos=ids});
     ok.onclick=()=>{if(!rows.length)return;if(tm.value.trim()&&!timeOk()){toast('時間請寫成 12:30 這樣');tm.focus();return}
@@ -1979,7 +1985,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.58';
+window.__BUILD='1.59';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -2206,7 +2212,7 @@ window.__BUILD='1.58';
     sheet('<h2>分享「' + esc(TRIP.title) + '」</h2><p class="hint2">兩個步驟：先把對方的 Gmail 加進名單，再把邀請訊息傳給他。只有名單上的帳號能登入，沒加的人拿到網址也進不來。</p>' +
       '<div class="step"><b class="stepn">1</b><span>加入對方的 Gmail</span></div>' +
       '<div class="fld"><input class="inp" id="sh-email" type="email" inputmode="email" placeholder="例：friend@gmail.com" autocomplete="off" aria-label="對方的 Gmail"></div>' +
-      '<div class="fld"><span class="lbl">他可以做什麼</span><div class="seg" id="sh-role"><button type="button" data-v="edit" aria-pressed="true">可編輯</button><button type="button" data-v="view" aria-pressed="false">只能看</button></div><small class="rolehint" id="sh-rh">可以改行程、記帳、打勾清單</small></div>' +
+      '<div class="fld"><span class="lbl">對方可以做什麼</span><div class="seg" id="sh-role"><button type="button" data-v="edit" aria-pressed="true">可編輯</button><button type="button" data-v="view" aria-pressed="false">只能看</button></div><small class="rolehint" id="sh-rh">可以改行程、記帳、打勾清單</small></div>' +
       '<button type="button" class="btn pri" id="sh-add">加入名單</button>' +
       '<div class="step"><b class="stepn">2</b><span>傳邀請給對方</span></div>' +
       '<p class="hint2" id="sh-hint2">加進名單後，按名單裡的「傳邀請給他」，把網址傳給對方（LINE 之類）。</p><div class="invite" id="sh-inv" hidden></div>' +
