@@ -1911,7 +1911,7 @@ async function findAreas(){
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{AREA_BUSY=false}}
-async function fillPlaces(){await findAreas();await findPics()}
+async function fillPlaces(){await findAreas();await findPics();await findDescs()}
 /* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
 function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
@@ -1957,6 +1957,22 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       const pics=rows.length===1?d.photos.slice():[];closeSheet();const ids=addItems(rows);
       if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}};
     setTimeout(()=>ta.focus(),50)})}
+/* places without a 簡介 get one from AI (same rules as the ✨ AI 寫簡介 button); dq marks "already asked", '' back = AI wasn't sure, left empty */
+let DESC_BUSY=false;
+async function findDescs(){
+  if(DESC_BUSY||!S.sample||!canWrite())return;
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map))&&it.dq===undefined).slice(0,30);
+  if(!todo.length)return;DESC_BUSY=true;
+  try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
+    const prompt='請替下面每一項寫一段簡介，用繁體中文（台灣用語），每段 30 到 70 字，給去'+(T.dest||'日本')+'旅遊的人看：說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實，不要寫營業時間或價格；不確定是哪一間或不認識的，填空字串。只回覆 JSON 陣列，順序和編號一一對應。\n'+
+      part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
+    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(out)||out.length!==part.length)continue;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.desc||cur.dq!==undefined)return;
+      const v=typeof out[k]==='string'?out[k].trim().replace(/^["「『]|["」』]$/g,'').slice(0,120):'',p=v?{desc:v,dq:1}:{dq:1};
+      S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
+    render()}}
+  finally{DESC_BUSY=false}}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -1985,7 +2001,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.59';
+window.__BUILD='1.60';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
