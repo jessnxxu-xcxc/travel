@@ -962,6 +962,9 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 .sheet details.more.allopen{border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0}
 .sheet details.more.allopen>summary{display:none}
 .sheet details.more.allopen>div{padding:0!important}
+/* edit sheet: 日文店名 and Google 地圖連結 are filled in automatically now (AI area + map search), so the fields are hidden.
+   The inputs stay in the sheet, so any value already saved is kept when the item is saved again. */
+.sheet .fld:has(#e-q),.sheet .fld:has(#e-map){display:none!important}
 
 </style>
 
@@ -1939,7 +1942,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.56';
+window.__BUILD='1.57';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
