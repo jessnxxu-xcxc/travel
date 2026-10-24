@@ -1658,12 +1658,26 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
 /* 出發前 tabs: one list at a time (remembered per device) */
 const PRE_TABS=[['todo','待辦'],['pack','行李'],['book','訂位'],['buy','想買'],['money','花費'],['pool','口袋']];
 function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_TABS.some(t=>t[0]===v)?v:'todo'}
-function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;
+function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeout(fabSync,0);
   const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&!(r.day>0)&&!r.done).length;
   return '<div class="pretabs" role="tablist">'+PRE_TABS.map(([k,l])=>{const n=left(k);return '<button type="button" role="tab" data-pt="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>'}).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.pretabs [data-pt]');if(!b)return;e.preventDefault();e.stopPropagation();
   const v=b.dataset.pt;try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}document.body.dataset.pt=v;
-  b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)))},true);
+  b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));fabSync()},true);
+/* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
+const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增想買',money:'記一筆',pool:'新增口袋'};
+function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程'}
+function quickAdd(type){const L=LTYPES.find(x=>x.k===type);
+  openPrompt('新增'+(L?L.l:''),'要加什麼？','',L?L.ph:'','text',v=>{const t=String(v).trim();if(!t)return false;
+    create('lists',{type,title:t,note:'',done:false,day:0,photos:[],ts:Date.now(),order:Date.now()});render();toast('已加到'+(L?L.l:'清單'))})}
+document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('#fab');if(!f||S.active!==0)return;e.preventDefault();e.stopPropagation();if(!canWrite())return;
+  const tab=preTab();
+  if(tab==='money')openExp(null,{day:0});
+  else if(tab==='pool')openPrompt('新增口袋名單','想去的店或景點','','例：teamLab 豐洲','text',v=>{const t=String(v).trim();if(!t)return false;
+    addItems([{day:0,slot:'pool',kind:/餐|食|麵|丼|咖啡|cafe|café|甜點|燒肉|壽司|bar/i.test(t)?'food':/店|買|shop|百貨|藥妝/i.test(t)?'shop':'spot',title:t}])});
+  else quickAdd(tab)},true);
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.chip,.pretabs [data-pt]'))setTimeout(fabSync,0)},false);
+window.__fabSync=()=>setTimeout(fabSync,0);
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1692,7 +1706,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.43';
+window.__BUILD='1.44';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -2071,7 +2085,7 @@ window.__BUILD='1.43';
     window.__bootTrip(TRIP);
     // the ticket follows the day you're looking at: tap the last day → the flight home
     let lastBack = null;
-    window.__onDay = n => { const back = showBack(TRIP, n); if (back === lastBack) return; lastBack = back;
+    window.__onDay = n => { if (window.__fabSync) window.__fabSync(); const back = showBack(TRIP, n); if (back === lastBack) return; lastBack = back;
       const tmp = document.createElement('div'); tmp.innerHTML = hero(TRIP, n);
       const cur = $('#trip-hero .pass-main'), nw = tmp.querySelector('.pass-main'); if (cur && nw) cur.replaceWith(nw); };
     { const ac = document.querySelector('.chip.active'); if (ac) window.__onDay(+ac.dataset.day); }
