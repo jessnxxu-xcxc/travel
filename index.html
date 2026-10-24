@@ -1608,6 +1608,22 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
   window.__photoUrl = (id, onReady) => { if (urls[id]) return urls[id]; if (onReady) waiters.push(onReady); if (!pending.has(id)) { pending.add(id); queueMicrotask(async () => { const ids = [...pending]; pending.clear(); const { data } = await sb.storage.from('photos').createSignedUrls(ids, 604800); (data || []).forEach(r => { if (r.signedUrl) urls[r.path] = r.signedUrl; }); const w = waiters; waiters = []; w.forEach(f => f()); }); } return 'data:image/gif;base64,R0lGODlhAQABAAAAACw='; };
   const assets = { async upload(blob, opts) { const type = (opts && opts.contentType) || blob.type || 'image/jpeg', ext = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), path = TRIP.id + '/' + rid() + '.' + ext; const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: type, upsert: false }); if (error) throw err(/quota|size/i.test(error.message) ? 'quota_exceeded' : 'unavailable', error.message); const { data } = await sb.storage.from('photos').createSignedUrl(path, 604800); urls[path] = data && data.signedUrl; return { id: path, url: urls[path], sizeBytes: blob.size, contentType: type }; }, async delete(id) { await sb.storage.from('photos').remove([id]); } };
 
+  /* ---------- AI descriptions (Edge Function "describe" → Gemini; key stays server-side) ---------- */
+  async function sample(input, opts) {
+    opts = opts || {};
+    const prompt = typeof input === 'string' ? input : (input[input.length - 1] || {}).content || '';
+    const call = sb.functions.invoke('describe', { body: { trip: TRIP.id, prompt } });
+    const aborted = new Promise((_, rej) => { if (opts.signal) opts.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError', code: 'aborted' })), { once: true }); });
+    const { data, error } = await Promise.race([call, aborted]);
+    if (error || !data || !data.text) {
+      let code = (data && data.code) || 'unavailable';
+      try { const b = error && error.context && await error.context.json(); if (b && b.code) code = b.code; } catch (e) {}
+      throw err(code, (error && error.message) || code);
+    }
+    if (opts.onText) opts.onText({ text: data.text, delta: data.text });
+    return { text: data.text, truncated: false };
+  }
+
   /* ---------- boot ---------- */
   (async () => {
     const st = await signIn();
@@ -1639,7 +1655,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
         const g = document.createElement('button'); g.type = 'button'; g.className = 'icon-btn'; g.setAttribute('aria-label', '旅行設定'); g.textContent = '⚙'; g.onclick = () => tripForm(TRIP); bar.appendChild(g);
       }
     }
-    window.claude = { use: async name => ok ? ({ db, user, room, assets }[name] || null) : null };
+    window.claude = { use: async name => ok ? ({ db, user, room, assets, sample: role === 'edit' ? sample : null }[name] || null) : null };
     window.__bootTrip(TRIP);
     footer();
   })();
