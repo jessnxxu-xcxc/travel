@@ -871,6 +871,56 @@ a.ititle.tlink:hover{text-decoration-color:#7FBBD6}
 .picrow img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:2px solid var(--ink)}
 /* home button is icon-only at every width (its text overflowed the 36px circle on desktop) */
 .bar .backlink span{display:none!important}
+/* ===== size + spacing calibration (v3) =====
+   type: 12 meta · 14 body · 16 rows · 18 card titles · 24 day title · 32 trip title
+   controls: 24 small pills · 32 checks · 36 toolbar / ＋ · 56 floating ＋
+   spacing: 4 · 8 · 12 · 16 · 24 · 32 */
+.brand h1{font-size:32px!important}
+.col-title{font-size:24px!important;line-height:1.3}
+.tl .slot-h b{font-size:14px!important;letter-spacing:.06em}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle,.item.no-loc .ititle{font-size:16px!important}
+.nowmain .nt b{font-size:18px!important}
+.whoami b{font-size:14px!important}
+/* account row: one line, email shortens instead of pushing 登出 down */
+.whoami{flex-wrap:nowrap!important;gap:8px!important}
+.whoami b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal!important}
+.whoami .who-r,.whoami .sync,.whoami button{flex-shrink:0;height:24px;box-sizing:border-box;line-height:20px!important}
+/* toolbar: even gaps, people-online avatars never squashed */
+.bar{gap:6px!important}
+.bar .peers{flex-shrink:0!important;max-width:none!important;overflow:visible!important;padding-left:6px}
+.bar .peer{width:24px!important;height:24px!important;font-size:12px;margin-left:-8px;border-width:2px}
+.bar #mbar{padding:0 12px!important}
+/* top of the page: smaller drawing so the day shows up sooner on a phone */
+@media (max-width:600px){.hero-art svg{height:104px!important;width:auto!important}}
+/* day header */
+.col-h{gap:16px!important;margin-bottom:24px!important;align-items:center!important}
+.col-date{width:64px!important;height:64px!important;min-width:64px!important}
+.col-date b{font-size:18px!important}
+.col-sub{gap:8px!important;margin-top:8px!important}
+/* now card: tighter */
+.nowcard{padding:12px 16px!important;gap:8px!important}
+/* floating ＋ */
+.fab{width:56px!important;height:56px!important}
+.fab svg{width:24px!important;height:24px!important}
+/* calmer cards: lighter grips, check circles and photo frames; even spacing inside */
+.tl .slot+.slot{margin-top:12px!important}
+.list{gap:12px!important}
+.item .grip{color:rgba(62,58,57,.35)!important}
+.item .chk[aria-pressed="false"]{border-color:rgba(62,58,57,.4)!important}
+.item .ipic{border:0!important;border-radius:12px;box-shadow:0 0 0 1px rgba(62,58,57,.12)}
+.item .ibody{gap:4px!important}
+.item:not(.is-move):not(.is-todo):not(.no-loc) .ibody{padding:12px 4px 12px 2px!important}
+.item:not(.is-move):not(.is-todo):not(.no-loc) .iacts{padding:12px 12px 12px 4px!important}
+/* the two "how to get there" links share one quiet row */
+.gorow{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px}
+.gorow .gonext{display:inline-flex!important;align-items:center;min-height:24px;margin:0!important;color:var(--muted)!important;text-decoration-color:rgba(62,58,57,.3)!important}
+.gorow .gonext:hover{color:var(--ink)!important}
+/* pre-trip chip matches the size of the day pills */
+.strip .chip.pool .c-d{width:36px!important;height:36px!important}
+/* checklist rows with photos (想買): pictures sit under the name, a little bigger so you can show them in a shop */
+.dsec .clist .crow .ithumbs img{width:72px;height:72px}
+/* narrow phones (≤380): one online avatar, slimmer 旅費 pill so the toolbar never scrolls sideways */
+@media (max-width:380px){.bar .peer~.peer{display:none!important}.bar #mbar{padding:0 8px!important}.bar{gap:4px!important}}
 
 </style>
 
@@ -1643,9 +1693,9 @@ const HOTEL=()=>T.hotel?(T.hotel.q||T.hotel.name||''):'';
 const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
 function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(isStop);if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
 function goNext(it){let h='';
-  if(FIRST.has(it.id))h+='<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店怎麼過來</a>';
-  const nx=NEXT[it.id];if(nx)h+='<a class="gonext" href="'+esc(transit(placeQuery(it),placeQuery(nx)))+'" target="_blank" rel="noopener">🚃 怎麼去下一站：'+esc(nx.title)+'</a>';
-  return h}
+  if(FIRST.has(it.id))h+='<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店過來</a>';
+  const nx=NEXT[it.id];if(nx)h+='<a class="gonext" href="'+esc(transit(placeQuery(it),placeQuery(nx)))+'" target="_blank" rel="noopener" aria-label="怎麼去下一站：'+esc(nx.title)+'">🚃 下一站怎麼去</a>';
+  return h?'<span class="gorow">'+h+'</span>':''}
 /* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
 function routeUrlH(n){const ps=dayItems(n).filter(isStop).map(placeQuery).filter(Boolean);
   const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,9);if(!u.length)return '';
@@ -1717,9 +1767,17 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
 const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增想買',money:'記一筆',pool:'新增口袋'};
 function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}}
-function quickAdd(type){const L=LTYPES.find(x=>x.k===type);
-  openPrompt('新增'+(L?L.l:''),'要加什麼？','',L?L.ph:'','text',v=>{const t=String(v).trim();if(!t)return false;
-    create('lists',{type,title:t,note:'',done:false,day:0,photos:[],ts:Date.now(),order:Date.now()});render();toast('已加到'+(L?L.l:'清單'))})}
+/* adding to a checklist: a name, photos, or both (想買 is often just a screenshot of the thing) */
+function quickAdd(type){const L=LTYPES.find(x=>x.k===type)||{l:'清單',ph:''},st={photos:[]};S.readSheet=false;
+  openSheet('<h2>新增'+esc(L.l)+'</h2><div class="fld"><label for="q-in">要加什麼'+(S.assets?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L.ph)+'" autocomplete="off"></div>'+
+    (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
+    '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="q-cancel">取消</button><button type="button" class="btn pri" id="q-ok">加入</button></div>',
+  root=>{const i=root.querySelector('#q-in');if(type!=='buy')setTimeout(()=>i.focus(),50);
+    bindPhotos(root,()=>st.photos,ids=>{st.photos=ids});root.querySelector('#q-cancel').onclick=closeSheet;
+    const go=()=>{const t=i.value.trim();if(!t&&!st.photos.length){toast('寫個名字，或加一張照片');return}
+      if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
+      create('lists',{type,title:t||'照片',note:'',done:false,day:0,photos:st.photos.slice(),ts:Date.now(),order:Date.now()});closeSheet();render();toast('已加到'+L.l)};
+    root.querySelector('#q-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
 document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('#fab');if(!f||S.active!==0)return;e.preventDefault();e.stopPropagation();if(!canWrite())return;
   const tab=preTab();
   if(tab==='money')openExp(null,{day:0});
@@ -1806,7 +1864,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.47';
+window.__BUILD='1.48';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
