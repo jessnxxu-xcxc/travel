@@ -615,6 +615,7 @@ body.gated #app{display:none}
 .whoami b{font-weight:400;color:var(--ink);font-size:14px;overflow-wrap:anywhere}
 .whoami .who-r{padding:0 8px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--ink);line-height:20px}
 .whoami button{all:unset;cursor:pointer;margin-left:auto;padding:2px 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font-size:12px;line-height:20px;white-space:nowrap}
+.gis-box{display:flex;justify-content:center;min-height:44px}
 
 </style>
 
@@ -1385,10 +1386,31 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
   function gate(html) {
     let g = $('#gate'); if (!g) { g = document.createElement('div'); g.id = 'gate'; document.body.appendChild(g); }
     g.innerHTML = html; g.hidden = false; document.body.classList.add('gated');
-    const b = g.querySelector('[data-login]'); if (b) b.onclick = () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname + location.search, queryParams: { prompt: 'select_account' } } });
+    const b = g.querySelector('[data-login]'); if (b) { b.onclick = oauthLogin; gisButton(b); }
     const o = g.querySelector('[data-logout]'); if (o) o.onclick = logout;
   }
-  async function logout() { await sb.auth.signOut(); try { Object.keys(localStorage).filter(k => /-cache-v1$/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.href = location.pathname; }
+  const GOOGLE_CLIENT = '517827834727-tjfrsspo0v3p6vcnquhhaksghlb602j3.apps.googleusercontent.com';
+  // fallback: redirect sign-in through Supabase (Google's chooser then names the supabase.co domain)
+  function oauthLogin() { sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname + location.search, queryParams: { prompt: 'select_account' } } }); }
+  // preferred: Google's own button, so the chooser says 「旅行手帳」; the ID token is handed to Supabase
+  function gisButton(fallback) {
+    if (window.__sbClient) return;
+    const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+    sc.onload = async () => {
+      if (!window.google || !google.accounts || !fallback.isConnected) return;
+      const raw = rid() + rid(), hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)))].map(x => x.toString(16).padStart(2, '0')).join('');
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT, nonce: hash, ux_mode: 'popup', use_fedcm_for_button: true, callback: async r => {
+        const { error } = await sb.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: raw });
+        if (error) { gate('<div class="gate-card">' + art('travel') + '<h1>還沒有被邀請</h1><p>這個 Google 帳號沒有被分享任何旅行，請請手帳主人邀請你。</p><button type="button" class="btn pri block" data-login>換帳號登入</button></div>'); return; }
+        location.reload();
+      } });
+      const box = document.createElement('div'); box.className = 'gis-box'; fallback.parentNode.insertBefore(box, fallback);
+      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'zh-TW', width: Math.min(320, box.clientWidth || 320) });
+      fallback.classList.remove('pri'); fallback.textContent = '登入不了？改用其他方式';
+    };
+    document.head.appendChild(sc);
+  }
+  async function logout() { try { window.google && google.accounts && google.accounts.id.disableAutoSelect(); } catch (e) {} await sb.auth.signOut(); try { Object.keys(localStorage).filter(k => /-cache-v1$/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.href = location.pathname; }
   window.__logout = logout;
   function sheet(html, mount) {
     let L = $('#player'); if (!L) { L = document.createElement('div'); L.id = 'player'; document.body.appendChild(L); }
