@@ -703,6 +703,18 @@ html.pwa #gate{padding-top:56px}
   .ft-row{margin-top:2px;font-size:14px;color:var(--ink)}
   .hotel-m{margin-top:4px;padding-top:10px}
 }
+/* checklists (行前待辦／行李／訂位／想買): one compact card with divider lines instead of a big box per item */
+.dsec .clist{display:block!important;padding:0;margin:8px 0 0;border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;overflow:hidden}
+.dsec .clist .crow{border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent;min-height:0;padding:8px 12px;gap:10px;align-items:center}
+.dsec .clist .crow+.crow{border-top:2px dashed rgba(62,58,57,.18)!important}
+.dsec .clist .lchk{width:28px!important;height:28px!important;min-width:28px;font-size:14px;border-width:2px!important}
+.dsec .clist .crow .ct{font-size:16px;line-height:1.4}
+.dsec .clist .crow.done .ct{text-decoration:line-through;color:var(--muted)}
+.dsec .clist .crow.done{background:var(--sunk)}
+.dsec .addrow .inp{height:44px}
+.dsec .addrow .btn{height:44px;min-width:64px;padding:0 14px}
+.dsec .clist .lchk[aria-pressed="false"]{color:transparent!important}
+.dsec .clist .lchk[aria-pressed="false"]:hover{color:var(--muted)!important}
 
 </style>
 
@@ -1535,7 +1547,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.30';
+window.__BUILD='1.31';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
