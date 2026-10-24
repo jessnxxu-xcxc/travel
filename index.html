@@ -1432,27 +1432,27 @@ const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+Stri
 /* weather: Open-Meteo (free, no key). Within 16 days of today → forecast; otherwise → same dates last year as a hint. */
 const WXI=c=>c===0?['☀️','晴']:c<=2?['🌤️','晴時多雲']:c===3?['☁️','陰']:c<=48?['🌫️','霧']:c<=57?['🌦️','毛毛雨']:c<=67?['🌧️','雨']:c<=77?['🌨️','雪']:c<=82?['🌧️','陣雨']:c<=86?['🌨️','陣雪']:['⛈️','雷雨'];
 const WX={days:{},kind:''};
-function wxChip(n){const w=WX.days[ymd(dayDate(n))];if(!w)return '';const [ic,lb]=WXI(w.c);
-  return '<span class="wx'+(WX.kind==='past'?' wx-past':'')+'" title="'+(WX.kind==='past'?'去年同一天的天氣，僅供參考':'天氣預報')+'">'+(WX.kind==='past'?'<small>去年</small>':'')+'<i aria-hidden="true">'+ic+'</i>'+lb+' '+Math.round(w.hi)+'°/'+Math.round(w.lo)+'°'+(w.p!=null&&WX.kind!=='past'?' <small>☂'+w.p+'%</small>':'')+'</span>'}
+function wxChip(n){const w=WX.days[ymd(dayDate(n))];if(!w)return '';const [ic,lb]=WXI(w.c),past=w.kind==='past';
+  return '<span class="wx'+(past?' wx-past':'')+'" title="'+(past?'去年同一天的天氣，僅供參考':'天氣預報')+'">'+(past?'<small>去年</small>':'')+'<i aria-hidden="true">'+ic+'</i>'+lb+' '+Math.round(w.hi)+'°/'+Math.round(w.lo)+'°'+(w.p!=null&&!past?' <small>☂'+w.p+'%</small>':'')+'</span>'}
 async function loadWeather(){
   if(!T.dest&&!(T.lat&&T.lon))return;
-  const key=T.id+'-wx',c=XLS.get(key);if(c&&Date.now()-c.at<3*36e5){Object.assign(WX,c.wx);render();return}
+  const key=T.id+'-wx2',c=XLS.get(key);if(c&&Date.now()-c.at<3*36e5){Object.assign(WX,c.wx);render();return}
   try{
     let lat=T.lat,lon=T.lon;
     if(!(lat&&lon)){const g=XLS.get(T.id+'-geo');if(g&&g.q===T.dest){lat=g.lat;lon=g.lon}else{
       const r=await (await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&format=json&name='+encodeURIComponent(T.dest))).json();
       const p=r.results&&r.results[0];if(!p)return;lat=p.latitude;lon=p.longitude;XLS.set(T.id+'-geo',{q:T.dest,lat,lon})}}
     const first=dayDate(1),last=dayDate(NDAYS),t0=now();t0.setHours(0,0,0,0);const lim=new Date(t0);lim.setDate(lim.getDate()+15);
-    const q='latitude='+lat+'&longitude='+lon+'&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto';
-    let url,kind,shift=0;
     if(last<t0)return;
-    if(first<=lim){kind='fc';url='https://api.open-meteo.com/v1/forecast?'+q+'&start_date='+ymd(first<t0?t0:first)+'&end_date='+ymd(last<lim?last:lim)}
-    else{kind='past';shift=1;const a=new Date(first),b=new Date(last);a.setFullYear(a.getFullYear()-1);b.setFullYear(b.getFullYear()-1);
-      url='https://archive-api.open-meteo.com/v1/archive?'+q.replace(',precipitation_probability_max','')+'&start_date='+ymd(a)+'&end_date='+ymd(b)}
-    const d=(await (await fetch(url)).json()).daily;if(!d||!d.time)return;
-    const days={};d.time.forEach((t,i)=>{if(d.temperature_2m_max[i]==null)return;let k=t;if(shift){const x=new Date(t+'T00:00:00');x.setFullYear(x.getFullYear()+1);k=ymd(x)}
-      days[k]={c:d.weather_code[i],hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],p:d.precipitation_probability_max?d.precipitation_probability_max[i]:null}});
-    WX.days=days;WX.kind=kind;XLS.set(key,{at:Date.now(),wx:{days,kind}});render();
+    const q='latitude='+lat+'&longitude='+lon+'&timezone=auto&daily=weather_code,temperature_2m_max,temperature_2m_min';
+    const days={},put=(d,shift,kind)=>{if(!d||!d.time)return;d.time.forEach((t,i)=>{if(d.temperature_2m_max[i]==null)return;let k=t;if(shift){const x=new Date(t+'T00:00:00');x.setFullYear(x.getFullYear()+1);k=ymd(x)}
+      days[k]={c:d.weather_code[i],hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],p:d.precipitation_probability_max?d.precipitation_probability_max[i]:null,kind}})};
+    // last year's same dates for every day (a hint), then the real forecast on top for days within 16 days
+    {const a=new Date(first),b=new Date(last);a.setFullYear(a.getFullYear()-1);b.setFullYear(b.getFullYear()-1);
+      try{put((await (await fetch('https://archive-api.open-meteo.com/v1/archive?'+q+'&start_date='+ymd(a)+'&end_date='+ymd(b))).json()).daily,1,'past')}catch(e){}}
+    if(first<=lim){const s0=first<t0?t0:first,e0=last<lim?last:lim;
+      try{put((await (await fetch('https://api.open-meteo.com/v1/forecast?'+q+',precipitation_probability_max&start_date='+ymd(s0)+'&end_date='+ymd(e0))).json()).daily,0,'fc')}catch(e){}}
+    WX.days=days;XLS.set(key,{at:Date.now(),wx:{days}});render();
   }catch(e){}
 }
 
@@ -1504,6 +1504,7 @@ function budgetHTML(total,rate){const bud=+S.meta.budget||0;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#budget-btn');if(!b)return;e.preventDefault();e.stopPropagation();if(!canWrite())return;
   openPrompt('旅費預算','整趟預算（日圓，留空＝不設）',S.meta.budget?String(S.meta.budget):'','例 300000','decimal',v=>{const t=String(v).trim();if(!t){saveMeta({budget:0});setTimeout(openMoney,0);return}
     const n=parseAmt(t);if(!(n>0)){toast('請輸入金額');return false}saveMeta({budget:Math.round(n)});toast('已設定預算 '+yen(Math.round(n)));setTimeout(openMoney,0)})},true);
+window.__wxReload=()=>{try{localStorage.removeItem(T.id+'-wx2')}catch(e){}return loadWeather()};
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();if(cached)setSync('wait','更新中');
@@ -1532,7 +1533,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.28';
+window.__BUILD='1.29';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
