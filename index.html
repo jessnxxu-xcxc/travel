@@ -1484,7 +1484,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='10/24 15:11';
+window.__BUILD='1.22';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -1623,7 +1623,7 @@ window.__BUILD='10/24 15:11';
     whoami();
     const f = $('#site-foot'); if (!f || !session) return;
     // who is signed in already shows at the top; the footer only keeps the backup
-    f.innerHTML = '<small class="ver">版本 ' + (window.__BUILD || '') + '</small>';
+    f.innerHTML = '<small class="ver">第 ' + (window.__BUILD || '1.0') + ' 版</small>';
     if (TRIP) { const x = document.createElement('button'); x.type = 'button'; x.textContent = '匯出備份'; x.onclick = exportBackup; f.appendChild(x); }
   }
 
