@@ -682,6 +682,8 @@ html.pwa #gate{padding-top:56px}
 .site-foot .ver img{width:40px;height:40px;border-radius:10px;border:2px solid var(--ink);margin-bottom:4px}
 .site-foot .ver b{font-weight:400;font-size:14px;color:var(--ink)}
 .site-foot .ver span{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.chip.pool .c-left{font-size:12px;line-height:16px;color:var(--muted);white-space:nowrap}
+.chip.pool.active .c-left{color:var(--ink)}
 
 </style>
 
@@ -823,7 +825,7 @@ function renderStrip(){const tn=todayN();let h='';
   for(let n=0;n<=NDAYS;n++){
     if(n===0){const c=[...S.items.values()].filter(i=>i.day===0).length;
       const prep=[...S.lists.values()].filter(r=>!r.done&&(r.type==='pack'||!(r.day>0))).length;
-      h+='<button type="button" class="chip pool'+(S.active===0?' active':'')+'" data-day="0" aria-label="出發前準備，還有 '+prep+' 項">'+dots(0)+'<span class="c-w">出發前</span><span class="c-d">'+prep+'</span><span class="c-dots"></span></button><span class="c-month">'+(START.getMonth()+1)+'月</span>';continue}
+      h+='<button type="button" class="chip pool'+(S.active===0?' active':'')+'" data-day="0" aria-label="出發前準備，還有 '+prep+' 項">'+dots(0)+'<span class="c-w">出發前</span><span class="c-d"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 4-4M8 15h8"/></svg></span><span class="c-left">'+(prep?'還有 '+prep+' 項':'都好了 ✓')+'</span></button><span class="c-month">'+(START.getMonth()+1)+'月</span>';continue}
     const d=dayDate(n),wd=d.getDay(),np=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length;
     h+='<button type="button" class="chip'+(S.active===n?' active':'')+(tn===n?' today':'')+(wd===0||wd===6?' wkend':'')+'" data-day="'+n+'" aria-label="'+md(d)+' 週'+WK[wd]+' Day '+n+'">'+dots(n)+'<span class="c-w">'+(tn===n?'今天':WK[wd])+'</span><span class="c-d">'+d.getDate()+'</span><span class="c-dots">'+'<i></i>'.repeat(Math.min(3,Math.ceil(np/2)))+'</span></button>'}
   const st=$('#strip'),sl=st.scrollLeft;st.innerHTML=h;st.scrollLeft=sl;
@@ -1511,7 +1513,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.24';
+window.__BUILD='1.25';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
