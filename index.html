@@ -1750,7 +1750,8 @@ function tdur(it){if(it.kind!=='move')return '';const s=[it.note,it.desc].filter
 /* small pictures: AI names the Wikipedia article for each place, that article's lead photo becomes the card's thumbnail.
    Looked up once per item and saved on it (pic = image URL, or 'none' when there is no good match / someone removed it). */
 const PIC_OK=/^https:\/\/(upload|thumb)\.wikimedia\.org\//;
-function picOf(it){return it&&typeof it.pic==='string'&&PIC_OK.test(it.pic)?it.pic:''}
+/* logos and location maps are SVG on Wikipedia — not a photo of the place, so they don't count; hotels get no picture (the match is too often a nearby building) */
+function picOf(it){return it&&it.kind!=='stay'&&typeof it.pic==='string'&&PIC_OK.test(it.pic)&&!/\.svg/i.test(it.pic)?it.pic:''}
 function picHTML(it){if(it.photos&&it.photos.length)return '';const u=picOf(it);return u?'<img class="ipic" src="'+esc(u)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':''}
 let PIC_BUSY=false;
 async function wikiPics(titles){
@@ -1761,7 +1762,7 @@ async function wikiPics(titles){
   return t=>{let k=t,n=0;while(fwd[k]&&n++<3)k=fwd[k];return img[k]||''}}
 async function findPics(){
   if(PIC_BUSY||!S.sample||!canWrite())return;
-  const todo=[...S.items.values()].filter(it=>(PLACE_KINDS.includes(it.kind)||it.kind==='stay')&&it.pic===undefined&&it.title&&(it.area||it.q||it.map)).slice(0,60);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic===undefined&&it.title&&(it.area||it.q||it.map)).slice(0,60);
   if(!todo.length)return;PIC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的地點。請替每一個找出最符合的日文維基百科條目標題（必須是確實存在的條目，例如「東京ディズニーシー」「浅草寺」）。餐廳、小店、咖啡廳，或找不到、不確定的，一律填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["浅草寺",""]。\n'+
@@ -1770,7 +1771,7 @@ async function findPics(){
     if(!Array.isArray(names)||names.length!==part.length)continue;
     const want=[...new Set(names.filter(n=>typeof n==='string'&&n.trim()).map(n=>n.trim()))];
     let get=()=>'';if(want.length){try{get=await wikiPics(want)}catch(e){break}}
-    part.forEach((it,k)=>{const n=typeof names[k]==='string'?names[k].trim():'',src=n?get(n):'',pic=PIC_OK.test(src)?src:'none';
+    part.forEach((it,k)=>{const n=typeof names[k]==='string'?names[k].trim():'',src=n?get(n):'',pic=PIC_OK.test(src)&&!/\.svg/i.test(src)?src:'none';
       const cur=S.items.get(it.id);if(!cur||cur.pic!==undefined)return;S.items.set(it.id,Object.assign({},cur,{pic}));queue('items'+it.id,()=>ref('items',it.id).update({pic}))});
     render()}}
   finally{PIC_BUSY=false}}
@@ -1805,7 +1806,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.46';
+window.__BUILD='1.47';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
