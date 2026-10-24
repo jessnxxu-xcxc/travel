@@ -818,6 +818,9 @@ body[data-pt="money"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="money"])
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pool"]){display:none!important}
 .dsec .clist+.addrow{margin-top:10px}
 .pool-slot+.addrow,.dsec .slot+.addrow{margin-top:10px}
+/* the floating 新增行程 button must never sit on top of an add box */
+body:has(.addrow input:focus) .fab,body:has(.sheet) .fab{opacity:0;pointer-events:none}
+.col[data-col="0"]{padding-bottom:96px}
 
 </style>
 
@@ -1689,7 +1692,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.42';
+window.__BUILD='1.43';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
