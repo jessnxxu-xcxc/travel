@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="旅行手帳">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>旅行手帳</title>
-<script>try{var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;if(sa&&!sessionStorage.getItem('tn-alive')&&/[?&]t=/.test(location.search)){sessionStorage.setItem('tn-alive','1');location.replace(location.pathname)}sessionStorage.setItem('tn-alive','1')}catch(e){}</script>
+<script>try{var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;if(!sessionStorage.getItem('tn-alive')){for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(/-(day|pretab)$/.test(k))localStorage.removeItem(k)}}if(sa&&!sessionStorage.getItem('tn-alive')&&/[?&]t=/.test(location.search)){sessionStorage.setItem('tn-alive','1');location.replace(location.pathname)}sessionStorage.setItem('tn-alive','1')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700&display=swap">
@@ -1123,7 +1123,7 @@ const S={items:new Map(),days:new Map(),lists:new Map(),exps:new Map(),meta:{rat
   db:null,assets:null,sample:null,room:null,user:null,peers:[],prof:{},assetUrl:{},
   canWrite:false,drag:null,dirty:false,q:{}};
 if(!LT_L[S.sub])S.sub='book';
-(function(){const n=todayN();if(n>=1&&n<=NDAYS)S.active=n;else{const v=parseInt(ls.get(T.id+'-day'),10);if(v>=0&&v<=NDAYS)S.active=v}})();
+(function(){const n=todayN();if(n>=1&&n<=NDAYS)S.active=n;else{const v=parseInt(ls.get(T.id+'-day'),10);if(v>=0&&v<=NDAYS)S.active=v;else if(n<1)S.active=0}})();
 
 function countdown(){const n=todayN();let l='出發倒數',v=1-n,u='天';
   if(n>=1&&n<=NDAYS){l='旅程進行中';v='Day '+n;u=md(dayDate(n))}else if(n>NDAYS){l='旅程結束';v='✓';u='回憶收藏中'}
@@ -2111,7 +2111,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.64';
+window.__BUILD='1.65';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
