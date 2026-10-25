@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#FFFCF6">
 <link rel="manifest" href="manifest.webmanifest">
@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="旅行手帳">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>旅行手帳</title>
+<script>try{var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;if(sa&&!sessionStorage.getItem('tn-alive')&&/[?&]t=/.test(location.search)){sessionStorage.setItem('tn-alive','1');location.replace(location.pathname)}sessionStorage.setItem('tn-alive','1')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700&display=swap">
@@ -987,6 +988,19 @@ body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
 .ord-plan ol{margin:8px 0;padding-left:22px;display:grid;gap:4px}
 .ord-plan li small{margin-left:8px;color:var(--muted);font-size:12px}
 
+/* 記帳 button: sits right above the ＋ on trip days */
+.fab-exp{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:40;width:48px;height:48px;border-radius:50%;border:var(--bw) solid var(--ink);background:#fff;color:var(--ink);font:inherit;font-size:14px;line-height:1;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);cursor:pointer}
+.fab-exp:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+@media (min-width:960px){.fab-exp{right:max(20px,calc((100vw - var(--page-w)) / 2 + 20px))}}
+body:has(.sheet) .fab-exp,body.ro .fab-exp,body:has(.gate-card) .fab-exp{display:none!important}
+/* 記一筆: the amount comes first */
+.sheet:has(#x-amt)>.sheet-x{order:-4}
+.sheet:has(#x-amt)>h2{order:-3}
+.sheet:has(#x-amt)>.fld:has(#x-amt){order:-2}
+
+/* no accidental zoom: double-tap zoom off everywhere (pinch is stopped in extras.js, except on a full-screen photo) */
+html,body{touch-action:manipulation}
+
 </style>
 
 <div id="app" hidden>
@@ -1256,7 +1270,7 @@ function money(){const ps=people(),ex=[...S.exps.values()];const paid={},spent={
   const cr=bal.filter(x=>x.b>0.5).sort((a,b)=>b.b-a.b),dr=bal.filter(x=>x.b<-0.5).sort((a,b)=>a.b-b.b);const tx=[];
   let i=0,j=0;while(i<dr.length&&j<cr.length){const amt=Math.min(-dr[i].b,cr[j].b);tx.push({from:dr[i].p,to:cr[j].p,amt});dr[i].b+=amt;cr[j].b-=amt;if(-dr[i].b<0.5)i++;if(cr[j].b<0.5)j++}
   return{ps:all,total,paid,spent,tx,ex}}
-function eRow(e,rate){const meta=[e.what&&e.shop?e.what:'',CAT_L[e.cat]||'',e.split==='self'&&e.payer?e.payer+' 個人':'💰旅遊基金',PAY_L[e.pay]||'',e.cur==='TWD'&&e.orig?'台幣 NT$'+(+e.orig).toLocaleString():'',(e.photos||[]).length?'📎 收據':''].filter(Boolean).join('・');
+function eRow(e,rate){const meta=[e.what&&e.shop?e.what:'',CAT_L[e.cat]&&CAT_L[e.cat]!==e.shop?CAT_L[e.cat]:'',e.split==='self'&&e.payer?e.payer+' 個人':'💰旅遊基金',PAY_L[e.pay]||'',e.cur==='TWD'&&e.orig?'台幣 NT$'+(+e.orig).toLocaleString():'',(e.photos||[]).length?'📎 收據':''].filter(Boolean).join('・');
   return '<div class="erow" data-eid="'+esc(e.id)+'"><button type="button" class="cbody ebody"><span class="ct">'+esc(e.shop||e.what||'（未填）')+'</span>'+(meta?'<span class="cn">'+esc(meta)+'</span>':'')+'</button><div class="eamt">'+(e.cur==='TWD'&&+e.orig>0?ntd(+e.orig)+'<small>≈ '+yen(+e.amount||0)+'</small>':ntd((+e.amount||0)*rate)+'<small>≈ '+yen(+e.amount||0)+'</small>')+'</div></div>'}
 function aggHTML(groups,rate,max){return groups.map(g=>'<details class="agg"><summary><span class="cbody"><span class="ct">'+esc(g.label)+'</span><span class="cn">'+esc(g.sub)+'</span>'+(max?'<span class="abar"><i style="width:'+(g.sum/max*100).toFixed(1)+'%;--bc:'+(CAT_C[g.k]||'var(--sakura)')+'"></i></span>':'')+'</span><span class="eamt">'+ntd(g.sum*rate)+'<small>≈ '+yen(g.sum)+'</small></span></summary><div class="rows">'+g.rows.map(e=>eRow(e,rate)).join('')+'</div></details>').join('')}
 function renderMoney(){const el=$('#money'),m=money(),rate=+S.meta.rate||0,tn=todayN();
@@ -1517,8 +1531,8 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
     q('cancel').onclick=closeSheet;if(ro)return;
     if(id)q('del').onclick=()=>{closeSheet();remove('exps',id,e.shop||e.what||'花費')};
     q('save').onclick=()=>{if(q('shop').value.trim()!==(base.shop||''))link();
-      const shop=q('shop').value.trim(),what=q('what').value.trim(),a=parseAmt(q('amt').value),py=(q('ownnew')&&q('ownnew').value.trim())||st.own;
-      if(!shop&&!what){q('shop').focus();toast('請填店家或買了什麼');return}if(!(a>0)){q('amt').focus();toast('請輸入金額');return}
+      const what=q('what').value.trim(),shop=q('shop').value.trim()||(what?'':CAT_L[st.cat]||'花費'),a=parseAmt(q('amt').value),py=(q('ownnew')&&q('ownnew').value.trim())||st.own;
+      if(!(a>0)){q('amt').focus();toast('請輸入金額');return}
       const r0=+S.meta.rate||0,yenAmt=st.cur==='TWD'?(r0?Math.round(a/r0):0):a;if(!(yenAmt>0)){toast('匯率還沒載入，請稍後再試');return}ls.set(T.id+'-pay',st.pay);const data={shop,what,amount:yenAmt,payer:py,split:py?'self':'all',cat:st.cat,day:st.day,itemId:st.itemId,pay:st.pay,cur:st.cur,orig:st.cur==='TWD'?a:0,photos:st.photos};
       closeSheet();if(py){ls.set(T.id+'-payer',py);if(!S.meta.people.includes(py))saveMeta({people:S.meta.people.concat(py)})}
       if(id){const cur=S.exps.get(id)||e,p={};for(const k in data)if((cur[k]==null?'':cur[k])!==data[k])p[k]=data[k];if(Object.keys(p).length)patch('exps',id,p,'已儲存')}
@@ -1555,7 +1569,7 @@ function goTo(k,id){let sel;
     if(desk.matches&&k==='i'){const col=el.closest('.col'),b=$('#board');if(col)b.scrollTo({left:col.offsetLeft-b.offsetLeft-16})}
     el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')},120)}
 
-function setActive(n,opt){S.active=n;if(window.__onDay)window.__onDay(n);ls.set(T.id+'-day',n);
+function setActive(n,opt){S.active=n;if(window.__onDay)window.__onDay(n);if(window.__fabSync)window.__fabSync();ls.set(T.id+'-day',n);
   document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',+c.dataset.day===n));
   document.querySelectorAll('.col').forEach(c=>c.classList.toggle('active',+c.dataset.col===n));
   const chip=document.querySelector('.chip[data-day="'+n+'"]'),st=$('#strip');
@@ -1690,7 +1704,7 @@ const lpCancel=e=>{if(lp&&(e.type!=='pointermove'||Math.hypot(e.clientX-lp.x,e.c
 document.addEventListener('contextmenu',e=>{const it=e.target.closest('.item');if(!it||e.target.closest('a'))return;e.preventDefault();if(lp){clearTimeout(lp.t);lp=null}if(!$('#scrim'))openActions(it.dataset.id)});
 /* swipe left / right on the itinerary to change days */
 let sw=null;
-$('#board').addEventListener('touchstart',e=>{if(S.drag||e.touches.length!==1||e.target.closest('.grip,input,textarea'))return;const t=e.touches[0];sw={x:t.clientX,y:t.clientY,at:Date.now()}},{passive:true});
+$('#board').addEventListener('touchstart',e=>{if(S.drag||e.touches.length!==1||e.target.closest('.grip,input,textarea,.pretabs,.viewseg,.ithumbs,.dstrip,.strip')||S.active===0)return;const t=e.touches[0];sw={x:t.clientX,y:t.clientY,at:Date.now()}},{passive:true});
 $('#board').addEventListener('touchend',e=>{if(!sw||S.drag){sw=null;return}const t=e.changedTouches[0],dx=t.clientX-sw.x,dy=t.clientY-sw.y,dt=Date.now()-sw.at;sw=null;
   if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy)&&dt<700)stepDay(dx<0?1:-1)},{passive:true});
 function stepDay(d){const n=Math.min(NDAYS,Math.max(0,S.active+d));if(n===S.active)return;setActive(n);
@@ -1823,7 +1837,7 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
     patch('lists',me.id,{order})};
   addEventListener('pointermove',move,{passive:false});addEventListener('pointerup',up);addEventListener('pointercancel',up)},true);
 /* 出發前 tabs: one list at a time (remembered per device) */
-const PRE_TABS=[['todo','待辦'],['pack','行李'],['book','訂位'],['ticket','票券'],['buy','購物'],['money','花費'],['pool','口袋']];
+const PRE_TABS=[['todo','待辦'],['book','訂位'],['ticket','票券'],['pack','行李'],['buy','購物'],['pool','口袋'],['money','花費']];
 function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_TABS.some(t=>t[0]===v)?v:'todo'}
 function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeout(fabSync,0);
   const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&(k!=='pack'||!(r.day>0))&&!r.done).length;
@@ -1833,7 +1847,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));fabSync()},true);
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
 const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增購物',money:'記一筆',pool:'新增口袋'};
-function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}}
+function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}expSync()}
 /* adding to a checklist: the same fields as editing it (name, note, date, photos) — name or a photo is enough (購物 is often just a screenshot).
    opt.day presets the date; opt.pick shows the 待辦／訂位／票券／購物 switch (used by a day's 今日要辦 ＋) */
 const PICK_TYPES=[['todo','待辦'],['book','訂位'],['ticket','票券'],['buy','購物']];
@@ -2054,6 +2068,15 @@ async function suggestOrder(n,box){
     buildNext();render();closeSheet();toast('已照建議排好 Day '+n)}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#ord-ai');if(!b)return;suggestOrder(+b.dataset.day,document.querySelector('#ord-box'))});
 
+/* trip days: a second round button above the ＋ goes straight to 記一筆 for that day (amount first, keyboard up) */
+function expSync(){let b=document.getElementById('fab-exp');
+  if(!b){b=document.createElement('button');b.type='button';b.id='fab-exp';b.className='fab-exp';b.setAttribute('aria-label','記帳');b.innerHTML='<span>記帳</span>';document.body.appendChild(b);
+    b.addEventListener('click',()=>{if(!canWrite())return;openExp(null,{day:S.active});setTimeout(()=>{const a=document.getElementById('x-amt');if(a)a.focus()},80)})}
+  b.hidden=!(S.active>0&&S.canWrite)}
+
+/* no accidental zoom: iPhone ignores maximum-scale, so stop its pinch gesture (photos opened full screen can still be pinched) */
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>{if(!(e.target.closest&&e.target.closest('.lb')))e.preventDefault()},{passive:false}));
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2081,7 +2104,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.61';
+window.__BUILD='1.62';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
