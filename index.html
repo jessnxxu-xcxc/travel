@@ -1001,6 +1001,10 @@ body:has(.sheet) .fab-exp,body.ro .fab-exp,body:has(.gate-card) .fab-exp{display
 /* no accidental zoom: double-tap zoom off everywhere (pinch is stopped in extras.js, except on a full-screen photo) */
 html,body{touch-action:manipulation}
 
+/* 記帳 button shows a plain $ drawn like the ＋ (💰 already means 旅遊基金 in the money pages) */
+.fab-exp{font-size:24px;font-weight:700;font-family:inherit}
+.fab-exp span{transform:translateY(1px)}
+
 </style>
 
 <div id="app" hidden>
@@ -2070,7 +2074,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 
 /* trip days: a second round button above the ＋ goes straight to 記一筆 for that day (amount first, keyboard up) */
 function expSync(){let b=document.getElementById('fab-exp');
-  if(!b){b=document.createElement('button');b.type='button';b.id='fab-exp';b.className='fab-exp';b.setAttribute('aria-label','記帳');b.innerHTML='<span>記帳</span>';document.body.appendChild(b);
+  if(!b){b=document.createElement('button');b.type='button';b.id='fab-exp';b.className='fab-exp';b.setAttribute('aria-label','記帳');b.title='記帳';b.innerHTML='<span aria-hidden="true">$</span>';document.body.appendChild(b);
     b.addEventListener('click',()=>{if(!canWrite())return;openExp(null,{day:S.active});setTimeout(()=>{const a=document.getElementById('x-amt');if(a)a.focus()},80)})}
   b.hidden=!(S.active>0&&S.canWrite)}
 
@@ -2104,7 +2108,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.62';
+window.__BUILD='1.63';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
