@@ -1021,6 +1021,12 @@ html,body{touch-action:manipulation}
 .itime.est{color:var(--muted);font-weight:400}
 .itime.est small{font-size:12px;margin-left:2px}
 
+/* trip from the previous stop: 🚃／🚕 + minutes */
+.legmin{display:flex;align-items:center;gap:8px;margin-top:8px}
+.legmin .inp{width:120px}
+.legmin span{color:var(--muted);font-size:14px}
+.itime small{font-weight:400;color:var(--muted);font-size:12px}
+
 </style>
 
 <div id="app" hidden>
@@ -1439,7 +1445,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
-    '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">結束可不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+(ro?'':legField(it))+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
@@ -1456,7 +1462,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     const rebindSlot=()=>bindSeg(root,'seg-slot',v=>st.slot=v);
     bindSeg(root,'seg-day',v=>{const n=+v;if(n===0)st.slot='pool';else if(st.slot==='pool')st.slot=st.kind==='food'?'lunch':'afternoon';st.day=n;
       root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n);rebindSlot()});
-    rebindSlot();bindSeg(root,'seg-kind',v=>st.kind=v);bindSeg(root,'seg-must',v=>st.must=v==='1');
+    rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>st.kind=v);bindSeg(root,'seg-must',v=>st.must=v==='1');
     root.querySelector('#e-cancel').onclick=closeSheet;
     const sf=root.querySelector('#e-staff');if(sf)sf.onclick=()=>showStaff(S.items.get(id)||it);
     const ex=root.querySelector('#e-exp');if(ex)ex.onclick=()=>{if(!canWrite())return;closeSheet();openExp(null,{shop:it.title,day:it.day,cat:KIND2CAT[it.kind]||'other',itemId:it.id})};
@@ -1474,10 +1480,9 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     root.querySelector('#e-save').onclick=()=>{const v=k=>root.querySelector('#e-'+k).value.trim();
       const p={};const f={title:v('title'),time:normT(v('time')),end:normT(v('end')),area:v('area'),desc:v('desc'),note:v('note'),q:v('q'),map:v('map'),kind:st.kind};
       if(!f.title){root.querySelector('#e-title').focus();return}
-      if(f.end&&!f.time){toast('先填開始時間');root.querySelector('#e-time').focus();return}
       if(f.end&&tmin(f.time)!=null&&tmin(f.end)!=null&&tmin(f.end)<=tmin(f.time)){toast('結束時間要比開始晚');root.querySelector('#e-end').focus();return}
       const cur=S.items.get(id)||it;for(const k in f)if((cur[k]||'')!==f[k])p[k]=f[k];
-      if(st.must!==!!cur.must)p.must=st.must;
+      if(st.must!==!!cur.must)p.must=st.must;if(!ro)legPatch(root,st,cur,p);
       if(st.day!==cur.day||st.slot!==cur.slot){p.day=st.day;p.slot=st.slot;p.order=maxOrder(st.day,st.slot)+1000}
       closeSheet();if(Object.keys(p).length)patch('items',id,p,p.day!=null?'已移到 '+dayLabel(st.day)+(st.day?'・'+SLOT_L[st.slot]:''):'已儲存')}
   })}
@@ -1796,7 +1801,7 @@ const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&
 function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(isStop);if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
 function goNext(it){let h='';
   if(FIRST.has(it.id))h+='<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店過來</a>';
-  const nx=NEXT[it.id];if(nx)h+='<a class="gonext" href="'+esc(transit(placeQuery(it),placeQuery(nx)))+'" target="_blank" rel="noopener" aria-label="怎麼去下一站：'+esc(nx.title)+'">🚃 下一站怎麼去</a>';
+  h+=nextLink(it);
   return h?'<span class="gorow">'+h+'</span>':''}
 /* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
 function routeUrlH(n){const ps=dayItems(n).filter(isStop).map(placeQuery).filter(Boolean);
@@ -1982,7 +1987,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
       '<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-akind"><button type="button" data-v="" aria-pressed="true">自動</button>'+KINDS.map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="false">'+k[1]+'</button>').join('')+'</div></div>'+
-      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填・結束可不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
+      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
@@ -1994,10 +1999,10 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     const timeOk=()=>/^\d{1,2}[:：]\d{2}$/.test(tm.value.trim());
     const upd=()=>{const lines=ta.value.split(/\n+/).filter(l=>l.trim()),one=lines.length<=1,t=one&&timeOk()?tm.value.trim().replace('：',':')+' ':'';
       ends=[];rows=lines.map(l=>{const m=l.match(RANGE);const r=parseLine(t+(m?l.replace(RANGE,'$1'):l),d);if(r)ends.push(m?normT(m[2]):'');return r}).filter(Boolean);
-      if(one&&rows[0]&&normT(en.value)&&/^\d{2}:\d{2}$/.test(normT(en.value)))ends[0]=normT(en.value);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
+      if(one&&rows[0]&&/^\d{2}:\d{2}$/.test(normT(en.value)))ends[0]=normT(en.value);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
       if(one&&rows[0]){if(d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
       root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-multi').hidden=one;
-      pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time?'<span class="itime">'+r.time+(ends[rows.indexOf(r)]?'–'+ends[rows.indexOf(r)]:'')+'</span>':'')+
+      pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
       ok.disabled=!rows.length;ok.textContent=rows.length>1?'加入 '+rows.length+' 個行程':'加入行程'};
     const bindSlot=()=>bindSeg(root,'seg-aslot',v=>{d.slot=v||null;upd()});
@@ -2009,7 +2014,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     ok.onclick=()=>{if(!rows.length)return;if(tm.value.trim()&&!timeOk()){toast('時間請寫成 12:30 這樣');tm.focus();return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
       const pics=rows.length===1?d.photos.slice():[],endsNow=ends.slice();closeSheet();const ids=addItems(rows);
-      if(ids)ids.forEach((id,i)=>{const e=endsNow[i],cur=S.items.get(id);if(e&&cur&&cur.time&&tmin(e)>tmin(cur.time)){S.items.set(id,Object.assign({},cur,{end:e}));queue('items'+id,()=>ref('items',id).update({end:e}))}});render();
+      if(ids)ids.forEach((id,i)=>{const e=endsNow[i],cur=S.items.get(id);if(e&&cur&&(!cur.time||tmin(e)>tmin(cur.time))){S.items.set(id,Object.assign({},cur,{end:e}));queue('items'+id,()=>ref('items',id).update({end:e}))}});render();
       if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}};
     setTimeout(()=>ta.focus(),50)})}
 /* places without a 簡介 get one from AI (same rules as the ✨ AI 寫簡介 button); dq marks "already asked", '' back = AI wasn't sure, left empty */
@@ -2102,41 +2107,66 @@ function expSync(){let b=document.getElementById('fab-exp');
 /* no accidental zoom: iPhone ignores maximum-scale, so stop its pinch gesture (photos opened full screen can still be pinched) */
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>{if(!(e.target.closest&&e.target.closest('.lb')))e.preventDefault()},{passive:false}));
 
-/* ---------- start / end times ----------
-   An item can have a start (time) and an optional end. When an item has no time of its own, the card shows an
-   estimate: the previous item's end + the travel time between the two places (AI estimate, kept on the item as
-   cm minutes from cmFrom). Typing a time by hand always wins. */
+/* ---------- start / end times and the trip between stops ----------
+   An item can have a start (time) and an end — neither is required. Both filled → the card also says how long you stay.
+   Between two stops (NEXT/PREV, same as 下一站怎麼去) AI estimates minutes by 🚃 public transport and by 🚕 taxi;
+   they live on the later stop: cmFrom (the stop before it), cmT, cmX, cmMode ('transit'|'taxi'), cmMan (minutes you typed).
+   A stop with no start shows an estimate: the last end time before it + the trip from the previous stop. */
 function normT(x){x=String(x||'').trim().replace('：',':');if(!x)return '';let m=x.match(/^(\d{1,2}):?(\d{2})$/)||x.match(/^(\d{1,2})$/);
   if(!m)return x;const h=+m[1],mi=m[2]===undefined?0:+m[2];if(h>23||mi>59)return x;return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')}
 const tmin=t=>{const m=/^(\d{2}):(\d{2})$/.exec(t||'');return m?+m[1]*60+ +m[2]:null};
 const tfmt=n=>{n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
-let EST={};
-function buildEst(){EST={};for(let n=1;n<=NDAYS;n++){let cur=null,prev=null;
-  for(const it of dayItems(n)){
-    if(it.time){const e=tmin(it.end);cur=e!=null?e:null}
-    else if(cur!=null){const cm=it.cmFrom&&prev&&it.cmFrom===prev.id&&it.cm>=0?+it.cm:null;EST[it.id]={t:tfmt(cur+(cm||0)),cm};cur=null}
-    prev=it}}}
-function timeHTML(it){
-  if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+'</span>';
-  const e=EST[it.id];if(!e)return '';
-  return '<span class="itime est" title="依上一站結束時間推算">約 '+e.t+(e.cm?'<small>（交通約 '+e.cm+' 分）</small>':'')+'</span>'}
-/* AI travel time between a place that has an end time and the next place that has no time */
+const fmtDur=m=>m<60?m+' 分':Math.floor(m/60)+' 小時'+(m%60?' '+m%60+' 分':'');
+let EST={},PREV={};
+/* the stop before b, unless a transport row sits between them (that row is the trip) */
+function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.day),i=its.findIndex(x=>x.id===a.id),j=its.findIndex(x=>x.id===b.id);
+  return its.slice(i+1,j).some(x=>x.kind==='move')?null:a}
+function leg(b){const a=legPrev(b);if(!a||b.cmFrom!==a.id)return a?{a,mode:b.cmMode||'transit',min:null}:null;
+  const mode=b.cmMode||'transit',ai=mode==='taxi'?b.cmX:b.cmT;return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
+function buildEst(){EST={};PREV={};for(const k in NEXT)PREV[NEXT[k].id]=S.items.get(k);
+  for(let n=1;n<=NDAYS;n++){let cur=null;
+    /* cur = when you're free again (the last end time); anything without an end makes it unknown */
+    for(const it of dayItems(n)){
+      if(!it.time&&cur!=null){const l=leg(it);EST[it.id]=cur+(l&&l.min!=null?l.min:0)}
+      const e=tmin(it.end);cur=e!=null?e:null}}}
+function timeHTML(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=null&&e>s?'<small>・'+fmtDur(e-s)+'</small>':'';
+  if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+stay+'</span>';
+  if(EST[it.id]!=null){const es=EST[it.id];return '<span class="itime est" title="依上一站結束時間＋交通推算">約 '+tfmt(es)+(it.end?'–'+esc(it.end):'')+(e!=null&&e>es?'<small>・'+fmtDur(e-es)+'</small>':'')+'</span>'}
+  return it.end?'<span class="itime">～'+esc(it.end)+'</span>':''}
+const drive=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
+/* 下一站怎麼去 link: says how you go and about how long */
+function nextLink(it){const nx=NEXT[it.id];if(!nx)return '';const l=leg(nx),taxi=l&&l.mode==='taxi';
+  return '<a class="gonext" href="'+esc((taxi?drive:transit)(placeQuery(it),placeQuery(nx)))+'" target="_blank" rel="noopener" aria-label="怎麼去下一站：'+esc(nx.title)+'">'+(taxi?'🚕 搭計程車':'🚃 下一站怎麼去')+(l&&l.min!=null?'・約 '+l.min+' 分':'')+'</a>'}
+/* AI: minutes by public transport and by taxi for every pair of stops it hasn't seen yet */
 let CM_BUSY=false;
-const hasLoc=it=>(PLACE_KINDS.includes(it.kind)||it.kind==='stay')&&(it.area||it.q||safeUrl(it.map));
 async function findCommutes(){
-  if(CM_BUSY||!S.sample||!canWrite())return;
-  const pairs=[];for(let n=1;n<=NDAYS;n++){const its=dayItems(n);
-    for(let i=1;i<its.length;i++){const a=its[i-1],b=its[i];if(a.time&&a.end&&!b.time&&hasLoc(a)&&hasLoc(b)&&b.cmFrom!==a.id)pairs.push([a,b])}}
+  if(CM_BUSY||!S.sample||!canWrite())return;buildNext();buildEst();
+  const pairs=[];for(const it of S.items.values()){const a=legPrev(it);if(a&&(it.cmFrom!==a.id||it.cmT==null))pairs.push([a,it])}
   if(!pairs.length)return;CM_BUSY=true;
-  try{const part=pairs.slice(0,20);
-    const prompt='下面每一行是'+(T.dest||'日本')+'的兩個地點（括號是地區）。請估算從前一個到後一個，搭電車加步行（近的就直接走路）大約要幾分鐘，包含步行到車站與轉乘。只回覆 JSON 陣列，內容是整數分鐘，順序和編號一一對應，例如 [15,30]。\n'+
+  try{for(let i=0;i<pairs.length&&i<40;i+=20){const part=pairs.slice(i,i+20);
+    const prompt='下面每一行是'+(T.dest||'日本')+'的兩個地點（括號是地區）。請估算從前一個到後一個大約要幾分鐘，給兩個數字：①搭大眾運輸（電車／地鐵／公車，含走到車站與轉乘；很近就直接走路）②搭計程車。只回覆 JSON 陣列，每一項是 [大眾運輸分鐘, 計程車分鐘]，順序和編號一一對應，例如 [[25,12],[8,5]]。\n'+
       part.map(([a,b],k)=>(k+1)+'. '+a.title.slice(0,30)+'（'+(a.area||'')+'）→ '+b.title.slice(0,30)+'（'+(b.area||'')+'）').join('\n');
-    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){return}
-    if(!Array.isArray(out)||out.length!==part.length)return;
-    part.forEach(([a,b],k)=>{const v=Math.round(+out[k]);if(!(v>=0&&v<=240))return;const cur=S.items.get(b.id);if(!cur||cur.time)return;
-      const p={cm:v,cmFrom:a.id};S.items.set(b.id,Object.assign({},cur,p));queue('items'+b.id,()=>ref('items',b.id).update(p))});
-    render()}
+    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(out)||out.length!==part.length)continue;
+    part.forEach(([a,b],k)=>{const v=out[k];if(!Array.isArray(v))return;const t=Math.round(+v[0]),x=Math.round(+v[1]);if(!(t>=0&&t<=300&&x>=0&&x<=300))return;
+      const cur=S.items.get(b.id);if(!cur)return;const p={cmFrom:a.id,cmT:t,cmX:x};if(cur.cmFrom!==a.id)p.cmMan=null;
+      S.items.set(b.id,Object.assign({},cur,p));queue('items'+b.id,()=>ref('items',b.id).update(p))});
+    render()}}
   finally{CM_BUSY=false}}
+/* edit sheet: "從「上一站」過來" — 🚃／🚕 and minutes (AI's number as a hint, yours wins; empty = back to AI) */
+function legField(it){const a=legPrev(it);if(!a)return '';const l=leg(it)||{mode:'transit',min:null},mode=it.cmMode||'transit';
+  const aiT=it.cmFrom===a.id?it.cmT:null,aiX=it.cmFrom===a.id?it.cmX:null,man=it.cmFrom===a.id&&it.cmMan!=null?it.cmMan:'';
+  return '<div class="fld legf" data-ait="'+(aiT!=null?aiT:'')+'" data-aix="'+(aiX!=null?aiX:'')+'" data-from="'+esc(a.id)+'"><span class="lbl">從「'+esc(a.title.slice(0,16))+'」過來</span>'+
+    '<div class="seg" id="seg-leg"><button type="button" data-v="transit" aria-pressed="'+(mode!=='taxi')+'">🚃 大眾運輸</button><button type="button" data-v="taxi" aria-pressed="'+(mode==='taxi')+'">🚕 計程車</button></div>'+
+    '<div class="legmin"><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+(((mode==='taxi'?aiX:aiT)!=null)?'約 '+(mode==='taxi'?aiX:aiT)+'（AI 估）':'AI 估算中…')+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
+    '<span class="hint2">分鐘數是 AI 估的，可以自己改；清空就交回 AI。</span></div>'}
+function bindLeg(root,st){const f=root.querySelector('.legf');if(!f)return;st.legMode=root.querySelector('#seg-leg [aria-pressed="true"]').dataset.v;
+  bindSeg(root,'seg-leg',v=>{st.legMode=v;const ai=v==='taxi'?f.dataset.aix:f.dataset.ait;root.querySelector('#e-cm').placeholder=ai!==''?'約 '+ai+'（AI 估）':'AI 估算中…'})}
+function legPatch(root,st,cur,p){const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from,v=root.querySelector('#e-cm').value.trim();
+  const man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),same=cur.cmFrom===from;
+  if((cur.cmMode||'transit')!==st.legMode)p.cmMode=st.legMode;
+  if(!same){p.cmFrom=from;p.cmT=null;p.cmX=null}
+  if((same?cur.cmMan:null)!==man&&!(man==null&&cur.cmMan==null))p.cmMan=man}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -2165,7 +2195,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.67';
+window.__BUILD='1.68';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
