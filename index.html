@@ -1051,6 +1051,16 @@ body.bar-stuck .bar-wrap{box-shadow:0 8px 14px -10px rgba(62,58,57,.45)}
 #strip{padding-top:16px!important;padding-bottom:8px!important}
 #board{padding-top:8px!important}
 
+.legmin .inp{width:150px}
+/* day header ▸ first time slot: 16px; slots spaced by the grid gap so hidden empty slots don't leave space */
+.col-h{margin-bottom:16px!important}
+.tl{row-gap:12px}
+.tl .slot+.slot{margin-top:0!important}
+
+/* the 交通 line at the bottom of a card */
+.legbtn .leglead{color:var(--muted);margin-right:6px;text-decoration:none;display:inline-block}
+.legbtn .legarr{margin-left:4px;text-decoration:none;display:inline-block}
+
 </style>
 
 <div id="app" hidden>
@@ -1469,7 +1479,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
-    '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+(ro?'':legField(it))+
+    '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
@@ -1825,8 +1835,7 @@ const HOTEL=()=>T.hotel?(T.hotel.q||T.hotel.name||''):'';
 const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
 function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(isStop);if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
 function goNext(it){let h='';
-  if(FIRST.has(it.id)){const l=leg(it);h+=l&&l.a&&l.a.id==='hotel'?'<button type="button" class="gonext legbtn" data-leg="'+esc(it.id)+'" aria-label="從飯店過來的交通">'+(l.mode==='taxi'?'🚕 從飯店搭計程車':'🚃 從飯店過來')+(l.min!=null?'・約 '+l.min+' 分':'')+'</button>'
-    :'<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店過來</a>'}
+  if(FIRST.has(it.id))h+=legLine(it,'從飯店');
   h+=nextLink(it);
   return h?'<span class="gorow">'+h+'</span>':''}
 /* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
@@ -2015,8 +2024,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
       '<div class="fld"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
-      '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">怎麼過去<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg"><button type="button" data-v="transit" aria-pressed="true">🚃 大眾運輸</button><button type="button" data-v="taxi" aria-pressed="false">🚕 計程車</button></div></div>'+
-      '<div class="fld" id="a-tmf" hidden><span class="lbl">怎麼去<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
+      '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式</span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
@@ -2034,7 +2042,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)));
        const tg=g==='move'?(d.tmPicked?d.tm:((tmode({title:ta.value,note:nt.value})||[])[0]||'')):'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===tg)))}
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
-      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'}
+      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
       root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
@@ -2163,8 +2171,6 @@ const legKey=(a,b)=>[a.title,a.area,a.q,b.title,b.area,b.q].map(x=>x||'').join('
 /* the stop before b, unless a transport row sits between them (that row is the trip) */
 function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.day),i=its.findIndex(x=>x.id===a.id),j=its.findIndex(x=>x.id===b.id);
   return its.slice(i+1,j).some(x=>x.kind==='move')?null:a}
-function leg(b){const a=legPrev(b);if(!a||b.cmFrom!==a.id||(b.cmK&&b.cmK!==legKey(a,b)))return a?{a,mode:b.cmMode||'transit',min:null}:null;
-  const mode=b.cmMode||'transit',ai=mode==='taxi'?b.cmX:b.cmT;return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
 const HOTEL_STOP=()=>HOTEL()?{id:'hotel',title:'飯店',area:'',q:HOTEL(),kind:'stay'}:null;
 function buildEst(){EST={};PREV={};EARLY={};for(const k in NEXT)PREV[NEXT[k].id]=S.items.get(k);
   const H=HOTEL_STOP();if(H)for(let n=2;n<=NDAYS;n++){const f=dayItems(n).find(isStop);if(f&&!PREV[f.id])PREV[f.id]=H}
@@ -2179,65 +2185,77 @@ function timeHTML(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=null
   if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+stay+'</span>'+(EARLY[it.id]?'<span class="tbad" title="這個時間比排在前面的行程早，可以拖曳調整順序">⚠ 比上一站早</span>':'');
   if(EST[it.id]!=null){const es=EST[it.id];return '<span class="itime est" title="依上一站結束時間＋交通推算">約 '+tfmt(es)+(it.end?'–'+esc(it.end):'')+(e!=null&&e>es?'<small>・'+fmtDur(e-es)+'</small>':'')+'</span>'}
   return it.end?'<span class="itime">～'+esc(it.end)+'</span>':''}
-const drive=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
-/* 下一站怎麼去 link: says how you go and about how long */
-function nextLink(it){const nx=NEXT[it.id];if(!nx)return '';const l=leg(nx),taxi=l&&l.mode==='taxi';
-  return '<button type="button" class="gonext legbtn" data-leg="'+esc(nx.id)+'" aria-label="去下一站「'+esc(nx.title)+'」的交通">'+(taxi?'🚕 搭計程車':'🚃 下一站怎麼去')+(l&&l.min!=null?'・約 '+l.min+' 分':'')+'</button>'}
 /* AI: minutes by public transport and by taxi for every pair of stops it hasn't seen yet */
 let CM_BUSY=false;const CM_TRIED=new Set();
 async function findCommutes(){
   if(CM_BUSY||!S.sample||!canWrite())return;buildNext();buildEst();
   const pairs=[];for(const it of S.items.values()){const a=legPrev(it);if(!a)continue;const k=legKey(a,it);
-    if((it.cmFrom!==a.id||it.cmT==null||(it.cmK&&it.cmK!==k))&&!CM_TRIED.has(it.id+'>'+k))pairs.push([a,it])}
+    if((it.cmFrom!==a.id||it.cmT==null||it.cmW==null||(it.cmK&&it.cmK!==k))&&!CM_TRIED.has(it.id+'>'+k))pairs.push([a,it])}
   if(!pairs.length)return;CM_BUSY=true;
   try{for(let i=0;i<pairs.length&&i<40;i+=20){const part=pairs.slice(i,i+20);part.forEach(([a,b])=>CM_TRIED.add(b.id+'>'+legKey(a,b)));
-    const prompt='下面每一行是'+(T.dest||'日本')+'的兩個地點（括號是地區）。請估算從前一個到後一個大約要幾分鐘，給兩個數字：①搭大眾運輸（電車／地鐵／公車，含走到車站與轉乘；很近就直接走路）②搭計程車。只回覆 JSON 陣列，每一項是 [大眾運輸分鐘, 計程車分鐘]，順序和編號一一對應，例如 [[25,12],[8,5]]。\n'+
+    const prompt='下面每一行是'+(T.dest||'日本')+'的兩個地點（括號是地區）。請估算從前一個到後一個大約要幾分鐘，給三個數字：①搭電車／地鐵／公車（含走到車站與轉乘；很近就直接走路的時間）②搭計程車 ③全程走路。只回覆 JSON 陣列，每一項是 [電車分鐘, 計程車分鐘, 走路分鐘]，順序和編號一一對應，例如 [[25,12,70],[8,5,10]]。\n'+
       part.map(([a,b],k)=>(k+1)+'. '+a.title.slice(0,30)+'（'+(a.area||'')+'）→ '+b.title.slice(0,30)+'（'+(b.area||'')+'）').join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach(([a,b],k)=>{const v=out[k];if(!Array.isArray(v))return;const t=Math.round(+v[0]),x=Math.round(+v[1]);if(!(t>=0&&t<=300&&x>=0&&x<=300))return;
-      const cur=S.items.get(b.id);if(!cur)return;const lk=legKey(a,b),p={cmFrom:a.id,cmT:t,cmX:x,cmK:lk};if(cur.cmFrom!==a.id||(cur.cmK&&cur.cmK!==lk))p.cmMan=null;
+    part.forEach(([a,b],k)=>{const v=out[k];if(!Array.isArray(v))return;const t=Math.round(+v[0]),x=Math.round(+v[1]),wk=Math.round(+v[2]);if(!(t>=0&&t<=300&&x>=0&&x<=300))return;
+      const cur=S.items.get(b.id);if(!cur)return;const lk=legKey(a,b),p={cmFrom:a.id,cmT:t,cmX:x,cmW:wk>=0&&wk<=600?wk:null,cmK:lk};if(cur.cmFrom!==a.id||(cur.cmK&&cur.cmK!==lk))p.cmMan=null;
       S.items.set(b.id,Object.assign({},cur,p));queue('items'+b.id,()=>ref('items',b.id).update(p))});
     render()}}
   finally{CM_BUSY=false}}
-/* edit sheet: "從「上一站」過來" — 🚃／🚕 and minutes (AI's number as a hint, yours wins; empty = back to AI) */
-function legField(it){const a=legPrev(it);if(!a){if(!(it.day>0)||!isStop(it))return '';const its=dayItems(it.day),j=its.findIndex(x=>x.id===it.id),mv=[];
-    for(let i=j-1;i>=0&&!isStop(its[i]);i--)if(its[i].kind==='move')mv.unshift(its[i]);if(!mv.length)return '';
-    return '<div class="fld"><span class="lbl">怎麼過去</span><p class="hint2 legnote">交通已經排在 '+mv.map(m=>'<button type="button" class="linkbtn" data-open-item="'+esc(m.id)+'">「'+esc(m.title.slice(0,18))+'」</button>').join('、')+'，要改搭什麼，點它就能改。</p></div>'}const l=leg(it)||{mode:'transit',min:null},mode=it.cmMode||'transit';
-  const aiT=it.cmFrom===a.id?it.cmT:null,aiX=it.cmFrom===a.id?it.cmX:null,man=it.cmFrom===a.id&&it.cmMan!=null?it.cmMan:'';
-  return '<div class="fld legf" data-ait="'+(aiT!=null?aiT:'')+'" data-aix="'+(aiX!=null?aiX:'')+'" data-from="'+esc(a.id)+'"><span class="lbl">從「'+esc(a.title.slice(0,16))+'」過來</span>'+
-    '<div class="seg" id="seg-leg"><button type="button" data-v="transit" aria-pressed="'+(mode!=='taxi')+'">🚃 大眾運輸</button><button type="button" data-v="taxi" aria-pressed="'+(mode==='taxi')+'">🚕 計程車</button></div>'+
-    '<div class="legmin"><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+(((mode==='taxi'?aiX:aiT)!=null)?'約 '+(mode==='taxi'?aiX:aiT)+'（AI 估）':'AI 估算中…')+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
-    '<span class="hint2">分鐘數是 AI 估的，可以自己改；清空就交回 AI。</span></div>'}
-function bindLeg(root,st){bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=root.querySelector('#seg-leg [aria-pressed="true"]').dataset.v;
-  bindSeg(root,'seg-leg',v=>{st.legMode=v;const ai=v==='taxi'?f.dataset.aix:f.dataset.ait;root.querySelector('#e-cm').placeholder=ai!==''?'約 '+ai+'（AI 估）':'AI 估算中…'})}
-function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from,v=root.querySelector('#e-cm').value.trim();
-  const man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),same=cur.cmFrom===from;
-  if((cur.cmMode||'transit')!==st.legMode)p.cmMode=st.legMode;
-  if(!same){p.cmFrom=from;p.cmT=null;p.cmX=null;p.cmK=null}
-  if((same?cur.cmMan:null)!==man&&!(man==null&&cur.cmMan==null))p.cmMan=man}
 
 /* transport rows: how you go is chosen by hand (tm) — the guess from the name only fills in until you pick */
 const TM_ORDER=['train','bus','taxi','walk','plane','ship'];
+const TM_ICON={train:'🚃',bus:'🚌',taxi:'🚕',walk:'🚶',plane:'✈️',ship:'⛴️'};
 function modeField(it){if(it.kind!=='move')return '';const cur=(tmode(it)||[])[0]||'';
-  return '<div class="fld"><span class="lbl">怎麼去</span><div class="seg" id="seg-tm">'+TM_ORDER.map(k=>{const m=TMODES.find(x=>x[0]===k);
-    return '<button type="button" data-v="'+k+'" aria-pressed="'+(cur===k)+'">'+m[1]+'</button>'}).join('')+'</div></div>'}
-/* the "下一站怎麼去" row on a card opens this: how you go (🚃／🚕), minutes, and the Google route */
-function openLeg(bid){const b=S.items.get(bid);if(!b)return;const a=legPrev(b);if(!a)return;const ro=!S.canWrite;S.readSheet=ro;const st={};
-  const l=leg(b)||{mode:'transit',min:null},url=m=>(m==='taxi'?drive:transit)(placeQuery(a),placeQuery(b));
-  openSheet('<h2>交通</h2><p class="legft">'+esc(a.title)+'<span>→</span>'+esc(b.title)+'</p>'+
-    (ro?'<p class="hint2">'+(l.mode==='taxi'?'🚕 計程車':'🚃 大眾運輸')+(l.min!=null?'・約 '+l.min+' 分':'')+'</p>':legField(b))+
-    '<a class="btn block" id="leg-go" href="'+esc(url(l.mode))+'" target="_blank" rel="noopener">🗺️ 看路線（Google 地圖）</a>'+
-    '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="leg-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="leg-save">儲存</button>')+'</div>',
-  root=>{root.querySelector('#leg-cancel').onclick=closeSheet;if(ro)return;bindLeg(root,st);
-    root.querySelector('#seg-leg').addEventListener('click',()=>setTimeout(()=>{root.querySelector('#leg-go').href=url(st.legMode)},0));
-    root.querySelector('#leg-save').onclick=()=>{const cur=S.items.get(bid)||b,p={};legPatch(root,st,cur,p);closeSheet();if(Object.keys(p).length)patch('items',bid,p,'已儲存交通')}})}
+  return '<div class="fld"><span class="lbl">交通方式</span><div class="seg" id="seg-tm">'+TM_ORDER.map(k=>{const m=TMODES.find(x=>x[0]===k);
+    return '<button type="button" data-v="'+k+'" aria-pressed="'+(cur===k)+'">'+TM_ICON[k]+' '+m[1]+'</button>'}).join('')+'</div></div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.legbtn');if(!t)return;e.preventDefault();e.stopPropagation();openLeg(t.dataset.leg)},true);
 /* the date strip gets its shadow only while it is stuck to the top */
 (function(){const upd=()=>{const b=document.querySelector('.bar-wrap');if(!b)return;document.body.classList.toggle('bar-stuck',b.getBoundingClientRect().top<=1&&scrollY>0)};addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);setTimeout(upd,0)})();
 
 /* "交通已經排在「…」" in an edit sheet opens that transport row */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-open-item]');if(!b)return;e.preventDefault();e.stopPropagation();const id=b.dataset.openItem;closeSheet();setTimeout(()=>openEdit(id),250)},true);
+
+/* ---------- 交通 between two stops: one look, one way to change it ----------
+   Shown as the last line of a card: "去下一站 🚃 電車・約 25 分 ›" (first stop of a day: "從飯店 …"). Tap it → 交通 sheet.
+   交通方式 has the same six choices as a transport row. AI estimates minutes by train/bus (cmT), taxi (cmX) and on foot (cmW);
+   the minutes you type (cmMan) win. Kept on the later stop: cmFrom, cmMode, cmT, cmX, cmW, cmMan, cmK. */
+const LEG_MODE=b=>{const m=b.cmMode;return m==='transit'||!m?'train':m};
+const legAi=(b,mode)=>mode==='taxi'?b.cmX:mode==='walk'?b.cmW:(mode==='train'||mode==='bus')?b.cmT:null;
+function leg(b){const a=legPrev(b);if(!a)return null;const mode=LEG_MODE(b);
+  if(b.cmFrom!==a.id||(b.cmK&&b.cmK!==legKey(a,b)))return {a,mode,min:null,ai:null};
+  const ai=legAi(b,mode);return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
+const legUrl=(a,b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&origin='+encodeURIComponent(placeQuery(a))+'&destination='+encodeURIComponent(placeQuery(b));
+const legText=l=>{const m=TMODES.find(x=>x[0]===l.mode);return TM_ICON[l.mode]+' '+(m?m[1]:'')+(l.min!=null?'・約 '+l.min+' 分':'')};
+function legLine(b,lead){const l=leg(b);if(!l)return '';
+  return '<button type="button" class="gonext legbtn" data-leg="'+esc(b.id)+'" aria-label="'+lead+'「'+esc(b.title)+'」的交通"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="legarr">›</span></button>'}
+/* the last line of a card: how you get to the next stop */
+function nextLink(it){const nx=NEXT[it.id];return nx?legLine(nx,'去下一站'):''}
+/* 交通 sheet: 交通方式 (six choices), minutes, Google route */
+function legField(b){const a=legPrev(b);if(!a)return '';const l=leg(b),mode=l.mode,same=b.cmFrom===a.id&&!(b.cmK&&b.cmK!==legKey(a,b));
+  const ai={train:same?b.cmT:null,bus:same?b.cmT:null,taxi:same?b.cmX:null,walk:same?b.cmW:null},man=same&&b.cmMan!=null?b.cmMan:'';
+  const ph=m=>ai[m]!=null?'約 '+ai[m]+'（AI）':(m==='plane'||m==='ship'?'自己填':'AI 估算中');
+  return '<div class="fld legf" data-from="'+esc(a.id)+'" data-ai=\''+esc(JSON.stringify(ai))+'\'><span class="lbl">交通方式</span>'+
+    '<div class="seg" id="seg-leg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
+    '<div class="fld"><label for="e-cm">要多久</label><div class="legmin"><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+ph(mode)+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
+    '<span class="hint2">分鐘數是 AI 估的，可以自己改；清空就交回 AI。</span></div>'}
+function bindLeg(root,st){bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=root.querySelector('#seg-leg [aria-pressed="true"]').dataset.v;
+  const ai=JSON.parse(f.dataset.ai||'{}');
+  bindSeg(root,'seg-leg',v=>{st.legMode=v;root.querySelector('#e-cm').placeholder=ai[v]!=null?'約 '+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
+function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from,v=root.querySelector('#e-cm').value.trim();
+  const man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),same=cur.cmFrom===from;
+  if(LEG_MODE(cur)!==st.legMode)p.cmMode=st.legMode;
+  if(!same){p.cmFrom=from;p.cmT=null;p.cmX=null;p.cmW=null;p.cmK=null}
+  if((same?cur.cmMan:null)!==man&&!(man==null&&cur.cmMan==null))p.cmMan=man}
+
+function openLeg(bid){const b=S.items.get(bid);if(!b)return;const a=legPrev(b);if(!a)return;const ro=!S.canWrite;S.readSheet=ro;const st={};const l=leg(b);
+  openSheet('<h2>交通</h2><p class="legft">'+esc(a.title)+'<span>→</span>'+esc(b.title)+'</p>'+
+    (ro?'<p class="hint2">'+legText(l)+'</p>':legField(b))+
+    '<a class="btn block" id="leg-go" href="'+esc(legUrl(a,b,l.mode))+'" target="_blank" rel="noopener">🗺️ 看路線（Google 地圖）</a>'+
+    '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="leg-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="leg-save">儲存</button>')+'</div>',
+  root=>{root.querySelector('#leg-cancel').onclick=closeSheet;if(ro)return;bindLeg(root,st);
+    root.querySelector('#seg-leg').addEventListener('click',()=>setTimeout(()=>{root.querySelector('#leg-go').href=legUrl(a,b,st.legMode)},0));
+    root.querySelector('#leg-save').onclick=()=>{const cur=S.items.get(bid)||b,p={};legPatch(root,st,cur,p);closeSheet();if(Object.keys(p).length)patch('items',bid,p,'已儲存交通')}})}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -2266,7 +2284,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.72';
+window.__BUILD='1.73';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
