@@ -1046,6 +1046,10 @@ button.gonext{border:0;background:none;padding:0;font:inherit;font-size:12px;cur
 /* the date strip: no heavy black rule under it; once it sticks to the top while scrolling, a soft shadow separates it from the page */
 .bar-wrap{border-bottom:0!important;transition:box-shadow .2s}
 body.bar-stuck .bar-wrap{box-shadow:0 8px 14px -10px rgba(62,58,57,.45)}
+/* even rhythm around the toolbar and the date strip: 16px between ticket ▸ toolbar ▸ dates ▸ the day */
+.bar{padding-top:4px!important}
+#strip{padding-top:16px!important;padding-bottom:8px!important}
+#board{padding-top:8px!important}
 
 </style>
 
@@ -1821,7 +1825,8 @@ const HOTEL=()=>T.hotel?(T.hotel.q||T.hotel.name||''):'';
 const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
 function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(isStop);if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
 function goNext(it){let h='';
-  if(FIRST.has(it.id))h+='<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店過來</a>';
+  if(FIRST.has(it.id)){const l=leg(it);h+=l&&l.a&&l.a.id==='hotel'?'<button type="button" class="gonext legbtn" data-leg="'+esc(it.id)+'" aria-label="從飯店過來的交通">'+(l.mode==='taxi'?'🚕 從飯店搭計程車':'🚃 從飯店過來')+(l.min!=null?'・約 '+l.min+' 分':'')+'</button>'
+    :'<a class="gonext" href="'+esc(transit(HOTEL(),placeQuery(it)))+'" target="_blank" rel="noopener">🚃 從飯店過來</a>'}
   h+=nextLink(it);
   return h?'<span class="gorow">'+h+'</span>':''}
 /* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
@@ -2003,14 +2008,15 @@ window.__fillPlaces=fillPlaces;
 function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&def.slot!=='pool'?def.slot:null,kind:'',photos:[]};S.readSheet=false;
   const kindList=()=>d.day===0?KINDS.filter(k=>PLACE_KINDS.includes(k[0])):KINDS;
   const kindChips=()=>'<div class="seg" id="seg-akind">'+kindList().map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="'+(d.kind===k[0])+'">'+k[1]+'</button>').join('')+'</div>';
-  const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段</span><div class="seg" id="seg-aslot"><button type="button" data-v="" aria-pressed="'+(!d.slot)+'">自動</button>'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
+  const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵、小町通商店街"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
       '<div class="fld"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
-      '<div class="fld" id="a-tmf" hidden><span class="lbl">怎麼去</span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
+      '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">怎麼過去<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg"><button type="button" data-v="transit" aria-pressed="true">🚃 大眾運輸</button><button type="button" data-v="taxi" aria-pressed="false">🚕 計程車</button></div></div>'+
+      '<div class="fld" id="a-tmf" hidden><span class="lbl">怎麼去<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
@@ -2025,28 +2031,30 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       ends=[];rows=lines.map(l=>{const m=l.match(RANGE);const r=parseLine(t+(m?l.replace(RANGE,'$1'):l),d);if(r)ends.push(m?normT(m[2]):'');return r}).filter(Boolean);
       if(one&&rows[0]&&/^\d{2}:\d{2}$/.test(normT(en.value)))ends[0]=normT(en.value);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
       if(d.day===0)rows.forEach(r=>{if(!PLACE_KINDS.includes(r.kind))r.kind='spot'});
-      if(one&&rows[0]&&!d.kindPicked){const g=rows[0].kind;root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)))}
+      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)));
+       const tg=g==='move'?(d.tmPicked?d.tm:((tmode({title:ta.value,note:nt.value})||[])[0]||'')):'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===tg)))}
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
-      {const mv=one&&rows[0]&&rows[0].kind==='move'||(one&&d.kindPicked&&d.kind==='move');root.querySelector('#a-tmf').hidden=!mv;
-       if(mv&&!d.tmPicked){const g=(tmode({title:ta.value,note:nt.value})||[])[0]||'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)))}}
+      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
       root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
       ok.disabled=!rows.length;ok.textContent=d.day===0?(rows.length>1?'加入 '+rows.length+' 個到口袋':'加入口袋'):(rows.length>1?'加入 '+rows.length+' 個行程':'加入行程')};
-    const bindSlot=()=>bindSeg(root,'seg-aslot',v=>{d.slot=v||null;upd()});
+    const bindSlot=()=>{const g=root.querySelector('#seg-aslot');if(!g)return;g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+      d.slot=d.slot===b.dataset.v?null:b.dataset.v;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===d.slot)));upd()})};
     ta.addEventListener('input',()=>{grow();upd()});tm.addEventListener('input',upd);en.addEventListener('input',upd);nt.addEventListener('input',upd);
     ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();ok.click()}});
     bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot();root.querySelector('#a-timef').hidden=d.day===0;
         if(d.day===0&&d.kind&&!PLACE_KINDS.includes(d.kind)){d.kind='';d.kindPicked=false}root.querySelector('#a-kind').innerHTML=kindChips();bindKind()}upd()});
-    const bindKind=()=>bindSeg(root,'seg-akind',v=>{d.kind=v;d.kindPicked=true;upd()});bindKind();bindSeg(root,'seg-atm',v=>{d.tm=v;d.tmPicked=true});bindSlot();
+    const bindKind=()=>bindSeg(root,'seg-akind',v=>{d.kind=v;d.kindPicked=true;d.tmPicked=false;upd()});bindKind();bindSeg(root,'seg-atm',v=>{d.tm=v;d.tmPicked=true;upd()});bindSeg(root,'seg-alg',v=>{d.leg=v});bindSlot();
     bindPhotos(root,()=>d.photos,ids=>{d.photos=ids});
     ok.onclick=()=>{if(!rows.length)return;if(tm.value.trim()&&!timeOk()){toast('時間請寫成 15:00 這樣');tm.focus();return}
       if(en.value.trim()&&tmin(normT(en.value))==null){toast('時間請寫成 15:00 這樣');en.focus();return}
       if(tm.value.trim()&&en.value.trim()&&tmin(normT(en.value))<=tmin(normT(tm.value))){toast('結束時間要比開始晚');en.focus();return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
       const pics=rows.length===1?d.photos.slice():[],endsNow=ends.slice();closeSheet();const ids=addItems(rows);
-      if(ids&&ids.length===1&&d.tmPicked&&d.tm){const cur=S.items.get(ids[0]);if(cur&&cur.kind==='move'){S.items.set(ids[0],Object.assign({},cur,{tm:d.tm}));queue('items'+ids[0],()=>ref('items',ids[0]).update({tm:d.tm}))}}
+      if(ids&&ids.length===1){const cur=S.items.get(ids[0]),p={};if(cur&&cur.kind==='move'&&d.tmPicked&&d.tm)p.tm=d.tm;if(cur&&cur.kind!=='move'&&d.leg==='taxi')p.cmMode='taxi';
+        if(cur&&Object.keys(p).length){S.items.set(ids[0],Object.assign({},cur,p));queue('items'+ids[0],()=>ref('items',ids[0]).update(p))}}
       if(ids)ids.forEach((id,i)=>{const e=endsNow[i],cur=S.items.get(id);if(e&&cur&&(!cur.time||tmin(e)>tmin(cur.time))){S.items.set(id,Object.assign({},cur,{end:e}));queue('items'+id,()=>ref('items',id).update({end:e}))}});render();
       if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}};
     setTimeout(()=>ta.focus(),50)})}
@@ -2157,7 +2165,9 @@ function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.da
   return its.slice(i+1,j).some(x=>x.kind==='move')?null:a}
 function leg(b){const a=legPrev(b);if(!a||b.cmFrom!==a.id||(b.cmK&&b.cmK!==legKey(a,b)))return a?{a,mode:b.cmMode||'transit',min:null}:null;
   const mode=b.cmMode||'transit',ai=mode==='taxi'?b.cmX:b.cmT;return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
+const HOTEL_STOP=()=>HOTEL()?{id:'hotel',title:'飯店',area:'',q:HOTEL(),kind:'stay'}:null;
 function buildEst(){EST={};PREV={};EARLY={};for(const k in NEXT)PREV[NEXT[k].id]=S.items.get(k);
+  const H=HOTEL_STOP();if(H)for(let n=2;n<=NDAYS;n++){const f=dayItems(n).find(isStop);if(f&&!PREV[f.id])PREV[f.id]=H}
   for(let n=1;n<=NDAYS;n++){let cur=null,last=null;
     /* cur = when you're free again (the last end time); anything without an end makes it unknown */
     for(const it of dayItems(n)){
@@ -2191,7 +2201,9 @@ async function findCommutes(){
     render()}}
   finally{CM_BUSY=false}}
 /* edit sheet: "從「上一站」過來" — 🚃／🚕 and minutes (AI's number as a hint, yours wins; empty = back to AI) */
-function legField(it){const a=legPrev(it);if(!a)return '';const l=leg(it)||{mode:'transit',min:null},mode=it.cmMode||'transit';
+function legField(it){const a=legPrev(it);if(!a){if(!(it.day>0)||!isStop(it))return '';const its=dayItems(it.day),j=its.findIndex(x=>x.id===it.id),mv=[];
+    for(let i=j-1;i>=0&&!isStop(its[i]);i--)if(its[i].kind==='move')mv.unshift(its[i]);if(!mv.length)return '';
+    return '<div class="fld"><span class="lbl">怎麼過去</span><p class="hint2 legnote">交通已經排在 '+mv.map(m=>'<button type="button" class="linkbtn" data-open-item="'+esc(m.id)+'">「'+esc(m.title.slice(0,18))+'」</button>').join('、')+'，要改搭什麼，點它就能改。</p></div>'}const l=leg(it)||{mode:'transit',min:null},mode=it.cmMode||'transit';
   const aiT=it.cmFrom===a.id?it.cmT:null,aiX=it.cmFrom===a.id?it.cmX:null,man=it.cmFrom===a.id&&it.cmMan!=null?it.cmMan:'';
   return '<div class="fld legf" data-ait="'+(aiT!=null?aiT:'')+'" data-aix="'+(aiX!=null?aiX:'')+'" data-from="'+esc(a.id)+'"><span class="lbl">從「'+esc(a.title.slice(0,16))+'」過來</span>'+
     '<div class="seg" id="seg-leg"><button type="button" data-v="transit" aria-pressed="'+(mode!=='taxi')+'">🚃 大眾運輸</button><button type="button" data-v="taxi" aria-pressed="'+(mode==='taxi')+'">🚕 計程車</button></div>'+
@@ -2224,6 +2236,9 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 /* the date strip gets its shadow only while it is stuck to the top */
 (function(){const upd=()=>{const b=document.querySelector('.bar-wrap');if(!b)return;document.body.classList.toggle('bar-stuck',b.getBoundingClientRect().top<=1&&scrollY>0)};addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);setTimeout(upd,0)})();
 
+/* "交通已經排在「…」" in an edit sheet opens that transport row */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-open-item]');if(!b)return;e.preventDefault();e.stopPropagation();const id=b.dataset.openItem;closeSheet();setTimeout(()=>openEdit(id),250)},true);
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2251,7 +2266,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.71';
+window.__BUILD='1.72';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
