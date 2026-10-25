@@ -2121,7 +2121,7 @@ try{DUPS=(JSON.parse(localStorage.getItem(T.id+'-dups')||'{}').map)||{}}catch(e)
 async function findDups(){
   if(DUP_BUSY||!S.sample||!canWrite())return;
   const rows=[...S.lists.values()].filter(r=>['todo','book','ticket','buy'].includes(r.type)&&!r.done&&r.title).sort((a,b)=>a.id.localeCompare(b.id));
-  const sig=rows.map(r=>r.id+':'+r.title).join('|');let prev='';try{prev=JSON.parse(localStorage.getItem(T.id+'-dups')||'{}').sig||''}catch(e){}
+  const sig=rows.map(r=>r.id+':'+(r.day||0)+':'+r.title).join('|');let prev='';try{prev=JSON.parse(localStorage.getItem(T.id+'-dups')||'{}').sig||''}catch(e){}
   if(sig===prev)return;
   if(rows.length<2){DUPS={};try{localStorage.setItem(T.id+'-dups',JSON.stringify({sig,map:DUPS}))}catch(e){}return}
   DUP_BUSY=true;
@@ -2130,7 +2130,7 @@ async function findDups(){
       part.map((r,k)=>(k+1)+'. '+r.title.slice(0,40)+'（'+(LT_L[r.type]||'')+'）').join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){return}
     const map={};if(Array.isArray(out))out.forEach(g=>{if(!Array.isArray(g))return;const ids=g.map(x=>part[+x-1]).filter(Boolean);
-      if(ids.length<2)return;ids.forEach(a=>{map[a.id]=ids.filter(b=>b!==a).map(b=>b.title).join('、')})});
+      if(ids.length<2)return;ids.forEach(a=>{const o=ids.filter(b=>b!==a&&(b.day||0)===(a.day||0));if(o.length)map[a.id]=o.map(b=>b.title).join('、')})});
     DUPS=map;try{localStorage.setItem(T.id+'-dups',JSON.stringify({sig,map}))}catch(e){}render()}
   finally{DUP_BUSY=false}}
 function dupHTML(r){return DUPS[r.id]&&!r.done?'<span class="ldup">可能和「'+esc(DUPS[r.id])+'」重複</span>':''}
@@ -2301,7 +2301,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.76';
+window.__BUILD='1.77';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
