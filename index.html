@@ -2048,7 +2048,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)));
        const tg=g==='move'?(d.tmPicked?d.tm:((tmode({title:ta.value,note:nt.value})||[])[0]||'')):'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===tg)))}
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
-      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'}
+      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'||g==='todo'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
       root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
@@ -2265,7 +2265,7 @@ function openLeg(bid){const b=S.items.get(bid);if(!b)return;const a=legPrev(b);i
     root.querySelector('#leg-save').onclick=()=>{const cur=S.items.get(bid)||b,p={};legPatch(root,st,cur,p);closeSheet();if(Object.keys(p).length)patch('items',bid,p,'已儲存交通')}})}
 
 /* edit sheet of a place / food / …: 交通方式 is always there; 要多久 only when there is a stop before it */
-function legFieldAll(it){if(it.kind==='move'||!(it.day>0))return '';if(legPrev(it))return legField(it);const mode=LEG_MODE(it);
+function legFieldAll(it){if(it.kind==='move'||it.kind==='todo'||!(it.day>0))return '';if(legPrev(it))return legField(it);const mode=LEG_MODE(it);
   return '<div class="fld legf" data-from="" data-ai="{}"><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-leg">'+
     TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'}
 
@@ -2296,7 +2296,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.74';
+window.__BUILD='1.75';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
