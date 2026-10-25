@@ -1027,6 +1027,8 @@ html,body{touch-action:manipulation}
 .legmin span{color:var(--muted);font-size:14px}
 .itime small{font-weight:400;color:var(--muted);font-size:12px}
 
+.tbad{font-size:12px;color:var(--warn);white-space:nowrap}
+
 </style>
 
 <div id="app" hidden>
@@ -2117,20 +2119,22 @@ function normT(x){x=String(x||'').trim().replace('：',':');if(!x)return '';let 
 const tmin=t=>{const m=/^(\d{2}):(\d{2})$/.exec(t||'');return m?+m[1]*60+ +m[2]:null};
 const tfmt=n=>{n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 const fmtDur=m=>m<60?m+' 分':Math.floor(m/60)+' 小時'+(m%60?' '+m%60+' 分':'');
-let EST={},PREV={};
+let EST={},PREV={},EARLY={};
 /* the stop before b, unless a transport row sits between them (that row is the trip) */
 function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.day),i=its.findIndex(x=>x.id===a.id),j=its.findIndex(x=>x.id===b.id);
   return its.slice(i+1,j).some(x=>x.kind==='move')?null:a}
 function leg(b){const a=legPrev(b);if(!a||b.cmFrom!==a.id)return a?{a,mode:b.cmMode||'transit',min:null}:null;
   const mode=b.cmMode||'transit',ai=mode==='taxi'?b.cmX:b.cmT;return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
-function buildEst(){EST={};PREV={};for(const k in NEXT)PREV[NEXT[k].id]=S.items.get(k);
-  for(let n=1;n<=NDAYS;n++){let cur=null;
+function buildEst(){EST={};PREV={};EARLY={};for(const k in NEXT)PREV[NEXT[k].id]=S.items.get(k);
+  for(let n=1;n<=NDAYS;n++){let cur=null,last=null;
     /* cur = when you're free again (the last end time); anything without an end makes it unknown */
     for(const it of dayItems(n)){
       if(!it.time&&cur!=null){const l=leg(it);EST[it.id]=cur+(l&&l.min!=null?l.min:0)}
-      const e=tmin(it.end);cur=e!=null?e:null}}}
+      const st=it.time?tmin(it.time):EST[it.id]!=null?EST[it.id]:null,e=tmin(it.end);
+      if(it.time&&st!=null&&last!=null&&st<last)EARLY[it.id]=1;
+      const pt=e!=null?e:st;if(pt!=null&&(last==null||pt>last))last=pt;cur=e!=null?e:null}}}
 function timeHTML(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=null&&e>s?'<small>・'+fmtDur(e-s)+'</small>':'';
-  if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+stay+'</span>';
+  if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+stay+'</span>'+(EARLY[it.id]?'<span class="tbad" title="這個時間比排在前面的行程早，可以拖曳調整順序">⚠ 比上一站早</span>':'');
   if(EST[it.id]!=null){const es=EST[it.id];return '<span class="itime est" title="依上一站結束時間＋交通推算">約 '+tfmt(es)+(it.end?'–'+esc(it.end):'')+(e!=null&&e>es?'<small>・'+fmtDur(e-es)+'</small>':'')+'</span>'}
   return it.end?'<span class="itime">～'+esc(it.end)+'</span>':''}
 const drive=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
@@ -2195,7 +2199,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.68';
+window.__BUILD='1.69';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
