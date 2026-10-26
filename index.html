@@ -2403,8 +2403,8 @@ async function findMoves(){if(MV_BUSY||!S.sample||!canWrite())return;
   const todo=[...S.items.values()].filter(it=>it.kind==='move'&&it.day>0&&it.title&&moveMin(it).min==null&&!MV_TRIED.has(it.id+'>'+moveKey(it))).slice(0,20);
   if(!todo.length)return;MV_BUSY=true;
   try{todo.forEach(it=>MV_TRIED.add(it.id+'>'+moveKey(it)));
-    const prompt='下面是'+(T.dest||'日本')+'旅行裡的交通段落，每一行是：交通內容（前一站 → 下一站）。請估算每一段交通本身大約要花幾分鐘：只算坐車／走路的時間，不要算等待、排隊、提早到機場或候機的時間；飛機算起飛到降落。只回覆 JSON 數字陣列，順序和編號一一對應，例如 [40,15]。\n'+
-      todo.map((it,k)=>{const n=moveNb(it);return (k+1)+'. '+it.title.slice(0,40)+'（'+(n.a?n.a.title.slice(0,20):'出發')+' → '+(n.b?n.b.title.slice(0,20):'結束')+'）'}).join('\n');
+    const prompt='下面是'+(T.dest||'日本')+'旅行裡的交通段落。每一行是交通內容，括號裡是行程上它的前一項和後一項（只是讓你知道大概從哪裡到哪裡，後一項的時間跟這段交通無關）。請估算每一段交通本身大約要花幾分鐘：只算坐車／走路的時間，不要算等待、排隊、提早到機場或候機的時間；飛機算起飛到降落。只回覆 JSON 數字陣列，順序和編號一一對應，例如 [40,15]。\n'+
+      todo.map((it,k)=>{const n=moveNb(it);return (k+1)+'. '+it.title.slice(0,40)+'（前一項：'+(n.a?n.a.title.slice(0,24):'無')+'；後一項：'+(n.b?n.b.title.slice(0,24):'無')+'）'}).join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){return}
     if(!Array.isArray(out)||out.length!==todo.length)return;
     todo.forEach((it,k)=>{const v=Math.round(+out[k]);if(!mvOk(it,v))return;const cur=S.items.get(it.id);if(!cur)return;
@@ -2439,7 +2439,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.93';
+window.__BUILD='1.94';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
