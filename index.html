@@ -1481,7 +1481,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
-    '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
+    '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
@@ -1499,8 +1499,8 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
     const rebindSlot=()=>bindSeg(root,'seg-slot',v=>st.slot=v);
     bindSeg(root,'seg-day',v=>{const n=+v;if(n===0)st.slot='pool';else if(st.slot==='pool')st.slot=st.kind==='food'?'lunch':'afternoon';st.day=n;
-      root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n);rebindSlot()});
-    rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>st.kind=v);bindSeg(root,'seg-must',v=>st.must=v==='1');
+      root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n,st.kind);rebindSlot()});
+    rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>{st.kind=v;if(st.day>0){st.slot=slotFit(st.slot,v);root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,st.day,v);rebindSlot()}});bindSeg(root,'seg-must',v=>st.must=v==='1');
     root.querySelector('#e-cancel').onclick=closeSheet;
     const sf=root.querySelector('#e-staff');if(sf)sf.onclick=()=>showStaff(S.items.get(id)||it);
     const ex=root.querySelector('#e-exp');if(ex)ex.onclick=()=>{if(!canWrite())return;closeSheet();openExp(null,{shop:it.title,day:it.day,cat:KIND2CAT[it.kind]||'other',itemId:it.id})};
@@ -2021,7 +2021,7 @@ window.__fillPlaces=fillPlaces;
 function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&def.slot!=='pool'?def.slot:null,kind:'',photos:[]};S.readSheet=false;
   const kindList=()=>d.day===0?KINDS.filter(k=>PLACE_KINDS.includes(k[0])):KINDS;
   const kindChips=()=>'<div class="seg" id="seg-akind">'+kindList().map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="'+(d.kind===k[0])+'">'+k[1]+'</button>').join('')+'</div>';
-  const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
+  const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+slotKeys(d.sfam||'',d.slot).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵、小町通商店街"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
@@ -2044,6 +2044,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       ends=[];rows=lines.map(l=>{const m=l.match(RANGE);const r=parseLine(t+(m?l.replace(RANGE,'$1'):l),d);if(r)ends.push(m?normT(m[2]):'');return r}).filter(Boolean);
       if(one&&rows[0]&&/^\d{2}:\d{2}$/.test(normT(en.value)))ends[0]=normT(en.value);if(d.slot)rows.forEach(r=>{if(r.day!==0)r.slot=d.slot});
       if(d.day===0)rows.forEach(r=>{if(!PLACE_KINDS.includes(r.kind))r.kind='spot'});
+      {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');if(d.day>0&&(g||'')!==(d.sfam||'')){d.sfam=g||'';if(g&&d.slot){d.slot=slotFit(d.slot,g);rows.forEach(r=>{if(r.day!==0)r.slot=d.slot})}root.querySelector('#a-slot').innerHTML=slotChips();bindSlot()}}
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)));
        const tg=g==='move'?(d.tmPicked?d.tm:((tmode({title:ta.value,note:nt.value})||[])[0]||'')):'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===tg)))}
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
@@ -2282,6 +2283,13 @@ function listWhere(type,day){const l=(LTYPES.find(x=>x.k===type)||{l:'清單'}).
   return type==='todo'?'行前待辦':l}
 function dateLbl(type){return type==='todo'?'哪一天要做<span class="opt">不選＝出發前要做的</span>':type==='buy'?'哪一天買<span class="opt">不選＝出發前要買的</span>':'使用日期<span class="opt">選填</span>'}
 
+/* 時段 follows 類型: 美食 → 早餐／午餐／晚餐; other types → 上午／下午／晚上; type not known yet → all six */
+const SLOT_MEAL={breakfast:'morning',lunch:'afternoon',dinner:'evening'},SLOT_PART={morning:'breakfast',afternoon:'lunch',evening:'dinner'};
+function slotKeys(kind,sel){const meal=kind==='food',all=!kind;return SLOTS.filter(s=>all||(meal?s.k in SLOT_MEAL:s.k in SLOT_PART)||s.k===sel)}
+function slotFit(slot,kind){if(!slot||slot==='pool'||!kind)return slot;if(kind==='food')return SLOT_PART[slot]||slot;return SLOT_MEAL[slot]||slot}
+function slotSeg(sel,day,kind){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
+  return '<div class="seg" id="seg-slot">'+slotKeys(kind,sel).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(sel===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2309,7 +2317,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.87';
+window.__BUILD='1.88';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
