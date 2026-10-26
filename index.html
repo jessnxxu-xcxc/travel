@@ -1477,20 +1477,20 @@ function bindPhotos(root,getIds,setIds){const box=root.querySelector('#photos');
 function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrite;S.readSheet=ro;
   const st={day:it.day,slot:it.slot,kind:it.kind||'spot',photos:(it.photos||[]).slice(),must:!!it.must};
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
-    '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':modeField(it)+legFieldAll(it))+
+    '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
-    '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day)+'</div></div>'+
     '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    (ro?'':modeField(it)+legFieldAll(it))+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
     (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
+    '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<details class="more allopen" open><summary>更多資訊</summary><div>'+
     '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
-    '<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>'+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
     '<div class="fld"><label for="e-map">Google 地圖連結</label><input class="inp" id="e-map" inputmode="url" placeholder="貼上地圖分享連結" value="'+esc(it.map)+'"></div>'+
     '</div></details>'+
@@ -2024,13 +2024,13 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
   const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+SLOTS.map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵、小町通商店街"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
+    '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
-      '<div class="fld"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
+      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(k==='train')+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
-      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
@@ -2049,10 +2049,10 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'||g==='todo'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
-      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-multi').hidden=one;
+      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
-      const isTodo=d.day>0&&(d.kindPicked?d.kind==='todo':rows.length>0&&rows.every(r=>r.kind==='todo'));d.isTodo=isTodo;
+      const isTodo=d.day>0&&(d.kindPicked&&rows.length<=1?d.kind==='todo':rows.length>0&&rows.every(r=>r.kind==='todo'));d.isTodo=isTodo;
       root.querySelector('#a-slot').hidden=isTodo;root.querySelector('#a-timef').hidden=isTodo||d.day===0;
       ok.disabled=!rows.length;ok.textContent=isTodo?(rows.length>1?'加入 '+rows.length+' 個待辦':'加入待辦'):d.day===0?(rows.length>1?'加入 '+rows.length+' 個到口袋':'加入口袋'):(rows.length>1?'加入 '+rows.length+' 個行程':'加入行程')};
     const bindSlot=()=>{const g=root.querySelector('#seg-aslot');if(!g)return;g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -2309,7 +2309,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.86';
+window.__BUILD='1.87';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
