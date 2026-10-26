@@ -1101,6 +1101,11 @@ body.pass-open .pass-mini{margin-bottom:12px}
 .pass-mini{max-width:100%;min-width:0;overflow:hidden}
 #trip-hero{min-width:0;max-width:100%}
 .pass-mini .pm-a{flex:none}
+/* 出發前 tabs: every tab the same width (4 per row) */
+.pretabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pretabs button{flex:none;width:auto;min-width:0;justify-content:center;padding:0 4px}
+/* 交通 between cards: plain text line, no frame (still a 40px-tall tap area) */
+.legc .gonext{border:0!important;background:none!important;padding:0 8px 0 4px!important;color:var(--ink)!important}
 
 </style>
 
@@ -2386,7 +2391,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.89';
+window.__BUILD='1.90';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
