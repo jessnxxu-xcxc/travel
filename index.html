@@ -765,7 +765,6 @@ html.pwa #gate{padding-top:56px}
 .item.is-stay .imeta .kind{display:inline-flex!important}
 .item.is-stay .ititle{font-size:18px}
 .item.no-loc{border:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
-.item.no-loc .imeta .kind{display:none}
 .item.no-loc .ititle{font-size:15px;font-weight:400}
 /* list-section add buttons (今日要辦／今日花費): just a ＋ like the time slots */
 .dsec-h .slot-add{width:32px!important;height:32px!important;min-width:32px;padding:0!important;border:0!important;background:transparent!important;font-size:0!important;margin-left:auto;display:grid;place-items:center}
@@ -1904,10 +1903,10 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
     patch('lists',me.id,{order})};
   addEventListener('pointermove',move,{passive:false});addEventListener('pointerup',up);addEventListener('pointercancel',up)},true);
 /* 出發前 tabs: one list at a time (remembered per device) */
-const PRE_TABS=[['todo','待辦'],['book','訂位'],['ticket','票券'],['pack','行李'],['buy','購物'],['pool','口袋'],['money','花費']];
+const PRE_TABS=[['todo','待辦'],['pack','行李'],['ticket','票券'],['book','訂位'],['buy','購物'],['pool','口袋'],['money','花費']];
 function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_TABS.some(t=>t[0]===v)?v:'todo'}
 function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeout(fabSync,0);
-  const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&(k!=='pack'||!(r.day>0))&&!r.done).length;
+  const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&!(r.day>0)&&!r.done).length;
   return '<div class="pretabs" role="tablist">'+PRE_TABS.map(([k,l])=>{const n=left(k);return '<button type="button" role="tab" data-pt="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>'}).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.pretabs [data-pt]');if(!b)return;e.preventDefault();e.stopPropagation();
   const v=b.dataset.pt;try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}document.body.dataset.pt=v;
@@ -2273,6 +2272,8 @@ function openLeg(bid){const b=S.items.get(bid);if(!b)return;const a=legPrev(b);i
 function legFieldAll(it){if(it.kind==='move'||it.kind==='todo'||!(it.day>0))return '';if(legPrev(it))return legField(it);const mode=LEG_MODE(it);
   return '<div class="fld legf" data-from="" data-ai="{}"><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-leg">'+
     TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'}
+/* 待辦 lives in the to-do lists, not on the timeline: the edit sheet of a place doesn't offer it as a type */
+function kindSeg(sel){return '<div class="seg" id="seg-kind">'+KINDS.filter(([k])=>k!=='todo'||sel==='todo').map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(sel===k)+'">'+l+'</button>').join('')+'</div>'}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -2301,7 +2302,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.78';
+window.__BUILD='1.79';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
