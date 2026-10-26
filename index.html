@@ -1065,6 +1065,43 @@ body.bar-stuck .bar-wrap{box-shadow:0 8px 14px -10px rgba(62,58,57,.45)}
 .col:not([data-col="0"]) .dsec:has([data-todo-day]):not(:has(.crow)),
 .col:not([data-col="0"]) .dsec:has([data-exp-day]):not(:has(.erow)){display:none!important}
 
+/* UX round */
+/* ① ② trip days: the picture goes, the ticket folds into one line (tap to open it) */
+body.trip-mid #trip-hero .hero-art{display:none}
+body.trip-mid:not(.pass-open) #trip-hero .pass{display:none}
+.pass-mini{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:8px 16px;margin:8px 0 4px;border:var(--bw,2px) solid var(--ink);border-radius:16px;background:#fff;cursor:pointer;font-size:14px;white-space:nowrap;box-shadow:0 4px 0 var(--ink)}
+.pass-mini .pm-l{font-weight:700}
+.pass-mini b{font-weight:700}
+.pass-mini .pm-r{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.pass-mini .pm-a{color:var(--muted);font-size:12px}
+body.pass-open .pass-mini{margin-bottom:12px}
+/* ③ the title is plain text now; the map has its own pill */
+.item .ititle{text-decoration:none!important}
+.imap{display:inline-flex;align-items:center;gap:2px;min-height:28px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink)!important;font-size:12px;line-height:1;text-decoration:none!important;white-space:nowrap}
+.imap svg{width:14px;height:14px}
+/* ④ folded 更多 in the add form */
+.sheet details.amore{margin:4px 0 0}
+/* ⑤ 今日要辦 sits above the timeline */
+.col .dsec-todo{margin:0 0 16px}
+/* ⑥ one ＋: the $ button is gone; the chooser */
+.fab-exp{display:none!important}
+.pickadd{display:grid;gap:12px;margin:8px 0 4px}
+.pickadd .pk{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:14px;min-height:72px;padding:12px 16px;border:2px solid var(--ink);border-radius:16px;background:#fff;box-shadow:0 4px 0 var(--ink)}
+.pickadd .pk:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.pickadd .pk-i{font-size:24px}
+.pickadd .pk b{display:block;font-size:16px}
+.pickadd .pk small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+/* ⑦ 出發前 tabs in two rows, nothing hidden off screen */
+.pretabs{flex-wrap:wrap;overflow:visible}
+.pretabs button{flex:1 1 calc(25% - 6px);justify-content:center;padding:0 8px}
+/* ⑧ 交通 between cards */
+.legc{display:flex;align-items:center;min-height:40px;margin:-4px 0;padding-left:16px}
+.legc .gonext{display:inline-flex!important;align-items:center;gap:6px;min-height:40px;margin:0!important;padding:0 12px!important;border:2px dashed rgba(62,58,57,.35)!important;border-radius:999px!important;background:var(--bg,#FFFBF2)!important;color:var(--ink)!important;font-size:14px!important;text-decoration:none!important}
+.legc .gonext .leglead{color:var(--muted)}
+.pass-mini{max-width:100%;min-width:0;overflow:hidden}
+#trip-hero{min-width:0;max-width:100%}
+.pass-mini .pm-a{flex:none}
+
 </style>
 
 <div id="app" hidden>
@@ -1214,19 +1251,19 @@ function renderStrip(){const tn=todayN();let h='';
 function thumbs(ids){if(!ids||!ids.length)return '';return '<span class="ithumbs">'+ids.slice(0,3).map(id=>'<img src="'+esc(photoSrc(id))+'" alt="" loading="lazy">').join('')+(ids.length>3?'<span>+'+(ids.length-3)+'</span>':'')+'</span>'}
 function itemHTML(it){
   const showMap=PLACE_KINDS.includes(it.kind)&&!!(it.area||it.q)||!!safeUrl(it.map);
-  return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+(it.done?' done':'')+'" data-id="'+esc(it.id)+'">'+
+  return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+'" data-id="'+esc(it.id)+'">'+
    '<button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'"><svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></button>'+
    '<div class="ibody" role="button" tabindex="0"><span class="imeta">'+(it.must?'<span class="must">★ 必去</span>':'')+timeHTML(it)+
-   kindTag(it)+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+''+'</span>'+
-   (showMap?'<a class="ititle tlink" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" aria-label="'+esc(it.title)+'（開地圖）">'+esc(it.title)+'</a>':'<span class="ititle">'+esc(it.title)+'</span>')+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+closedWarn(it)+(it.note&&!it.desc?'<span class="inote">'+esc(it.note)+'</span>':'')+thumbs(it.photos)+tdur(it)+goNext(it)+'</div>'+
+   kindTag(it)+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+(showMap?'<a class="imap" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" aria-label="'+esc(it.title)+' 的地圖">'+PIN+'地圖</a>':'')+'</span>'+
+   '<span class="ititle">'+esc(it.title)+'</span>'+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+closedWarn(it)+(it.note&&!it.desc?'<span class="inote">'+esc(it.note)+'</span>':'')+thumbs(it.photos)+tdur(it)+goNext(it)+'</div>'+
    '<span class="iacts">'+
-   '<button type="button" class="ibtn chk" aria-label="標記完成" aria-pressed="'+(it.done?'true':'false')+'">✓</button>'+picHTML(it)+'</span></div>'}
+   picHTML(it)+'</span></div>'}
 function slotHTML(day,s,list,cur){const em=!(list&&list.length);
   return '<section class="slot'+(s.k==='pool'?' pool-slot':'')+(em?' is-empty':'')+(cur?' cur':'')+'">'+(s.k==='pool'?'':'<div class="slot-h">'+sicon(s.k)+'<b>'+s.l+'</b><button type="button" class="slot-add" data-day="'+day+'" data-slot="'+s.k+'" aria-label="新增到'+s.l+'">＋</button></div>')+
-   '<div class="list" data-day="'+day+'" data-slot="'+s.k+'">'+(list&&list.length?list.map(itemHTML).join(''):'<div class="empty">'+(s.k==='pool'?'還沒有備選地點':(S.canWrite?'拖到這裡或按＋':'—'))+'</div>')+'</div></section>'}
+   '<div class="list" data-day="'+day+'" data-slot="'+s.k+'">'+(list&&list.length?list.map(itemLegs).join(''):'<div class="empty">'+(s.k==='pool'?'還沒有備選地點':(S.canWrite?'拖到這裡或按＋':'—'))+'</div>')+'</div></section>'}
 function curSlot(){const t=now(),m=t.getHours()*60+t.getMinutes();const i=SLOTS.findIndex(s=>m<s.end);return i<0?SLOTS.length-1:i}
 function daySum(n){const it=dayItems(n),pl=it.filter(i=>PLACE_KINDS.includes(i.kind)),food=it.filter(i=>i.kind==='food').length,dn=it.filter(i=>i.done).length;
-  if(!it.length)return '';return '<span class="slot-sum">'+pl.length+' 個地點'+(food?'・'+food+' 家吃的':'')+(dn?'・已完成 '+dn+'/'+it.length:'')+'</span>'}
+  if(!it.length)return '';return '<span class="slot-sum">'+pl.length+' 個地點'+(food?'・'+food+' 家吃的':'')+'</span>'}
 function routeUrl(n){const ps=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).map(placeQuery).filter(Boolean);
   const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,10);
   if(!u.length)return '';if(u.length===1)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(u[0]);
@@ -1240,7 +1277,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
       '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
-      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
+      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+daySections(n,'todo')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n,'money')+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
   if(keep){const k=document.getElementById(keep);if(k){k.value=val;k.focus({preventScroll:true});try{k.setSelectionRange(ss,ss)}catch(e){}}}
@@ -1255,13 +1292,13 @@ function listBlock(type,title,rows,day){if(day===0&&(type==='todo'||type==='buy'
   return '<section class="dsec" data-sec="'+type+'">'+'<div class="dsec-h">'+dicon(type==='pack'?'pack':'todo')+'<b>'+title+'</b>'+(rows.length?'<small>'+done+' / '+rows.length+' 完成</small>':'')+'</div>'+
     (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'<p class="pool-help">'+esc(t.empty)+'。按右下角「＋」新增。</p>')+
     (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增：'+esc(t.ph.replace(/^例：/,''))+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section>'}
-function daySections(n){const rate=+S.meta.rate||0;
+function daySections(n,part){const rate=+S.meta.rate||0;
   const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
   const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
-  return '<section class="dsec">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
-      (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>'+
-    '<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
-      (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>'}
+  return (part==='money'?'':'<section class="dsec dsec-todo">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
+      (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>')+
+    (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
+      (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>')}
 function renderMbar(){const m=money(),el=$('#mbar');const tx=m.tx[0];
   el.innerHTML='<span>旅費 <b>'+ntd(m.total*(+S.meta.rate||0))+'</b>'+(m.total?(+S.meta.budget?' <small>剩 '+ntd(Math.max(0,+S.meta.budget-m.total)*(+S.meta.rate||0))+'</small>':''):' <small>還沒記帳</small>')+'</span>'}
 function openMoney(){S.readSheet=false;
@@ -1286,14 +1323,14 @@ function renderNow(){const box=$('#now'),n=todayN();
   if(n<1||n>NDAYS||S.active!==n){box.hidden=true;return}
   const t=now(),mins=t.getHours()*60+t.getMinutes(),cur=curSlot();
   const toMin=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(s||'');return m?(+m[1])*60+(+m[2]):null};
-  const list=dayItems(n).filter(i=>!i.done);
+  const list=dayItems(n);
   const ups=list.filter(i=>{const tm=toMin(i.time);return tm!=null?tm>=mins-60:SLOT_I[i.slot]>=cur});
   const nx=ups[0],after=ups[1];
   let h='<div class="nowcard"><div class="nl"><i></i>現在・'+SLOTS[cur].l+'時段</div>';
   if(!nx)h+='<div class="nowmain"><div class="nt"><b>今天的行程都完成了</b><span>好好休息，明天見</span></div></div>';
   else h+='<div class="nowmain" data-id="'+esc(nx.id)+'"><div class="nt"><span>下一站'+(nx.time?'・'+esc(nx.time):'・'+SLOT_L[nx.slot])+(nx.area?'・'+esc(nx.area):'')+'</span><b>'+esc(nx.title)+'</b>'+(nx.desc?'<span class="nd">'+esc(nx.desc)+'</span>':'')+'</div>'+
     (PLACE_KINDS.includes(nx.kind)||safeUrl(nx.map)?'<a class="ibtn map" href="'+esc(mapUrl(nx))+'" target="_blank" rel="noopener">'+PIN+'導航</a>':'')+
-    '<button type="button" class="ibtn chk now-done" data-id="'+esc(nx.id)+'" aria-label="完成，前往下一站">✓</button></div>'+
+    '</div>'+
     (after?'<div class="nownext">接著：<b>'+esc(after.title)+'</b>'+(after.area?'・'+esc(after.area):'')+'</div>':'');
   box.innerHTML=h+'</div>';box.hidden=false}
 
@@ -1478,21 +1515,21 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
   const st={day:it.day,slot:it.slot,kind:it.kind||'spot',photos:(it.photos||[]).slice(),must:!!it.must};
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
     '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
-    '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
-    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
-    '<div class="row2 trow"><div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    '<div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
-    '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div></div>'+
+    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
+    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、備註、地區</summary><div>'+
+    '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
-    (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
-    '<details class="more allopen" open><summary>更多資訊</summary><div>'+
     '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
+    '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div>'+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
     '<div class="fld"><label for="e-map">Google 地圖連結</label><input class="inp" id="e-map" inputmode="url" placeholder="貼上地圖分享連結" value="'+esc(it.map)+'"></div>'+
+    (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
     '</div></details>'+
     '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="e-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="e-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="e-save">儲存</button>')+'</div>',
   root=>{
@@ -1743,7 +1780,6 @@ const aico=k=>'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke
 function openActions(id){const it=S.items.get(id);if(!it)return;const place=PLACE_KINDS.includes(it.kind),w=S.canWrite;S.readSheet=!w;
   const b=(k,l,cls)=>'<button type="button" class="abtn'+(cls?' '+cls:'')+'" data-act="'+k+'">'+aico(k)+l+'</button>';
   openSheet('<h2>'+esc(it.title)+'</h2><div class="acts">'+
-    (w?b('done',it.done?'取消完成':'標記完成'):'')+
     (place||safeUrl(it.map)?'<a class="abtn" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" data-act="map">'+aico('map')+'開 Google 地圖</a>':'')+
     (place?b('staff','給店員／司機看'):'')+
     (w&&place?b('exp','在這裡記一筆'):'')+(w&&place&&S.assets?b('cam','加照片'):'')+
@@ -1838,10 +1874,7 @@ const isStop=i=>PLACE_KINDS.includes(i.kind)&&!!(i.area||i.q||safeUrl(i.map))&&!
 const HOTEL=()=>T.hotel?(T.hotel.q||T.hotel.name||''):'';
 const transit=(a,b)=>'https://www.google.com/maps/dir/?api=1&travelmode=transit&origin='+encodeURIComponent(a)+'&destination='+encodeURIComponent(b);
 function buildNext(){NEXT={};FIRST=new Set();for(let n=1;n<=NDAYS;n++){const ps=dayItems(n).filter(isStop);if(ps[0]&&n>1&&HOTEL())FIRST.add(ps[0].id);for(let i=0;i<ps.length-1;i++)NEXT[ps[i].id]=ps[i+1]}}
-function goNext(it){let h='';
-  if(FIRST.has(it.id))h+=legLine(it,'從飯店');
-  h+=nextLink(it);
-  return h?'<span class="gorow">'+h+'</span>':''}
+function goNext(it){return ''}
 /* today's route starts from the hotel (Google Maps can't do transit with several stops, so this one is the overview) */
 function routeUrlH(n){const ps=dayItems(n).filter(isStop).map(placeQuery).filter(Boolean);
   const seen=new Set(),u=ps.filter(p=>!seen.has(p)&&seen.add(p)).slice(0,9);if(!u.length)return '';
@@ -1913,7 +1946,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));fabSync()},true);
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
 const FAB_L={todo:'新增待辦',pack:'新增行李',ticket:'新增票券',book:'新增訂位',buy:'新增購物',money:'記一筆',pool:'新增口袋'};
-function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}expSync()}
+function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}expSync()}
 /* adding to a checklist: the same fields as editing it (name, note, date, photos) — name or a photo is enough (購物 is often just a screenshot).
    opt.day presets the date; opt.pick shows the 待辦／訂位／票券／購物 switch (used by a day's 今日要辦 ＋) */
 const PICK_TYPES=[['todo','待辦'],['book','訂位'],['ticket','票券'],['buy','購物']];
@@ -2031,8 +2064,10 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(k==='train')+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
+      '<details class="more amore" id="a-more"><summary>更多：備註、照片</summary><div>'+
       '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
       (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
+      '</div></details>'+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
     '<div class="preview" id="a-pv"></div>'+
     '<div class="btns"><button type="button" class="btn pri block" id="a-ok" disabled>'+(d.day===0?'加入口袋':'加入行程')+'</button></div>',
@@ -2162,7 +2197,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 function expSync(){let b=document.getElementById('fab-exp');
   if(!b){b=document.createElement('button');b.type='button';b.id='fab-exp';b.className='fab-exp';b.setAttribute('aria-label','記帳');b.title='記帳';b.innerHTML='<span aria-hidden="true">$</span>';document.body.appendChild(b);
     b.addEventListener('click',()=>{if(!canWrite())return;openExp(null,{day:S.active});setTimeout(()=>{const a=document.getElementById('x-amt');if(a)a.focus()},80)})}
-  b.hidden=!(S.active>0&&S.canWrite)}
+  b.hidden=true}
 
 /* no accidental zoom: iPhone ignores maximum-scale, so stop its pinch gesture (photos opened full screen can still be pinched) */
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>{if(!(e.target.closest&&e.target.closest('.lb')))e.preventDefault()},{passive:false}));
@@ -2290,6 +2325,40 @@ function slotFit(slot,kind){if(!slot||slot==='pool'||!kind)return slot;if(kind==
 function slotSeg(sel,day,kind){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
   return '<div class="seg" id="seg-slot">'+slotKeys(kind,sel).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(sel===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
 
+/* ⑧ 交通 sits between two cards on the timeline (its own row, easy to tap), not inside a card */
+const legc=h=>h?'<div class="legc">'+h+'</div>':'';
+function itemLegs(it){return (FIRST.has(it.id)?legc(legLine(it,'從飯店')):'')+itemHTML(it)+legc(nextLink(it))}
+
+/* ⑥ one ＋ on trip days: 新增行程 or 記一筆花費 */
+document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('#fab');if(!f||S.active===0)return;e.preventDefault();e.stopPropagation();if(!canWrite())return;
+  const n=S.active;S.readSheet=false;
+  openSheet('<h2>新增</h2><div class="pickadd">'+
+    '<button type="button" class="pk" id="pk-item"><span class="pk-i">📍</span><span><b>新增行程</b><small>景點、美食、購物、交通、待辦</small></span></button>'+
+    '<button type="button" class="pk" id="pk-exp"><span class="pk-i">💰</span><span><b>記一筆花費</b><small>'+md(dayDate(n))+' 的花費</small></span></button></div>',
+  root=>{root.querySelector('#pk-item').onclick=()=>{closeSheet();openAdd({day:n,slot:null})};
+    root.querySelector('#pk-exp').onclick=()=>{closeSheet();openExp(null,{day:n});setTimeout(()=>{const a=document.getElementById('x-amt');if(a)a.focus()},80)}})},true);
+
+/* ② on trip days (not the day you fly out or home) the boarding pass folds into one line that still shows the flight home */
+function passMini(){const h=document.getElementById('trip-hero');if(!h)return;const n=todayN(),mid=n>=2&&n<=NDAYS-1;
+  document.body.classList.toggle('trip-mid',mid);let b=h.querySelector('.pass-mini');
+  if(!mid){if(b)b.remove();document.body.classList.remove('pass-open');return}
+  if(!b){b=document.createElement('button');b.type='button';b.className='pass-mini';
+    b.addEventListener('click',()=>{document.body.classList.toggle('pass-open');passMini()});h.insertBefore(b,h.querySelector('.pass'))}
+  const k=T.back||{},end=dayDate(NDAYS),open=document.body.classList.contains('pass-open');
+  b.setAttribute('aria-expanded',String(open));
+  b.innerHTML='<span class="pm-l">✈️ 回程</span><b>'+md(end)+'（'+WK[end.getDay()]+'）'+esc(k.dep||'')+'</b><span class="pm-r">'+esc([k.from,k.to].filter(Boolean).join(' → '))+'</span><span class="pm-a">'+(open?'收起':'看機票 ›')+'</span>'}
+{const r0=render;render=function(){r0();passMini()}}
+
+/* ① a new version shows up by itself: checked when the app comes back to the screen; reloads only when nothing is being typed */
+let UPD_T=0;
+async function checkUpdate(){if(Date.now()-UPD_T<60000)return;UPD_T=Date.now();
+  try{const t=await (await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'})).text();const m=t.match(/__BUILD='([\d.]+)'/);
+    if(!m||!window.__BUILD||m[1]===window.__BUILD)return;const k='tn-upd-'+m[1];if(sessionStorage.getItem(k))return;
+    const a=document.activeElement;if(document.querySelector('.sheet')||S.drag||(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName))){UPD_T=0;return}
+    sessionStorage.setItem(k,'1');location.reload()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
+setTimeout(checkUpdate,4000);setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},600000);
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2317,7 +2386,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.88';
+window.__BUILD='1.89';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
