@@ -2385,7 +2385,9 @@ function moveMin(it){if(it.mvMan!=null&&it.mvMan!=='')return {min:+it.mvMan,src:
   const r=[it.note,it.desc].filter(Boolean).join(' ').match(/(\d{1,2}):(\d{2})\s*(?:[–\-~～→]|到)\s*(\d{1,2}):(\d{2})/);
   if(r){let d=(+r[3]*60+ +r[4])-(+r[1]*60+ +r[2]);if(d<0)d+=1440;if(d>0&&d<=720)return {min:d,src:'time'}}
   const md=(tmode(it)||[])[0],b=moveNb(it).b,nt=b?tmin(b.time):null;if(md!=='plane'&&md!=='ship'&&s!=null&&nt!=null&&nt>s&&nt-s<=90)return {min:nt-s,src:'time'};
-  if(it.mvAi!=null&&it.mvK===moveKey(it))return {min:+it.mvAi,src:'ai'};return {min:null,src:''}}
+  if(it.mvAi!=null&&it.mvK===moveKey(it)&&mvOk(it,+it.mvAi))return {min:+it.mvAi,src:'ai'};return {min:null,src:''}}
+/* a ground trip over 2½ hours is a bad guess (it counted the wait), so it is asked again */
+const mvOk=(it,v)=>{const md=(tmode(it)||[])[0];return v>0&&v<=(md==='plane'||md==='ship'?900:150)};
 const MV_GRIP='<svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg>';
 function moveRowHTML(it){const m=tmode(it),d=moveMin(it);
   return '<div class="item is-move mvrow" data-id="'+esc(it.id)+'"><button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'">'+MV_GRIP+'</button>'+
@@ -2401,11 +2403,11 @@ async function findMoves(){if(MV_BUSY||!S.sample||!canWrite())return;
   const todo=[...S.items.values()].filter(it=>it.kind==='move'&&it.day>0&&it.title&&moveMin(it).min==null&&!MV_TRIED.has(it.id+'>'+moveKey(it))).slice(0,20);
   if(!todo.length)return;MV_BUSY=true;
   try{todo.forEach(it=>MV_TRIED.add(it.id+'>'+moveKey(it)));
-    const prompt='下面是'+(T.dest||'日本')+'旅行裡的交通段落，每一行是：交通內容（前一站 → 下一站）。請估算每一段大約要花幾分鐘（只算移動本身，飛機算起飛到降落）。只回覆 JSON 數字陣列，順序和編號一一對應，例如 [40,15]。\n'+
+    const prompt='下面是'+(T.dest||'日本')+'旅行裡的交通段落，每一行是：交通內容（前一站 → 下一站）。請估算每一段交通本身大約要花幾分鐘：只算坐車／走路的時間，不要算等待、排隊、提早到機場或候機的時間；飛機算起飛到降落。只回覆 JSON 數字陣列，順序和編號一一對應，例如 [40,15]。\n'+
       todo.map((it,k)=>{const n=moveNb(it);return (k+1)+'. '+it.title.slice(0,40)+'（'+(n.a?n.a.title.slice(0,20):'出發')+' → '+(n.b?n.b.title.slice(0,20):'結束')+'）'}).join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){return}
     if(!Array.isArray(out)||out.length!==todo.length)return;
-    todo.forEach((it,k)=>{const v=Math.round(+out[k]);if(!(v>0&&v<=900))return;const cur=S.items.get(it.id);if(!cur)return;
+    todo.forEach((it,k)=>{const v=Math.round(+out[k]);if(!mvOk(it,v))return;const cur=S.items.get(it.id);if(!cur)return;
       const p={mvAi:v,mvK:moveKey(cur)};S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}
   finally{MV_BUSY=false}}
@@ -2437,7 +2439,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.92';
+window.__BUILD='1.93';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
