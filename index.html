@@ -1411,8 +1411,8 @@ function toast(msg,undo,ms){clearTimeout(toastT);let t=$('#toast');if(t)t.remove
 const KW_SLOT=[[/早午餐|早餐|breakfast/i,'breakfast'],[/午餐|中餐|午飯|lunch/i,'lunch'],[/晚餐|晚飯|dinner/i,'dinner'],[/宵夜|晚上|夜景/,'evening'],[/上午|早上/,'morning'],[/下午|下午茶/,'afternoon']];
 const KW_KIND=[[/搭|機場|航班|JX\d|✈|新幹線|地鐵|電車|巴士|計程車|接機|出門|前往|轉車|Skyliner/i,'move'],[/check ?in|check ?out|入住|退房|飯店/i,'stay'],
   [/洗衣|採買|打包|訂位|換錢|領|買票|預約|記得/,'todo'],
-  [/餐|吃|拉麵|燒肉|壽司|咖啡|cafe|café|coffee|pizza|漢堡|丼|咖哩|甜點|麵包|bread|bakery|食堂|居酒屋|牛排|豬排|鰻|蕎麥|烏龍|鬆餅|冰|酒|tully|starbucks|星巴克|doutor|羅多倫|komeda|客美多|blue bottle|藍瓶|喫茶|珈琲|カフェ|パン|ベーカリー|bistro|brunch|早午餐/i,'food'],
-  [/買|shop|store|商店|百貨|outlet|藥妝|唐吉|BEAMS|UNIQLO|GU|書店|玩具/i,'shop']];
+  [/餐|吃|拉麵|燒肉|壽司|咖啡|cafe|café|coffee|pizza|漢堡|丼|咖哩|甜點|麵包|bread|bakery|食堂|居酒屋|牛排|豬排|鰻|蕎麥|烏龍|鬆餅|冰|酒|tully|starbucks|星巴克|doutor|羅多倫|komeda|客美多|blue bottle|藍瓶|喫茶|珈琲|カフェ|パン|ベーカリー|bistro|brunch|早午餐|麥當勞|マクドナルド|mcdonald|摩斯|モス|mos burger|肯德基|kfc|吉野家|松屋|すき家|食其家|一蘭|一風堂|壽司郎|スシロー|藏壽司|くら寿司|迴轉壽司|回転寿司|天丼|牛丼|居酒屋|定食|食堂/i,'food'],
+  [/買|shop|store|商店|百貨|outlet|藥妝|唐吉|BEAMS|UNIQLO|GU|書店|玩具|loft|hands|無印|muji|ドン・キホーテ|don quijote|bic camera|ビックカメラ|yodobashi|ヨドバシ|parco|lumine|丸井|0101|3coins|daiso|大創|松本清|マツキヨ|matsukiyo|gallery|雜貨|雑貨|選物|古著|商場|mall|アウトレット/i,'shop']];
 const AREAS='原宿 表參道 澀谷 新宿 池袋 上野 淺草 淺草橋 藏前 押上 兩國 秋葉原 銀座 築地 東京車站 丸之內 日本橋 六本木 麻布台 麻布十番 神樂坂 中目黑 代官山 惠比壽 下北澤 吉祥寺 高円寺 自由之丘 品川 大井町 台場 舞濱 橫濱 鎌倉 江之島 福生 湯島 谷中 月島 豐洲 二子玉川 晴空塔'.split(' ');
 function guessSlot(kind,hour){if(hour==null)return null;
   if(kind==='food')return hour<10?'breakfast':hour<15?'lunch':hour<17?'afternoon':'dinner';
@@ -1912,7 +1912,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   const v=b.dataset.pt;try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}document.body.dataset.pt=v;
   b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));fabSync()},true);
 /* the floating ＋ button follows the page: on 出發前 it adds to the open tab; on trip days it stays 新增行程 */
-const FAB_L={todo:'新增待辦',pack:'新增行李',book:'新增訂位',buy:'新增購物',money:'記一筆',pool:'新增口袋'};
+const FAB_L={todo:'新增待辦',pack:'新增行李',ticket:'新增票券',book:'新增訂位',buy:'新增購物',money:'記一筆',pool:'新增口袋'};
 function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent=S.active===0?FAB_L[preTab()]||'新增':'新增行程';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}expSync()}
 /* adding to a checklist: the same fields as editing it (name, note, date, photos) — name or a photo is enough (購物 is often just a screenshot).
    opt.day presets the date; opt.pick shows the 待辦／訂位／票券／購物 switch (used by a day's 今日要辦 ＋) */
@@ -1977,7 +1977,7 @@ async function wikiPics(titles){
   return t=>{let k=t,n=0;while(fwd[k]&&n++<3)k=fwd[k];return img[k]||''}}
 async function findPics(){
   if(PIC_BUSY||!S.sample||!canWrite())return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic===undefined&&it.title&&(it.area||it.q||it.map)).slice(0,60);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic===undefined&&it.title&&(it.area||it.q||it.map||it.aq!==undefined)).slice(0,60);
   if(!todo.length)return;PIC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的地點。請替每一個找出最符合的日文維基百科條目標題（必須是確實存在的條目，例如「東京ディズニーシー」「浅草寺」）。餐廳、小店、咖啡廳，或找不到、不確定的，一律填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["浅草寺",""]。\n'+
@@ -2080,7 +2080,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
 let DESC_BUSY=false;
 async function findDescs(){
   if(DESC_BUSY||!S.sample||!canWrite())return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map))&&it.dq===undefined).slice(0,30);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map)||it.aq!==undefined)&&it.dq===undefined).slice(0,30);
   if(!todo.length)return;DESC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
     const prompt='請替下面每一項寫一段簡介，用繁體中文（台灣用語），每段 30 到 70 字，給去'+(T.dest||'日本')+'旅遊的人看：說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實，不要寫營業時間或價格；不確定是哪一間或不認識的，填空字串。只回覆 JSON 陣列，順序和編號一一對應。\n'+
@@ -2309,7 +2309,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.85';
+window.__BUILD='1.86';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
