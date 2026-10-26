@@ -1204,7 +1204,7 @@ function renderStrip(){const tn=todayN();let h='';
   const dots=n=>{const ps=peersOn(n);return ps.length?'<span class="pdots">'+ps.slice(0,3).map(p=>'<i style="background:'+esc(p.color)+'"></i>').join('')+'</span>':''};
   for(let n=0;n<=NDAYS;n++){
     if(n===0){const c=[...S.items.values()].filter(i=>i.day===0).length;
-      const prep=[...S.lists.values()].filter(r=>!r.done&&(r.type==='pack'||!(r.day>0))).length;
+      const prep=[...S.lists.values()].filter(r=>!r.done&&(r.type==='pack'||r.type==='book'||r.type==='ticket'||!(r.day>0))).length+[...S.items.values()].filter(i=>i.day===0&&!i.done).length;
       h+='<button type="button" class="chip pool'+(S.active===0?' active':'')+'" data-day="0" aria-label="出發前準備，還有 '+prep+' 項">'+dots(0)+'<span class="c-w">出發前</span><span class="c-d"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 4-4M8 15h8"/></svg></span><span class="c-left">'+(prep?'還有 '+prep+' 項':'都好了 ✓')+'</span></button><span class="c-month">'+(START.getMonth()+1)+'月</span>';continue}
     const d=dayDate(n),wd=d.getDay(),np=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length;
     h+='<button type="button" class="chip'+(S.active===n?' active':'')+(tn===n?' today':'')+(wd===0||wd===6?' wkend':'')+'" data-day="'+n+'" aria-label="'+md(d)+' 週'+WK[wd]+' Day '+n+'">'+dots(n)+'<span class="c-w">'+(tn===n?'今天':WK[wd])+'</span><span class="c-d">'+d.getDate()+'</span><span class="c-dots">'+'<i></i>'.repeat(Math.min(3,Math.ceil(np/2)))+'</span></button>'}
@@ -1251,7 +1251,7 @@ const dicon=k=>'<span class="sico"><svg viewBox="0 0 16 16" fill="none" stroke="
 const LT_TAG={todo:['待辦','k-todo'],book:['訂位','k-spot'],ticket:['票券','k-food'],buy:['購物','k-shop'],pack:['行李','k-move']};
 function rowHTML(r,withTag){return '<li class="crow'+(r.done?' done':'')+'" data-lid="'+esc(r.id)+'"><button type="button" class="ibtn chk lchk" aria-label="打勾" aria-pressed="'+(r.done?'true':'false')+'">✓</button>'+
   '<button type="button" class="cbody lbody">'+(withTag&&LT_TAG[r.type]?'<span class="kind ltype '+LT_TAG[r.type][1]+'">'+LT_TAG[r.type][0]+'</span>':'')+(!withTag&&r.day>0?'<span class="ldate">'+md(dayDate(r.day))+'（'+WK[dayDate(r.day).getDay()]+'）</span>':'')+'<span class="ct">'+esc(r.title)+'</span>'+dupHTML(r)+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button>'+(!withTag&&S.canWrite&&!r.done?'<span class="lgrip" role="button" aria-label="拖曳調整順序"><svg viewBox="0 0 12 20" width="12" height="20" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></span>':'<span></span>')+'</li>'}
-function listBlock(type,title,rows,day){if(day===0&&type!=='pack')rows=rows.filter(r=>!(r.day>0));const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
+function listBlock(type,title,rows,day){if(day===0&&(type==='todo'||type==='buy'))rows=rows.filter(r=>!(r.day>0));const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
   return '<section class="dsec" data-sec="'+type+'">'+'<div class="dsec-h">'+dicon(type==='pack'?'pack':'todo')+'<b>'+title+'</b>'+(rows.length?'<small>'+done+' / '+rows.length+' 完成</small>':'')+'</div>'+
     (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'<p class="pool-help">'+esc(t.empty)+'。按右下角「＋」新增。</p>')+
     (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增：'+esc(t.ph.replace(/^例：/,''))+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section>'}
@@ -1906,7 +1906,7 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
 const PRE_TABS=[['todo','待辦'],['pack','行李'],['ticket','票券'],['book','訂位'],['buy','購物'],['pool','口袋'],['money','花費']];
 function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_TABS.some(t=>t[0]===v)?v:'todo'}
 function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeout(fabSync,0);
-  const left=k=>k==='money'||k==='pool'?0:[...S.lists.values()].filter(r=>r.type===k&&!(r.day>0)&&!r.done).length;
+  const left=k=>k==='money'?0:k==='pool'?[...S.items.values()].filter(i=>i.day===0&&!i.done).length:[...S.lists.values()].filter(r=>r.type===k&&(k==='book'||k==='ticket'||!(r.day>0))&&!r.done).length;
   return '<div class="pretabs" role="tablist">'+PRE_TABS.map(([k,l])=>{const n=left(k);return '<button type="button" role="tab" data-pt="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>'}).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.pretabs [data-pt]');if(!b)return;e.preventDefault();e.stopPropagation();
   const v=b.dataset.pt;try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}document.body.dataset.pt=v;
@@ -2302,7 +2302,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.79';
+window.__BUILD='1.80';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
