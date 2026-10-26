@@ -1282,7 +1282,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
       '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
-      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+daySections(n,'todo')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n,'money')+
+      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
   if(keep){const k=document.getElementById(keep);if(k){k.value=val;k.focus({preventScroll:true});try{k.setSelectionRange(ss,ss)}catch(e){}}}
@@ -1332,7 +1332,7 @@ function renderNow(){const box=$('#now'),n=todayN();
   const ups=list.filter(i=>{const tm=toMin(i.time);return tm!=null?tm>=mins-60:SLOT_I[i.slot]>=cur});
   const nx=ups[0],after=ups[1];
   let h='<div class="nowcard"><div class="nl"><i></i>現在・'+SLOTS[cur].l+'時段</div>';
-  if(!nx)h+='<div class="nowmain"><div class="nt"><b>今天的行程都完成了</b><span>好好休息，明天見</span></div></div>';
+  if(!nx)h+='<div class="nowmain"><div class="nt"><b>今天的行程都走完了</b><span>好好休息，明天見</span></div></div>';
   else h+='<div class="nowmain" data-id="'+esc(nx.id)+'"><div class="nt"><span>下一站'+(nx.time?'・'+esc(nx.time):'・'+SLOT_L[nx.slot])+(nx.area?'・'+esc(nx.area):'')+'</span><b>'+esc(nx.title)+'</b>'+(nx.desc?'<span class="nd">'+esc(nx.desc)+'</span>':'')+'</div>'+
     (PLACE_KINDS.includes(nx.kind)||safeUrl(nx.map)?'<a class="ibtn map" href="'+esc(mapUrl(nx))+'" target="_blank" rel="noopener">'+PIN+'導航</a>':'')+
     '</div>'+
@@ -1521,8 +1521,8 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
     '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
-    '<div class="fld"><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
-    '<div class="fld"><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
+    '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、備註、地區</summary><div>'+
@@ -1541,7 +1541,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
     const rebindSlot=()=>bindSeg(root,'seg-slot',v=>st.slot=v);
     bindSeg(root,'seg-day',v=>{const n=+v;if(n===0)st.slot='pool';else if(st.slot==='pool')st.slot=st.kind==='food'?'lunch':'afternoon';st.day=n;
-      root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n,st.kind);rebindSlot()});
+      root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n,st.kind);rebindSlot();root.querySelector('#slot-wrap').closest('.fld').hidden=n===0;root.querySelector('#e-time').closest('.fld').hidden=n===0});
     rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>{st.kind=v;if(st.day>0){st.slot=slotFit(st.slot,v);root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,st.day,v);rebindSlot()}});bindSeg(root,'seg-must',v=>st.must=v==='1');
     root.querySelector('#e-cancel').onclick=closeSheet;
     const sf=root.querySelector('#e-staff');if(sf)sf.onclick=()=>showStaff(S.items.get(id)||it);
@@ -2391,7 +2391,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.90';
+window.__BUILD='1.91';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
