@@ -1559,16 +1559,16 @@ function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWr
     '<div class="fld"><label for="l-title">項目</label><input class="inp" id="l-title" value="'+esc(r.title)+'"></div>'+
     (r.type!=='pack'&&!ro?'<div class="fld"><span class="lbl">放在哪一類</span><div class="seg" id="seg-ltype">'+[['todo','待辦'],['book','訂位'],['ticket','票券'],['buy','購物']].map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(r.type===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
     '<div class="fld"><label for="l-note">備註</label><textarea class="inp" id="l-note" style="min-height:64px" placeholder="'+(r.type==='book'||r.type==='ticket'?'確認碼、時間、人數':r.type==='buy'?'在哪買、幫誰買':'')+'">'+esc(r.note)+'</textarea></div>'+
-    (r.type!=='pack'?'<div class="fld"><span class="lbl">相關日期</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
+    (r.type!=='pack'?'<div class="fld"><span class="lbl" id="l-dlbl">'+dateLbl(r.type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
     (r.type!=='pack'?'<div class="fld"><span class="lbl">照片（票券截圖、商品照）</span>'+photosHTML(st.photos,ro)+'</div>':'')+
     '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="l-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="l-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="l-save">儲存</button>')+'</div>',
   root=>{if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
-    bindSeg(root,'seg-day',v=>st.day=+v);root.querySelector('#l-cancel').onclick=closeSheet;if(ro)return;bindSeg(root,'seg-ltype',v=>st.type=v);
+    bindSeg(root,'seg-day',v=>st.day=+v);root.querySelector('#l-cancel').onclick=closeSheet;if(ro)return;bindSeg(root,'seg-ltype',v=>{st.type=v;root.querySelector('#l-dlbl').innerHTML=dateLbl(v)});
     bindPhotos(root,()=>st.photos,ids=>{st.photos=ids;const cur=S.lists.get(id);if(cur){S.lists.set(id,Object.assign({},cur,{photos:ids}));queue('lists'+id,()=>ref('lists',id).update({photos:ids}));render()}});
     root.querySelector('#l-del').onclick=()=>{closeSheet();remove('lists',id,r.title)};
     root.querySelector('#l-save').onclick=()=>{const t=root.querySelector('#l-title').value.trim(),n=root.querySelector('#l-note').value.trim();if(!t){root.querySelector('#l-title').focus();return}
       const cur=S.lists.get(id)||r,p={};if(t!==cur.title)p.title=t;if(n!==(cur.note||''))p.note=n;if(r.type!=='pack'&&st.day!==(cur.day||0))p.day=st.day;if(r.type!=='pack'&&st.type&&st.type!==cur.type)p.type=st.type;
-      closeSheet();if(Object.keys(p).length)patch('lists',id,p,'已儲存')}})}
+      closeSheet();if(Object.keys(p).length)patch('lists',id,p,(p.day!=null||p.type)?'已移到'+listWhere(p.type||cur.type,p.day!=null?p.day:(cur.day||0)):'已儲存')}})}
 
 function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const ro=!S.canWrite;if(!id&&!canWrite())return;S.readSheet=ro;
   const tn=todayN(),base=e||Object.assign({shop:'',what:'',amount:'',payer:ls.get(T.id+'-payer')||(S.meta.people[0]||''),split:'all',cat:pre&&pre.day===0?'other':'food',day:tn>=1&&tn<=NDAYS?tn:(S.active||0),itemId:''},pre||{});
@@ -1923,16 +1923,16 @@ function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[
     (opt.pick?'<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-qtype">'+PICK_TYPES.map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(x[0]===type)+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
     '<div class="fld"><label for="q-in">要加什麼'+(S.assets&&full?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L().ph)+'" autocomplete="off"></div>'+
     '<div class="fld"><label for="q-note">備註<span class="opt">選填</span></label><textarea class="inp" id="q-note" style="min-height:64px" placeholder="'+esc(notePh(type))+'"></textarea></div>'+
-    (full?'<div class="fld"><span class="lbl">相關日期<span class="opt">選填</span></span>'+daySeg(st.day,true,'不限')+'</div>':'')+
+    (full?'<div class="fld"><span class="lbl" id="q-dlbl">'+dateLbl(type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
     (S.assets&&full?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="q-cancel">取消</button><button type="button" class="btn pri" id="q-ok">加入</button></div>',
   root=>{const i=root.querySelector('#q-in'),nt=root.querySelector('#q-note');if(type!=='buy')setTimeout(()=>i.focus(),50);
     if(full)bindSeg(root,'seg-day',v=>st.day=+v);
-    bindSeg(root,'seg-qtype',v=>{st.type=v;i.placeholder=L().ph;nt.placeholder=notePh(v)});
+    bindSeg(root,'seg-qtype',v=>{st.type=v;i.placeholder=L().ph;nt.placeholder=notePh(v);const dl=root.querySelector('#q-dlbl');if(dl)dl.innerHTML=dateLbl(v)});
     bindPhotos(root,()=>st.photos,ids=>{st.photos=ids});root.querySelector('#q-cancel').onclick=closeSheet;
     const go=()=>{const t=i.value.trim(),n=nt.value.trim();if(!t&&!st.photos.length){toast(full?'寫個名字，或加一張照片':'寫個名字');return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
-      create('lists',{type:st.type,title:t||'照片',note:n,done:false,day:full?st.day:0,photos:st.photos.slice(),ts:Date.now(),order:Date.now()});closeSheet();render();toast('已加到'+L().l+(full&&st.day?'（'+dayLabel(st.day)+'）':''))};
+      create('lists',{type:st.type,title:t||'照片',note:n,done:false,day:full?st.day:0,photos:st.photos.slice(),ts:Date.now(),order:Date.now()});closeSheet();render();toast('已加到'+listWhere(st.type,full?st.day:0))};
     root.querySelector('#q-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
 /* a day's 今日要辦 ＋ uses the same sheet (this later declaration replaces the page's simpler one) */
 function openTodoAdd(day){quickAdd('todo',{day,pick:true})}
@@ -2066,7 +2066,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     ok.onclick=()=>{if(!rows.length)return;
       if(d.isTodo){if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}const pics=rows.length===1?d.photos.slice():[];closeSheet();
         rows.forEach((r,i)=>create('lists',{type:'todo',title:r.title,note:r.note||'',done:false,day:d.day,photos:i===0?pics:[],ts:Date.now()+i,order:Date.now()+i}));
-        render();toast('已加到待辦（'+dayLabel(d.day)+'）');return}if(tm.value.trim()&&!timeOk()){toast('時間請寫成 15:00 這樣');tm.focus();return}
+        render();toast('已加到'+listWhere('todo',d.day));return}if(tm.value.trim()&&!timeOk()){toast('時間請寫成 15:00 這樣');tm.focus();return}
       if(en.value.trim()&&tmin(normT(en.value))==null){toast('時間請寫成 15:00 這樣');en.focus();return}
       if(tm.value.trim()&&en.value.trim()&&tmin(normT(en.value))<=tmin(normT(tm.value))){toast('結束時間要比開始晚');en.focus();return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
@@ -2275,6 +2275,13 @@ function legFieldAll(it){if(it.kind==='move'||it.kind==='todo'||!(it.day>0))retu
 /* 待辦 lives in the to-do lists, not on the timeline: the edit sheet of a place doesn't offer it as a type */
 function kindSeg(sel){return '<div class="seg" id="seg-kind">'+KINDS.filter(([k])=>k!=='todo'||sel==='todo').map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(sel===k)+'">'+l+'</button>').join('')+'</div>'}
 
+/* where a checklist item shows up, in words (for toasts) and what its date means (for the date field) */
+function listWhere(type,day){const l=(LTYPES.find(x=>x.k===type)||{l:'清單'}).l;
+  if(day>0&&(type==='todo'||type==='buy'))return ' '+md(dayDate(day))+' 的今日要辦';
+  if(day>0)return l+'（'+md(dayDate(day))+'，當天也會提醒）';
+  return type==='todo'?'行前待辦':l}
+function dateLbl(type){return type==='todo'?'哪一天要做<span class="opt">不選＝出發前要做的</span>':type==='buy'?'哪一天買<span class="opt">不選＝出發前要買的</span>':'使用日期<span class="opt">選填</span>'}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2302,7 +2309,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.83';
+window.__BUILD='1.84';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
