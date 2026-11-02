@@ -1170,6 +1170,10 @@ a.gonext.legnav{text-decoration:none}
   .shelf-grid .tnew{grid-column:auto;flex-direction:column!important;min-height:100%!important;padding:24px}
   .shelf-grid .tnew .plus{font-size:36px}
 }
+/* 哪一天: all days on screen in rows of seven (a week per row feel), no sideways scrolling and no half-cut circle at the edge */
+.dstrip{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:0!important;row-gap:8px;overflow:visible!important;scroll-snap-type:none;padding:4px 0 4px!important}
+.dstrip button{min-width:0!important;width:100%}
+.dstrip .n{width:min(42px,calc(100% - 4px))!important;height:auto!important;aspect-ratio:1}
 
 </style>
 
@@ -2029,7 +2033,7 @@ function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[
     (opt.pick?'<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-qtype">'+PICK_TYPES.map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(x[0]===type)+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
     '<div class="fld"><label for="q-in">要加什麼'+(S.assets&&full?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L().ph)+'" autocomplete="off"></div>'+
     '<div class="fld"><label for="q-note">備註<span class="opt">選填</span></label><textarea class="inp" id="q-note" style="min-height:64px" placeholder="'+esc(notePh(type))+'"></textarea></div>'+
-    (full?'<div class="fld"><span class="lbl" id="q-dlbl">'+dateLbl(type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
+    (full&&!opt.pick?'<div class="fld"><span class="lbl" id="q-dlbl">'+dateLbl(type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+  /* 今日要辦: the day is already chosen */
     (S.assets&&full?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
     '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="q-cancel">取消</button><button type="button" class="btn pri" id="q-ok">加入</button></div>',
   root=>{const i=root.querySelector('#q-in'),nt=root.querySelector('#q-note');if(type!=='buy')setTimeout(()=>i.focus(),50);
@@ -2596,6 +2600,11 @@ function syncBookings(){if(!S.canWrite)return;let n=0;
     S.items.set(it.id,Object.assign({},it,{bkq:1}));queue('items'+it.id,()=>ref('items',it.id).update({bkq:1}))}
   if(n){render();toast('備註寫了要訂位的 '+n+' 個地方，已加到「訂位」')}}
 
+/* during the trip, coming back after a while (the app left open in the background) lands on today again — not while a sheet is open */
+let AWAY_AT=0;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){AWAY_AT=Date.now();return}
+  if(!AWAY_AT||Date.now()-AWAY_AT<30*60e3||document.querySelector('.sheet'))return;AWAY_AT=0;const tn=todayN();if(tn>=1&&tn<=NDAYS&&S.active!==tn)setActive(tn)});
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2623,7 +2632,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.111';
+window.__BUILD='1.112';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
