@@ -26,7 +26,7 @@
   --bg:#F7F4EF; --surface:#FFFFFF; --sunk:#F2EDE6; --dot:#E3DCD2;
   --ink:#26232E; --muted:#6E6877; --line:#E5DDD3; --line-strong:#CEC3B6;
   --sakura:#D6456D; --sakura-soft:#FBE8ED; --ai:#34508F; --ai-soft:#E8EDF6;
-  --k-food:#C23D63; --k-spot:#34508F; --k-shop:#6A4C9C; --k-move:#5E6472; --k-stay:#2F7A6B; --k-todo:#946016;
+  --k-food:#C23D63; --k-spot:#34508F; --k-shop:#6A4C9C; --k-move:#5E6472; --k-stay:#2F7A6B; --k-todo:#946016; --k-facility:#2B6F8F; --kb-facility:#E2F0F6;
   --kb-food:#FBE8ED; --kb-spot:#E8EDF6; --kb-shop:#EFEAF7; --kb-move:#EEEFF2; --kb-stay:#E3F1EC; --kb-todo:#F7EEDD;
   --tape-pink:rgba(214,69,109,.2); --tape-blue:rgba(52,80,143,.16); --tape-mint:rgba(196,150,70,.22); --tape-yellow:rgba(196,150,70,.22); --hl:rgba(214,69,109,.16);
   --ok:#2F7A6B; --warn:#946016; --warn-soft:#F7EEDD;
@@ -198,7 +198,7 @@ body.dragging .list .empty{border-color:var(--line-strong)}
 .mapl:hover{text-decoration:underline}
 .itime{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .kind{font-size:12px;font-weight:700;padding:0 6px;border-radius:6px;border:1px solid currentColor;line-height:18px;white-space:nowrap}
-.k-food{color:var(--k-food)}.k-spot{color:var(--k-spot)}.k-shop{color:var(--k-shop)}.k-move{color:var(--k-move)}.k-stay{color:var(--k-stay)}.k-todo{color:var(--k-todo)}
+.k-food{color:var(--k-food)}.k-spot{color:var(--k-spot)}.k-shop{color:var(--k-shop)}.k-move{color:var(--k-move)}.k-stay{color:var(--k-stay)}.k-todo{color:var(--k-todo)}.k-facility{color:var(--k-facility)}.kind.k-facility{background:var(--kb-facility)}
 .ititle{font-size:18px;font-weight:700;line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
 .idesc{font-size:14px;color:var(--muted);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .inote{font-size:12px;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
@@ -487,7 +487,7 @@ body.dragging .tl .slot.is-empty{display:grid}
   --coral:#F2A497; --yellow:#F6D27A; --water:#A8D3E6; --green:#B9DAA5;
   --sakura:#D9705C; --sakura-soft:#FDE7E0; --ai:#3E3A39; --ai-soft:#E4F2F8;
   --k-food:#3E3A39; --k-spot:#3E3A39; --k-shop:#3E3A39; --k-move:#3E3A39; --k-stay:#3E3A39; --k-todo:#3E3A39;
-  --kb-food:#F2A497; --kb-spot:#A8D3E6; --kb-shop:#F6D27A; --kb-move:#B9DAA5; --kb-stay:#B9DAA5; --kb-todo:#F6D27A;
+  --kb-food:#F2A497; --kb-spot:#A8D3E6; --kb-shop:#F6D27A; --kb-move:#B9DAA5; --kb-stay:#B9DAA5; --kb-todo:#F6D27A; --k-facility:#3E3A39; --kb-facility:#D9C8EC;
   --tape-pink:#F2A497; --tape-blue:#A8D3E6; --tape-mint:#B9DAA5; --tape-yellow:#F6D27A; --hl:rgba(246,210,122,.75);
   --ok:#5E9A4A; --warn:#B07A10; --warn-soft:#FCF0D2;
   --paper-shadow:none; --shadow:0 12px 0 -6px rgba(62,58,57,.18);
@@ -1201,12 +1201,12 @@ const sicon=k=>'<span class="sico"><svg viewBox="0 0 16 16" fill="none" stroke="
 const PIN='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>';
 const SLOT_L={pool:'口袋名單'};SLOTS.forEach(s=>SLOT_L[s.k]=s.l);
 const SLOT_I={};SLOTS.forEach((s,i)=>SLOT_I[s.k]=i);
-const KINDS=[['food','美食'],['spot','景點'],['shop','購物'],['move','交通'],['stay','住宿'],['todo','待辦']];
+const KINDS=[['food','美食'],['spot','景點'],['shop','購物'],['move','交通'],['stay','住宿'],['facility','設施'],['todo','待辦']];
 const KIND_L=Object.fromEntries(KINDS);
 const LTYPES=[{k:'todo',l:'行前待辦',ph:'例：買 eSIM、買迪士尼門票、換日幣',empty:'出發前要處理的事（買票、換錢、保險…），辦好就打勾'},{k:'book',l:'訂位',ph:'例：USHIGORO 銀座、燒肉 TAKEDA',empty:'要先預約的餐廳放這裡，訂好就打勾'},{k:'ticket',l:'票券',ph:'例：迪士尼門票、Skyliner、晴空塔展望台',empty:'門票、車票放這裡，QR code 或票券截圖可以一起存著'},{k:'pack',l:'行李',ph:'例：護照、行動電源',empty:'出發前要帶的東西，收進行李就打勾'},{k:'buy',l:'購物',ph:'例：藥妝、Tokyo Banana',empty:'購物的東西記在這裡，買到就打勾'}];
 const LT_L=Object.fromEntries(LTYPES.map(t=>[t.k,t.l]));
 const START=new Date(T.start+'T00:00:00'),NDAYS=T.days,WK='日一二三四五六';
-const PLACE_KINDS=['food','spot','shop'];
+const PLACE_KINDS=['food','spot','shop','facility'];
 const CATS=[['food','餐飲'],['shop','購物'],['move','交通'],['ticket','門票'],['stay','住宿'],['other','其他']];
 const CAT_L=Object.fromEntries(CATS);
 const CAT_C={food:'var(--coral)',shop:'var(--yellow)',move:'var(--green)',ticket:'var(--water)',stay:'#C9B6E4',other:'#D8D2CC'};
@@ -1463,7 +1463,7 @@ function toast(msg,undo,ms){clearTimeout(toastT);let t=$('#toast');if(t)t.remove
 
 /* ---------- smart parse ---------- */
 const KW_SLOT=[[/早午餐|早餐|breakfast/i,'breakfast'],[/午餐|中餐|午飯|lunch/i,'lunch'],[/晚餐|晚飯|dinner/i,'dinner'],[/宵夜|晚上|夜景/,'evening'],[/上午|早上/,'morning'],[/下午|下午茶/,'afternoon']];
-const KW_KIND=[[/搭|機場|航班|JX\d|✈|新幹線|地鐵|電車|巴士|計程車|接機|出門|前往|轉車|Skyliner/i,'move'],[/check ?in|check ?out|入住|退房|飯店/i,'stay'],
+const KW_KIND=[[/大浴場|置物櫃|投幣式|寄物|行李寄放|廁所|洗手間|休息室|休憩|哺乳|吸菸|健身房|游泳池|泳池|溫泉設施|充電站|設施/,'facility'],[/搭|機場|航班|JX\d|✈|新幹線|地鐵|電車|巴士|計程車|接機|出門|前往|轉車|Skyliner/i,'move'],[/check ?in|check ?out|入住|退房|飯店/i,'stay'],
   [/洗衣|採買|打包|訂位|換錢|領|買票|預約|記得/,'todo'],
   [/餐|吃|拉麵|燒肉|壽司|咖啡|cafe|café|coffee|pizza|漢堡|丼|咖哩|甜點|麵包|bread|bakery|食堂|居酒屋|牛排|豬排|鰻|蕎麥|烏龍|鬆餅|冰|酒|tully|starbucks|星巴克|doutor|羅多倫|komeda|客美多|blue bottle|藍瓶|喫茶|珈琲|カフェ|パン|ベーカリー|bistro|brunch|早午餐|麥當勞|マクドナルド|mcdonald|摩斯|モス|mos burger|肯德基|kfc|吉野家|松屋|すき家|食其家|一蘭|一風堂|壽司郎|スシロー|藏壽司|くら寿司|迴轉壽司|回転寿司|天丼|牛丼|居酒屋|定食|食堂/i,'food'],
   [/買|shop|store|商店|百貨|outlet|藥妝|唐吉|BEAMS|UNIQLO|GU|書店|玩具|loft|hands|無印|muji|ドン・キホーテ|don quijote|bic camera|ビックカメラ|yodobashi|ヨドバシ|parco|lumine|丸井|0101|3coins|daiso|大創|松本清|マツキヨ|matsukiyo|gallery|雜貨|雑貨|選物|古著|商場|mall|アウトレット/i,'shop']];
@@ -2453,7 +2453,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.96';
+window.__BUILD='1.97';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
