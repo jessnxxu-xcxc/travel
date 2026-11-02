@@ -1123,6 +1123,9 @@ body.pass-open .pass-mini{margin-bottom:12px}
 .dtchip{font:inherit;font-size:12px;line-height:20px;padding:0 8px;border:1.5px solid rgba(62,58,57,.35);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
 .dtchip.dim{color:var(--muted);border-style:dashed}
 .dtchip.late{color:var(--warn);border-color:var(--warn)}
+/* 去下一站 opens navigation: a link that looks like the old line */
+a.gonext.legnav{text-decoration:none}
+.legnav .legarr{color:var(--water-ink,#2B6F8F);font-size:12px;white-space:nowrap}
 
 </style>
 
@@ -2063,7 +2066,7 @@ async function findAreas(){
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{AREA_BUSY=false}}
-async function fillPlaces(){await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findDups()}
+async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findDups()}
 /* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
 function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
@@ -2175,8 +2178,8 @@ async function findClosed(){
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{CLOSED_BUSY=false}}
-function closedWarn(it){if(!it.closed||!(it.day>0))return '';const wd=WK[dayDate(it.day).getDay()];
-  return it.closed.includes(wd)?'<span class="iwarn">⚠ 這天是週'+wd+'，可能公休（定休日：週'+it.closed.split('').join('、')+'），出發前再確認</span>':''}
+function closedWarn(it){const c=[...new Set((it.closed||'')+noteClosed(it))].join('');if(!c||!(it.day>0))return '';const wd=WK[dayDate(it.day).getDay()];
+  return c.includes(wd)?'<span class="iwarn">⚠ 這天是週'+wd+'，可能公休（定休日：週'+c.split('').join('、')+'），出發前再確認</span>':''}
 
 /* checklist duplicates: AI groups items that mean the same thing (e.g. 「Disney Sea」 and 「迪士尼海洋門票」); each one gets a small hint.
    Only asked again when the list changes (cached per trip in this browser). */
@@ -2292,7 +2295,7 @@ const TM_ICON={train:'🚃',bus:'🚌',taxi:'🚕',walk:'🚶',plane:'✈️',sh
 function modeField(it){if(it.kind!=='move')return '';const cur=(tmode(it)||[])[0]||'';
   return '<div class="fld"><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-tm">'+TM_ORDER.map(k=>{const m=TMODES.find(x=>x[0]===k);
     return '<button type="button" data-v="'+k+'" aria-pressed="'+(cur===k)+'">'+TM_ICON[k]+' '+m[1]+'</button>'}).join('')+'</div></div>'+moveMinField(it)}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.legbtn');if(!t)return;e.preventDefault();e.stopPropagation();openLeg(t.dataset.leg)},true);
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.legbtn:not(.legnav)');if(!t)return;e.preventDefault();e.stopPropagation();openLeg(t.dataset.leg)},true);
 /* the date strip gets its shadow only while it is stuck to the top */
 (function(){const upd=()=>{const b=document.querySelector('.bar-wrap');if(!b)return;document.body.classList.toggle('bar-stuck',b.getBoundingClientRect().top<=1&&scrollY>0)};addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);setTimeout(upd,0)})();
 
@@ -2303,15 +2306,17 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
    Shown as the last line of a card: "去下一站 🚃 電車・約 25 分 ›" (first stop of a day: "從飯店 …"). Tap it → 交通 sheet.
    交通方式 has the same six choices as a transport row. AI estimates minutes by train/bus (cmT), taxi (cmX) and on foot (cmW);
    the minutes you type (cmMan) win. Kept on the later stop: cmFrom, cmMode, cmT, cmX, cmW, cmMan, cmK. */
-const LEG_MODE=b=>{const m=b.cmMode;return m==='transit'||!m?'train':m};
+const LEG_MODE=b=>{const m=b.cmMode;if(m)return m==='transit'?'train':m;const n=noteLeg(b);return n?n.mode:'train'};
 const legAi=(b,mode)=>mode==='taxi'?b.cmX:mode==='walk'?b.cmW:(mode==='train'||mode==='bus')?b.cmT:null;
-function leg(b){const a=legPrev(b);if(!a)return null;const mode=LEG_MODE(b);
-  if(b.cmFrom!==a.id||(b.cmK&&b.cmK!==legKey(a,b)))return {a,mode,min:null,ai:null};
-  const ai=legAi(b,mode);return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
+function leg(b){const a=legPrev(b);if(!a)return null;const mode=LEG_MODE(b),nl=noteLeg(b),nm=nl&&nl.mode===mode?nl.min:null;
+  if(b.cmFrom!==a.id||(b.cmK&&b.cmK!==legKey(a,b)))return {a,mode,min:nm,ai:null};
+  const ai=legAi(b,mode);return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:nm!=null?nm:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
 const legUrl=(a,b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&origin='+encodeURIComponent(placeQuery(a))+'&destination='+encodeURIComponent(placeQuery(b));
 const legText=l=>{const m=TMODES.find(x=>x[0]===l.mode);return TM_ICON[l.mode]+' '+(m?m[1]:'')+(l.min!=null?'・約 '+l.min+' 分':'')};
-function legLine(b,lead){const l=leg(b);if(!l)return '';
-  return '<button type="button" class="gonext legbtn" data-leg="'+esc(b.id)+'" aria-label="'+lead+'「'+esc(b.title)+'」的交通"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="legarr">›</span></button>'}
+function legLine(b,lead){const l=leg(b);if(!l)return '';const u=navUrl(b,l.mode);
+  return '<a class="gonext legbtn legnav" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖導航到「'+esc(b.title)+'」"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="legarr">導航 ↗</span></a>'}
+/* tap the line → Google Maps directions from where you are now (no origin = current location) */
+const navUrl=(b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&destination='+encodeURIComponent(placeQuery(b));
 /* the last line of a card: how you get to the next stop */
 function nextLink(it){const nx=NEXT[it.id];return nx?legLine(nx,'去下一站'):''}
 /* 交通 sheet: 交通方式 (six choices), minutes, Google route */
@@ -2502,6 +2507,36 @@ function placeFor(r,pos,slot){if(!r||!(r.day>0))return null;const its=dayItems(r
   const order=P&&N?(P.order+N.order)/2:P?P.order+1000:N?N.order-1000:1000;
   return {slot:ts.k,order,after}}
 
+/* ---------- what you write in 備註 is used too ----------
+   • how you get there: "搭中央線直達新宿（約 15 分）" → 🚃 電車・約 15 分 for the trip to this stop (what you pick or type still wins)
+   • "要先訂位／建議訂位／要預約" → an entry in 訂位 (once per stop: bkq marks it, so deleting that entry is final)
+   • "週一公休" → the same 公休 warning as the AI's 定休日 */
+/* only real "how you get here" phrases count (搭／坐…線, 直達, 轉乘, 搭計程車, 走過去…), read clause by clause;
+   a clause about leaving (走回銀座吃晚餐, 再去, 回飯店) is about the next trip, not this one */
+const LEAVE=/走回|回到|再去|接著去|去吃|吃(?:午|晚)餐|回飯店/;
+function noteLeg(b){const s=String(b&&b.note||'');if(!s)return null;
+  for(const c of s.split(/[，。；;,：:\n]/)){if(!c.trim()||LEAVE.test(c))continue;
+    const mode=/(?:搭|坐|叫)計程車|計程車過去|taxi|タクシー|uber|yoxi/i.test(c)?'taxi':/(?:搭|坐).{0,6}(?:公車|巴士|バス)/.test(c)?'bus':
+      /(?:搭|坐).{0,10}(?:線|JR|電車|地鐵|捷運|新幹線|江之電|ゆりかもめ|京急|京王|小田急|東急|京成|Skyliner)|直達|轉乘/i.test(c)?'train':/走路|步行(?!者)|徒步|走過去|走到/.test(c)?'walk':null;
+    if(!mode)continue;const m=c.match(/約\s*(\d+(?:\.\d+)?)\s*(小時|分)/),min=m?Math.round(m[2]==='小時'?+m[1]*60:+m[1]):null;
+    return {mode,min:min>0&&min<=180?min:null}}
+  return null}
+function noteClosed(it){const s=String(it&&it.note||'').replace(/週末/g,'週六日');if(!s)return '';let out='',m;
+  const re=/(?:週|星期|禮拜)([一二三四五六日天](?:[、,，／\/和及]?(?:週)?[一二三四五六日天])*)\s*(?:公休|休息|店休|定休|休館|不營業|沒開)|(?:公休|定休日?|休館日?)[：:\s]*(?:週|星期|禮拜)?([一二三四五六日天](?:[、,，／\/和及]?(?:週)?[一二三四五六日天])*)/g;
+  while((m=re.exec(s)))out+=m[1]||m[2]||'';return [...new Set(out.replace(/天/g,'日').replace(/[^一二三四五六日]/g,''))].join('')}
+const NEED_BOOK=/訂位|預約|要訂|先訂|需訂/,NO_BOOK=/不用訂|免訂|不必訂|不需訂|不需要訂|不收訂|不接受(?:訂位|預約)|不能(?:訂|預約)|無法(?:訂|預約)|不可(?:訂|預約)|不用預約|免預約|不需預約|已訂|訂好/;
+/* 「燒肉亭 六歌仙」 and 「六歌仙 訂位」 are the same shop: any distinctive word of one appears in the other */
+const SHOP_STOP=/^(燒肉|餐廳|本店|分店|訂位|預約|晚餐|午餐|早餐|門票|新宿|新宿店|銀座|澀谷|淺草|原宿|東京|日本)$/;
+const shopWords=t=>String(t||'').split(/[\s・、,，（）()／\/：:]+/).filter(w=>w.length>=2&&!SHOP_STOP.test(w));
+const sameShop=(a,b)=>shopWords(a).some(w=>String(b).includes(w))||shopWords(b).some(w=>String(a).includes(w));
+const needBook=it=>PLACE_KINDS.includes(it.kind)&&NEED_BOOK.test(String(it.note||''))&&!NO_BOOK.test(String(it.note||''));
+function syncBookings(){if(!canWrite())return;let n=0;
+  for(const it of [...S.items.values()]){if(it.bkq!==undefined||!needBook(it))continue;
+    const has=[...S.lists.values()].some(l=>(l.type==='book'||l.type==='ticket')&&sameShop(it.title,l.title));
+    if(!has){create('lists',{type:'book',title:'訂位：'+it.title,note:it.note||'',done:false,day:it.day>0?it.day:0,photos:[],ts:Date.now()+n,order:Date.now()+n});n++}
+    S.items.set(it.id,Object.assign({},it,{bkq:1}));queue('items'+it.id,()=>ref('items',it.id).update({bkq:1}))}
+  if(n){render();toast('備註寫了要訂位的 '+n+' 個地方，已加到「訂位」')}}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2529,7 +2564,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.99';
+window.__BUILD='1.100';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
