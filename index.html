@@ -1174,6 +1174,9 @@ a.gonext.legnav{text-decoration:none}
 .dstrip{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:0!important;row-gap:8px;overflow:visible!important;scroll-snap-type:none;padding:4px 0 4px!important}
 .dstrip button{min-width:0!important;width:100%}
 .dstrip .n{width:min(42px,calc(100% - 4px))!important;height:auto!important;aspect-ratio:1}
+/* 出發前 lists get their type-and-Enter box back, on top of the list */
+.col[data-col="0"] .addrow{display:flex!important}
+.dsec .addrow+.clist,.dsec .addrow+.pool-help{margin-top:10px}
 
 </style>
 
@@ -1328,7 +1331,7 @@ function itemHTML(it){
    '<button type="button" class="grip" aria-label="拖曳移動 '+esc(it.title)+'"><svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></button>'+
    '<div class="ibody" role="button" tabindex="0"><span class="imeta">'+(it.must?'<span class="must">★ 必去</span>':'')+timeHTML(it)+
    kindTag(it)+(it.area?'<span class="nb">'+esc(it.area)+'</span>':'')+(spentOn(it)?'<span class="spent">'+yen(spentOn(it))+'</span>':'')+(showMap&&!(it.day>0&&legPrev(it))?'<a class="imap" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener" aria-label="'+esc(it.title)+' 的地圖">'+PIN+'地圖</a>':'')+'</span>'+
-   '<span class="ititle">'+esc(it.title)+'</span>'+(it.note?'<span class="inote">'+esc(it.note)+'</span>':'')+(it.desc?'<span class="idesc">'+esc(it.desc)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+closedWarn(it)+thumbs(it.photos)+tdur(it)+goNext(it)+'</div>'+
+   '<span class="ititle">'+esc(it.title)+'</span>'+(it.note?'<span class="inote">'+esc(it.note)+'</span>':'')+(it.warn?'<span class="iwarn">⚠ '+esc(it.warn)+'</span>':'')+closedWarn(it)+thumbs(it.photos)+tdur(it)+goNext(it)+'</div>'+
    '<span class="iacts">'+
    picHTML(it)+'</span></div>'}
 function slotHTML(day,s,list,cur){const em=!(list&&list.length);
@@ -1363,8 +1366,8 @@ function rowHTML(r,withTag){return '<li class="crow'+(r.done?' done':'')+'" data
   '<button type="button" class="cbody lbody">'+(withTag&&LT_TAG[r.type]?'<span class="kind ltype '+LT_TAG[r.type][1]+'">'+LT_TAG[r.type][0]+'</span>':'')+(!withTag&&r.day>0?'<span class="ldate">'+md(dayDate(r.day))+'（'+WK[dayDate(r.day).getDay()]+'）</span>':'')+'<span class="ct">'+esc(r.title)+'</span>'+dupHTML(r)+(r.note?'<span class="cn">'+esc(r.note)+'</span>':'')+thumbs(r.photos)+'</button>'+(!withTag&&S.canWrite&&!r.done?'<span class="lgrip" role="button" aria-label="拖曳調整順序"><svg viewBox="0 0 12 20" width="12" height="20" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.6"/><circle cx="9" cy="4" r="1.6"/><circle cx="3" cy="10" r="1.6"/><circle cx="9" cy="10" r="1.6"/><circle cx="3" cy="16" r="1.6"/><circle cx="9" cy="16" r="1.6"/></svg></span>':'<span></span>')+'</li>'}
 function listBlock(type,title,rows,day){if(day===0&&(type==='todo'||type==='buy'))rows=rows.filter(r=>!(r.day>0));const t=LTYPES.find(x=>x.k===type),done=rows.filter(r=>r.done).length;
   return '<section class="dsec" data-sec="'+type+'">'+'<div class="dsec-h">'+dicon(type==='pack'?'pack':'todo')+'<b>'+title+'</b>'+(rows.length?'<small>'+done+' / '+rows.length+' 完成</small>':'')+'</div>'+
-    (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'<p class="pool-help">'+esc(t.empty)+'。按右下角「＋」新增。</p>')+
-    (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增：'+esc(t.ph.replace(/^例：/,''))+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section>'}
+    (S.canWrite?'<form class="addrow" data-type="'+type+'" data-day="'+day+'"><input class="inp" id="add-'+type+'-'+day+'" aria-label="新增到'+title+'" placeholder="＋ 新增到'+esc(title)+'" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+
+    (rows.length?'<ul class="clist">'+rows.map(r=>rowHTML(r,false)).join('')+'</ul>':'<p class="pool-help">'+esc(t.empty)+'。</p>')+'</section>'}
 function daySections(n,part){const rate=+S.meta.rate||0;
   const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
   const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
@@ -1592,6 +1595,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     (ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
+    (ro?'':posField(it))+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
@@ -1634,7 +1638,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
       if(f.end&&tmin(f.time)!=null&&tmin(f.end)!=null&&tmin(f.end)<=tmin(f.time)){toast('結束時間要比開始晚');root.querySelector('#e-end').focus();return}
       const cur=S.items.get(id)||it;for(const k in f)if((cur[k]||'')!==f[k])p[k]=f[k];if('desc' in p)p.dq=1;
       if(st.must!==!!cur.must)p.must=st.must;if(!ro)legPatch(root,st,cur,p);
-      if(st.day!==cur.day||st.slot!==cur.slot){p.day=st.day;p.slot=st.slot;p.order=maxOrder(st.day,st.slot)+1000}
+      if(st.day!==cur.day||st.slot!==cur.slot){p.day=st.day;p.slot=st.slot;p.order=maxOrder(st.day,st.slot)+1000}if(st.posOrder!=null){p.day=st.day;p.slot=st.slot;p.order=st.posOrder}
       closeSheet();if(Object.keys(p).length)patch('items',id,p,p.day!=null?'已移到 '+dayLabel(st.day)+(st.day?'・'+SLOT_L[st.slot]:''):'已儲存')}
   })}
 
@@ -1838,7 +1842,7 @@ document.addEventListener('click',e=>{const t=e.target;let el;
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('ibody')){e.preventDefault();openEdit(e.target.closest('.item').dataset.id)}});
 document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();if(!canWrite())return;
   if(f.classList.contains('addrow')){const i=f.querySelector('input'),v=i.value.trim();if(!v)return;
-    const lines=v.split(/[\n]+/).map(s=>s.trim()).filter(Boolean);lines.forEach((l,k)=>create('lists',{type:f.dataset.type,title:l,note:'',done:false,day:+f.dataset.day||0,photos:[],ts:Date.now()+k}));
+    const lines=v.split(/[\n]+/).map(s=>s.trim()).filter(Boolean);const nids=lines.map((l,k)=>create('lists',{type:f.dataset.type,title:l,note:'',done:false,day:+f.dataset.day||0,photos:[],ts:Date.now()+k,order:Date.now()+k}));setTimeout(()=>flashNew(nids),0);
     const iid=i.id;i.value='';render();const ni=document.getElementById(iid);if(ni){ni.value='';ni.focus({preventScroll:true})}}
 });
 desk.addEventListener('change',()=>render());
@@ -2398,10 +2402,13 @@ function legField(b){const a=legPrev(b);if(!a)return '';const l=leg(b),mode=l.mo
     '<div class="seg" id="seg-leg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
     '<div class="fld"><label for="e-cm">要多久</label><div class="legmin"><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+ph(mode)+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
     '<span class="hint2">分鐘數是 AI 估的，可以自己改；清空就交回 AI。</span></div>'}
-function bindLeg(root,st){bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
+function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0=ps.dataset.id,f0=root.querySelector('#e-posf');
+    root.querySelector('#seg-day').addEventListener('click',()=>setTimeout(()=>{ps.innerHTML=posOpts(st.day,it0,1);f0.hidden=!(st.day>0)},0));
+    ps.addEventListener('change',()=>{const sl=root.querySelector('#slot-wrap');if(sl)sl.closest('.fld').hidden=!!ps.value})}bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
   const ai=JSON.parse(f.dataset.ai||'{}');
   bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約 '+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
 function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
+  const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
   const oh=root.querySelector('#e-oh');if(oh){const v=oh.value.trim();if(v!==ohText(cur)){const m=ohParse(v);if(v===''){p.oh='';p.ol='';p.ohq=1}else if(m){p.oh=tfmt(m.o)+'-'+tfmt(m.c);p.ol=m.l!=null?tfmt(m.l):'';p.ohq=1}else toast('營業時間請寫成 10:00-21:00')}}
   const mv=root.querySelector('#e-mv');if(mv){const v=mv.value.trim(),man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),was=cur.mvMan==null||cur.mvMan===''?null:+cur.mvMan;if(man!==was)p.mvMan=man}const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from;
   if(!from){if(LEG_MODE(cur)!==st.legMode)p.cmMode=st.legMode;return}const v=root.querySelector('#e-cm').value.trim();
@@ -2504,7 +2511,7 @@ async function findMoves(){if(MV_BUSY||!S.sample||!S.canWrite)return;
   finally{MV_BUSY=false}}
 
 /* after adding: scroll to the new card and flash it, so you see where it landed (and which time it got) */
-function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=document.querySelector('.item[data-id="'+ids[0]+'"]');if(!el)return;el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1800)},80)}
+function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=document.querySelector('.col.active .item[data-id="'+ids[0]+'"],.col.active .crow[data-lid="'+ids[0]+'"]')||document.querySelector('.item[data-id="'+ids[0]+'"],.crow[data-lid="'+ids[0]+'"]');if(!el)return;el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1800)},80)}
 
 /* ---------- a start time for each day, and when the day ends ----------
    days/dN.dep = "07:30" (from the hotel). The first stop without a time is estimated from it; typed times still win.
@@ -2555,10 +2562,10 @@ async function findHours(){
    排在哪裡: 自動 (a typed time puts it after the last stop that starts no later; no time → end of its 時段, as before),
    排在最前面, or 在「X」之後. The slot is the first one at or after X's that fits the type (美食 → meals, others → 上午／下午／晚上). */
 const slotOk=(k,kind)=>kind==='food'?k in SLOT_MEAL:k in SLOT_PART;
-function posOpts(day){if(!(day>0))return '<option value="">自動</option>';
-  return '<option value="">自動（依時間或時段）</option><option value="first">排在最前面</option>'+
-    dayItems(day).map(x=>'<option value="'+esc(x.id)+'">在「'+esc(x.title.slice(0,16))+'」之後'+(x.time?'（'+esc(x.time)+'）':'')+'</option>').join('')}
-function placeFor(r,pos,slot){if(!r||!(r.day>0))return null;const its=dayItems(r.day),kind=r.kind;let after=null;
+function posOpts(day,skip,keep){if(!(day>0))return '<option value="">自動</option>';
+  return '<option value="">'+(keep?'不動（目前的位置）':'自動（依時間或時段）')+'</option><option value="first">排在最前面</option>'+
+    dayItems(day).filter(x=>x.id!==skip).map(x=>'<option value="'+esc(x.id)+'">在「'+esc(x.title.slice(0,16))+'」之後'+(x.time?'（'+esc(x.time)+'）':'')+'</option>').join('')}
+function placeFor(r,pos,slot,skip){if(!r||!(r.day>0))return null;const its=dayItems(r.day).filter(x=>x.id!==skip),kind=r.kind;let after=null;
   if(pos&&pos!=='first'){after=its.find(x=>x.id===pos)||null;if(!after)return null}
   else if(!pos){if(slot)return null;const t=tmin(r.time);if(t==null)return null;let any=false;
     for(const x of its){const xt=x.time?tmin(x.time):EST[x.id]!=null?EST[x.id]:null;if(xt==null)continue;any=true;if(xt<=t)after=x}
@@ -2605,6 +2612,9 @@ let AWAY_AT=0;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){AWAY_AT=Date.now();return}
   if(!AWAY_AT||Date.now()-AWAY_AT<30*60e3||document.querySelector('.sheet'))return;AWAY_AT=0;const tn=todayN();if(tn>=1&&tn<=NDAYS&&S.active!==tn)setActive(tn)});
 
+/* edit sheet: 排在哪裡 — move a stop anywhere (any day, after any stop) without dragging; 不動 keeps it where it is */
+function posField(it){return '<div class="fld" id="e-posf"'+(it.day>0?'':' hidden')+'><label for="e-pos">排在哪裡<span class="opt">選了就不用拖</span></label><select class="inp" id="e-pos" data-id="'+esc(it.id)+'">'+posOpts(it.day,it.id,1)+'</select></div>'}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2632,7 +2642,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.112';
+window.__BUILD='1.113';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
