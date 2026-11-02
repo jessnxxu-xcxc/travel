@@ -1158,6 +1158,12 @@ a.gonext.legnav{text-decoration:none}
 .pickadd .pk-i svg{width:20px;height:20px}
 .pickadd.pre .pk-i{width:36px;height:36px}.pickadd.pre .pk-i svg{width:18px;height:18px}
 .pickadd{margin-bottom:0}
+/* 導航 is a small pill like 今日路線 (ink outline, water fill, pin) */
+.legnav .navpill{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;height:24px;margin-left:8px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:var(--water);color:var(--ink);font-size:12px;font-weight:700;line-height:20px;white-space:nowrap;text-decoration:none}
+.legnav .navpill svg{width:14px;height:14px}
+/* edit sheet: everything shown, the extra fields after a divider */
+.sheet .more-flat{border-top:1.5px dashed rgba(62,58,57,.3);padding-top:16px}
+.sheet .more-flat>div{display:grid;gap:16px}
 
 </style>
 
@@ -1580,7 +1586,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
-    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、地區、營業時間</summary><div>'+
+    '<div class="more-flat"><div>'+
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
@@ -1589,7 +1595,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
     '<div class="fld"><label for="e-map">Google 地圖連結</label><input class="inp" id="e-map" inputmode="url" placeholder="貼上地圖分享連結" value="'+esc(it.map)+'"></div>'+
     (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
-    '</div></details>'+
+    '</div></div>'+
     '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="e-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="e-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="e-save">儲存</button>')+'</div>',
   root=>{
     if(ro)root.querySelectorAll('input,textarea').forEach(x=>x.readOnly=true);
@@ -2369,7 +2375,7 @@ function leg(b){const a=legPrev(b);if(!a)return null;const mode=LEG_MODE(b),nl=n
 const legUrl=(a,b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&origin='+encodeURIComponent(placeQuery(a))+'&destination='+encodeURIComponent(placeQuery(b));
 const legText=l=>{const m=TMODES.find(x=>x[0]===l.mode);return TM_ICON[l.mode]+' '+(m?m[1]:'')+(l.min!=null?'・約 '+l.min+' 分':'')};
 function legLine(b,lead){const l=leg(b);if(!l)return '';const u=navUrl(b,l.mode);
-  return '<a class="gonext legbtn legnav" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖導航到「'+esc(b.title)+'」"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="legarr">導航 ↗</span></a>'}
+  return '<a class="gonext legbtn legnav" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖導航到「'+esc(b.title)+'」"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="navpill">'+PIN+'導航</span></a>'}
 /* tap the line → Google Maps directions from where you are now (no origin = current location) */
 const navUrl=(b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&destination='+encodeURIComponent(placeQuery(b));
 /* the last line of a card: how you get to the next stop */
@@ -2611,7 +2617,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.109';
+window.__BUILD='1.110';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
