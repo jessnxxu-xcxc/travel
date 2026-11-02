@@ -1184,6 +1184,21 @@ a.gonext.legnav{text-decoration:none}
 .strip .chip.past::before{border-top:3px solid var(--coral)!important;opacity:1!important;top:24px!important}
 .strip .chip.past:not(.active) .c-d{color:var(--muted)!important}
 .strip .chip.past:not(.active) .c-w{opacity:.6}
+/* even px everywhere (min 12px text): odd sizes and 1px/3px paddings rounded to the next even value, heights kept */
+.whoami b{font-size:14px!important}
+.pass .fly .fn{font-size:16px!important}
+.tl .slot-h b{font-size:14px!important}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle,.item.no-loc .ititle{font-size:16px!important}
+.pickadd .pk b{font-size:16px}
+.m{font-size:14px!important}
+.kind{padding:0 8px!important;line-height:20px!important}
+.item.is-move .imeta .kind.tmode{gap:4px!important}
+.icon-btn,.sheet-x{padding:0!important}
+.pass-meta div{gap:2px!important}
+.mapl{padding:0 8px 0 6px!important}
+.viewseg{padding:4px!important}
+.col-n{padding:2px 12px!important}
+.tcard .tst{padding:2px 10px!important}
 
 </style>
 
@@ -2665,7 +2680,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.116';
+window.__BUILD='1.117';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
