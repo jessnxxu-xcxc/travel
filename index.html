@@ -1174,16 +1174,17 @@ a.gonext.legnav{text-decoration:none}
 .dstrip{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:0!important;row-gap:8px;overflow:visible!important;scroll-snap-type:none;padding:4px 0 4px!important}
 .dstrip button{min-width:0!important;width:100%}
 .dstrip .n{width:min(42px,calc(100% - 4px))!important;height:auto!important;aspect-ratio:1}
-/* 出發前 lists get their type-and-Enter box back, on top of the list */
-.col[data-col="0"] .addrow{display:flex!important}
 .dsec .addrow+.clist,.dsec .addrow+.pool-help{margin-top:10px}
 /* 最近更新 inside 搜尋 */
 .sres .recent-h{font-size:12px;font-weight:700;color:var(--muted);margin:4px 0 2px}
-/* 今日花費 vs budget */
-.dsec-h .dbud{flex-basis:100%;color:var(--muted)}
-.dsec-h .dbud.over{color:var(--warn);font-weight:700}
 /* 哪一天: circles sit close together like a calendar (columns no wider than a circle + a little), not spread across a wide sheet */
 .dstrip{grid-template-columns:repeat(7,minmax(0,48px))!important;column-gap:6px!important;justify-content:start}
+/* days already behind you: visited stops on the route — filled dot, the line walked in coral, the date in grey */
+.strip .chip.past:not(.active)::after{background:var(--ink)}
+.strip .chip.past::before{border-top:3px solid var(--coral)!important;opacity:1!important;top:24px!important}
+.strip .chip.past:not(.active) .c-d{color:var(--muted)!important}
+.strip .chip.past:not(.active) .c-w{opacity:.6}
+.col-n em.past{font-style:normal;color:var(--muted)}
 
 </style>
 
@@ -1327,7 +1328,7 @@ function renderStrip(){const tn=todayN();let h='';
       const prep=[...S.lists.values()].filter(r=>!r.done&&(r.type==='pack'||r.type==='book'||r.type==='ticket'||!(r.day>0))).length+[...S.items.values()].filter(i=>i.day===0&&!i.done).length;
       h+='<button type="button" class="chip pool'+(S.active===0?' active':'')+'" data-day="0" aria-label="出發前準備，還有 '+prep+' 項">'+dots(0)+'<span class="c-w">出發前</span><span class="c-d"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 4-4M8 15h8"/></svg></span><span class="c-left">'+(prep?'還有 '+prep+' 項':'都好了 ✓')+'</span></button><span class="c-month">'+(START.getMonth()+1)+'月</span>';continue}
     const d=dayDate(n),wd=d.getDay(),np=dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length;
-    h+='<button type="button" class="chip'+(S.active===n?' active':'')+(tn===n?' today':'')+(wd===0||wd===6?' wkend':'')+'" data-day="'+n+'" aria-label="'+md(d)+' 週'+WK[wd]+' Day '+n+'">'+dots(n)+'<span class="c-w">'+(tn===n?'今天':WK[wd])+'</span><span class="c-d">'+d.getDate()+'</span><span class="c-dots">'+'<i></i>'.repeat(Math.min(3,Math.ceil(np/2)))+'</span></button>'}
+    h+='<button type="button" class="chip'+(S.active===n?' active':'')+(tn===n?' today':'')+(tn>n&&tn>=1?' past':'')+(wd===0||wd===6?' wkend':'')+'" data-day="'+n+'" aria-label="'+md(d)+' 週'+WK[wd]+' Day '+n+'">'+dots(n)+'<span class="c-w">'+(tn===n?'今天':WK[wd])+'</span><span class="c-d">'+d.getDate()+'</span><span class="c-dots">'+'<i></i>'.repeat(Math.min(3,Math.ceil(np/2)))+'</span></button>'}
   const st=$('#strip'),sl=st.scrollLeft;st.innerHTML=h;st.scrollLeft=sl;
   if(!S.stripInit&&st.clientWidth){S.stripInit=true;const c=st.querySelector('.chip.active');if(c)st.scrollLeft=c.offsetLeft-st.offsetLeft-st.clientWidth/2+c.offsetWidth/2}}
 
@@ -1359,7 +1360,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
       '<section class="dsec" data-sec="pool"><div class="dsec-h">'+dicon('pin')+'<b>口袋名單</b></div><p class="pool-help">還沒決定哪天去的店或景點先記在這裡（備選）。行程有空檔時，把它<b>拖到某一天</b>，或點開改「哪一天」。</p>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+(S.canWrite?'<form class="addrow pooladd"><input class="inp" id="add-pool-0" aria-label="新增到口袋名單" placeholder="＋ 新增：teamLab、阿美橫丁的某家店" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section></section>';continue}
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
-      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
+      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':tn>n&&tn>=1?'<em class="past">・已走過</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
       (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增」→「行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
@@ -1380,7 +1381,7 @@ function daySections(n,part){const rate=+S.meta.rate||0;
   const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
   return (part==='money'?'':'<section class="dsec dsec-todo">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
       (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>')+
-    (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button>'+dayBudHTML(n,sum,rate)+'</div>'+
+    (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
       (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>')}
 function renderMbar(){const m=money(),el=$('#mbar');const tx=m.tx[0];
   el.innerHTML='<span>旅費 <b>'+ntd(m.total*(+S.meta.rate||0))+'</b>'+(m.total?(+S.meta.budget?' <small>剩 '+ntd(Math.max(0,+S.meta.budget-m.total)*(+S.meta.rate||0))+'</small>':''):' <small>還沒記帳</small>')+'</span>'}
@@ -1707,7 +1708,7 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
     '<div class="fld"><span class="lbl">怎麼付</span><div class="seg" id="seg-pay">'+PAYS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.pay===k)+'">'+l+'</button>').join('')+'</div></div>'+
     '<div class="fld"><span class="lbl">收據／照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><span class="lbl">這筆是誰的</span><div class="seg" id="seg-own"><button type="button" data-v="" aria-pressed="'+(!st.own)+'">💰旅遊基金</button>'+[...new Set(S.meta.people.concat(st.own?[st.own]:[]))].map(p=>'<button type="button" data-v="'+esc(p)+'" aria-pressed="'+(st.own===p)+'">'+esc(p)+'</button>').join('')+'</div>'+(ro?'':'<input class="inp own-new" id="x-ownnew" placeholder="其他人：輸入名字（例：老公）" autocomplete="off">')+'<small class="rolehint">吃喝玩樂、門票、交通選「💰旅遊基金」；個人的購物選名字</small></div>'+
-    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'出發前')+'</div>'+
+    (!id&&pre&&pre.day>0?'':'<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'出發前')+'</div>')+
     '<div class="btns">'+(id&&!ro?'<button type="button" class="btn danger" id="x-del">刪除</button>':'')+'<span class="sp"></span><button type="button" class="btn" id="x-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="x-save">'+(id?'儲存':'記一筆')+'</button>')+'</div>',
   root=>{const q=k=>root.querySelector('#x-'+k);if(ro)root.querySelectorAll('input').forEach(x=>x.readOnly=true);
     const hint=()=>{const a=parseAmt(q('amt').value),r=+S.meta.rate||0;q('ntd').textContent=a>0?(st.cur==='TWD'?'≈ '+yen(r?a/r:0):'≈ '+ntd(a*r)):''};hint();q('amt').addEventListener('input',hint);
@@ -2169,7 +2170,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
     '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
     (S.assets?'<div class="fld" id="a-photof"><span class="lbl">照片<span class="opt">選填，IG、Google 地圖的截圖也可以</span></span>'+photosHTML([],false)+'</div>':'')+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
-    '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
+    (def.day>0?'':'<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>')+  /* added from a trip day: it goes on that day */
     '<div class="fld" id="a-posf"'+(d.day===0?' hidden':'')+'><label for="a-pos">排在哪裡<span class="opt">選了就不用再拖</span></label><select class="inp" id="a-pos">'+posOpts(d.day)+'</select></div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
@@ -2635,12 +2636,6 @@ function recentHTML(){const rows=[];
   if(!rows.length)return '<div class="empty">打字搜尋店名、地區、清單、花費。之後誰加了或改了什麼，也會列在這裡。</div>';
   return '<div class="recent-h">最近更新</div>'+rows.slice(0,20).map(r=>'<button type="button" data-k="'+r.k+'" data-id="'+esc(r.id)+'"><b>'+esc(r.t)+'</b><span>'+esc(whoName(r.it._by))+(r.it._act==='add'?' 加了':' 改了')+'・'+ago(r.it._at)+'・'+esc(r.w)+'</span></button>').join('')}
 
-/* ---------- 今日花費 vs the budget ----------
-   the trip-days' share of the budget: (budget − what was paid before the trip) ÷ number of days */
-function dayBudHTML(n,sum,rate){const bud=+S.meta.budget||0;if(!(n>0)||!bud)return '';
-  const pre=[...S.exps.values()].filter(e=>!(e.day>0)).reduce((s,e)=>s+(+e.amount||0),0),per=Math.max(0,Math.round((bud-pre)/NDAYS));if(!per)return '';
-  const left=per-sum,m=v=>rate?ntd(v*rate):yen(v);return '<small class="dbud'+(left<0?' over':'')+'">每天預算 '+m(per)+'・'+(left>=0?'還剩 '+m(left):'超過 '+m(-left))+'</small>'}
-
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2668,7 +2663,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.114';
+window.__BUILD='1.115';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
