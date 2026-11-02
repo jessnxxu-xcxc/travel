@@ -1147,6 +1147,9 @@ a.gonext.legnav{text-decoration:none}
 /* forecast says rain: a blue chip with 記得帶傘 (may wrap on a narrow phone) */
 .wx.wx-wet{border-color:#2B6F8F;background:#E8F2F8;white-space:normal;height:auto!important;min-height:24px;max-width:100%}
 .wx.wx-wet b{font-weight:700;color:#2B6F8F;white-space:nowrap}
+/* a checklist row shows only the first photo: a "3 張" badge says there are more (the old "+N" only appeared past three) */
+.clist .crow .ithumbs>span{display:none!important}
+.clist .crow .ithumbs:not([data-n="1"])::after{content:attr(data-n) ' 張';position:absolute;right:4px;bottom:4px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.92);font-size:12px;line-height:18px;color:var(--ink)}
 
 </style>
 
@@ -1294,7 +1297,7 @@ function renderStrip(){const tn=todayN();let h='';
   const st=$('#strip'),sl=st.scrollLeft;st.innerHTML=h;st.scrollLeft=sl;
   if(!S.stripInit&&st.clientWidth){S.stripInit=true;const c=st.querySelector('.chip.active');if(c)st.scrollLeft=c.offsetLeft-st.offsetLeft-st.clientWidth/2+c.offsetWidth/2}}
 
-function thumbs(ids){if(!ids||!ids.length)return '';return '<span class="ithumbs">'+ids.slice(0,3).map(id=>'<img src="'+esc(photoSrc(id))+'" alt="" loading="lazy">').join('')+(ids.length>3?'<span>+'+(ids.length-3)+'</span>':'')+'</span>'}
+function thumbs(ids){if(!ids||!ids.length)return '';return '<span class="ithumbs" data-n="'+ids.length+'">'+ids.slice(0,3).map(id=>'<img src="'+esc(photoSrc(id))+'" alt="" loading="lazy">').join('')+(ids.length>3?'<span>+'+(ids.length-3)+'</span>':'')+'</span>'}
 function itemHTML(it){
   const showMap=PLACE_KINDS.includes(it.kind)&&!!(it.area||it.q)||!!safeUrl(it.map);
   return '<div class="item is-'+esc(KIND_L[it.kind]?it.kind:'spot')+'" data-id="'+esc(it.id)+'">'+
@@ -1562,17 +1565,17 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
     '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+
     '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
+    '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     (ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
-    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、地區、營業時間</summary><div>'+
+    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、地區、營業時間</summary><div>'+
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
-    '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div>'+
     (ro?'':ohField(it))+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
@@ -2118,6 +2121,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
     '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
+    (S.assets?'<div class="fld" id="a-photof"><span class="lbl">照片<span class="opt">選填，IG、Google 地圖的截圖也可以</span></span>'+photosHTML([],false)+'</div>':'')+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
     '<div class="fld" id="a-posf"'+(d.day===0?' hidden':'')+'><label for="a-pos">排在哪裡<span class="opt">選了就不用再拖</span></label><select class="inp" id="a-pos">'+posOpts(d.day)+'</select></div>'+
@@ -2126,9 +2130,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(k==='train')+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
-      (S.assets?'<details class="more amore" id="a-more"><summary>更多：照片</summary><div>'+
-      '<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>'+
-      '</div></details>':'')+
+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
     '<div class="preview" id="a-pv"></div>'+
     '<div class="btns"><button type="button" class="btn pri block" id="a-ok" disabled>'+(d.day===0?'加入口袋':'加入行程')+'</button></div>',
@@ -2147,7 +2149,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       tm.placeholder=d.day>0&&ENDCUR[d.day]!=null?'自動 約 '+tfmt(ENDCUR[d.day]):'開始 15:00';
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'||g==='todo'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
-      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-notef').hidden=!one;
+      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-notef').hidden=!one;{const pf=root.querySelector('#a-photof');if(pf)pf.hidden=!one}
       root.querySelector('#a-posf').hidden=d.day===0||!one;root.querySelector('#a-slot').hidden=!!(one&&d.pos&&d.day>0);root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
@@ -2590,7 +2592,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.107';
+window.__BUILD='1.108';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
