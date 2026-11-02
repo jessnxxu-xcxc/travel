@@ -1537,17 +1537,17 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
   const st={day:it.day,slot:it.slot,kind:it.kind||'spot',photos:(it.photos||[]).slice(),must:!!it.must};
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
     '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
+    '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
-    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、備註、地區</summary><div>'+
+    '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、地區、營業時間</summary><div>'+
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
-    '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
     '<div class="fld"><label for="e-area">地區</label><input class="inp" id="e-area" placeholder="例 澀谷" value="'+esc(it.area)+'"></div>'+
     (ro?'':ohField(it))+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
@@ -2080,17 +2080,18 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
   const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+slotKeys(d.sfam||'',d.slot).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵、小町通商店街"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
+    '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>'+
+    '<div class="fld" id="a-posf"'+(d.day===0?' hidden':'')+'><label for="a-pos">排在哪裡<span class="opt">選了就不用再拖</span></label><select class="inp" id="a-pos">'+posOpts(d.day)+'</select></div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
       '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(k==='train')+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
-      '<details class="more amore" id="a-more"><summary>更多：備註、照片</summary><div>'+
-      '<div class="fld"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
-      (S.assets?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
-      '</div></details>'+
+      (S.assets?'<details class="more amore" id="a-more"><summary>更多：照片</summary><div>'+
+      '<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>'+
+      '</div></details>':'')+
     '</div><p class="hint2" id="a-multi" hidden>一次加很多個時，類型、時間、備註、照片請加完再點開個別填。</p>'+
     '<div class="preview" id="a-pv"></div>'+
     '<div class="btns"><button type="button" class="btn pri block" id="a-ok" disabled>'+(d.day===0?'加入口袋':'加入行程')+'</button></div>',
@@ -2109,17 +2110,20 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       tm.placeholder=d.day>0&&ENDCUR[d.day]!=null?'自動 約 '+tfmt(ENDCUR[d.day]):'開始 15:00';
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'||g==='todo'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
-      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-multi').hidden=one;
+      root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-notef').hidden=!one;
+      root.querySelector('#a-posf').hidden=d.day===0||!one;root.querySelector('#a-slot').hidden=!!(one&&d.pos&&d.day>0);root.querySelector('#a-multi').hidden=one;
       pv.innerHTML=rows.map(r=>'<div class="pvc"><b>'+esc(r.title)+'</b><span class="kind k-'+r.kind+'">'+KIND_L[r.kind]+'</span><span class="imeta">'+(r.time||ends[rows.indexOf(r)]?'<span class="itime">'+(r.time||'～')+(ends[rows.indexOf(r)]?(r.time?'–':'')+ends[rows.indexOf(r)]:'')+'</span>':'')+
         '<span>'+(r.day?'Day '+r.day+'・'+md(dayDate(r.day))+'・'+SLOT_L[r.slot]:'口袋名單')+'</span>'+(r.area?'<span>'+esc(r.area)+'</span>':'')+(r.map?'<span class="mapl">'+PIN+'地圖</span>':'')+'</span></div>').join('');
       const isTodo=d.day>0&&(d.kindPicked&&rows.length<=1?d.kind==='todo':rows.length>0&&rows.every(r=>r.kind==='todo'));d.isTodo=isTodo;
-      root.querySelector('#a-slot').hidden=isTodo;root.querySelector('#a-timef').hidden=isTodo||d.day===0;
+      if(isTodo)root.querySelector('#a-slot').hidden=true;root.querySelector('#a-timef').hidden=isTodo||d.day===0;
+      {const pl=one&&rows[0]&&d.day>0?placeFor(rows[0],d.pos,d.slot):null,ps=root.querySelector('#a-pos');if(ps&&ps.options[0])ps.options[0].textContent=pl&&pl.after?'自動：排在「'+pl.after.title.slice(0,14)+'」之後':'自動（依時間或時段）'}
       ok.disabled=!rows.length;ok.textContent=isTodo?(rows.length>1?'加入 '+rows.length+' 個待辦':'加入待辦'):d.day===0?(rows.length>1?'加入 '+rows.length+' 個到口袋':'加入口袋'):(rows.length>1?'加入 '+rows.length+' 個行程':'加入行程')};
     const bindSlot=()=>{const g=root.querySelector('#seg-aslot');if(!g)return;g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
       d.slot=d.slot===b.dataset.v?null:b.dataset.v;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===d.slot)));upd()})};
     ta.addEventListener('input',()=>{grow();upd()});tm.addEventListener('input',upd);en.addEventListener('input',upd);nt.addEventListener('input',upd);
     ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();ok.click()}});
-    bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot();root.querySelector('#a-timef').hidden=d.day===0;
+    root.querySelector('#a-pos').addEventListener('change',e=>{d.pos=e.target.value;upd()});
+    bindSeg(root,'seg-day',v=>{const was=d.day;d.day=+v;d.pos='';root.querySelector('#a-pos').innerHTML=posOpts(d.day);if((was===0)!==(d.day===0)){if(d.day===0)d.slot=null;root.querySelector('#a-slot').innerHTML=slotChips();bindSlot();root.querySelector('#a-timef').hidden=d.day===0;
         if(d.day===0&&d.kind&&!PLACE_KINDS.includes(d.kind)){d.kind='';d.kindPicked=false}root.querySelector('#a-kind').innerHTML=kindChips();bindKind()}upd()});
     const bindKind=()=>bindSeg(root,'seg-akind',v=>{d.kind=v;d.kindPicked=true;d.tmPicked=false;upd()});bindKind();bindSeg(root,'seg-atm',v=>{d.tm=v;d.tmPicked=true;upd()});bindSeg(root,'seg-alg',v=>{d.leg=v});bindSlot();
     bindPhotos(root,()=>d.photos,ids=>{d.photos=ids});
@@ -2130,8 +2134,8 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       if(en.value.trim()&&tmin(normT(en.value))==null){toast('時間請寫成 15:00 這樣');en.focus();return}
       if(tm.value.trim()&&en.value.trim()&&tmin(normT(en.value))<=tmin(normT(tm.value))){toast('結束時間要比開始晚');en.focus();return}
       if(root.querySelector('.ph-busy')){toast('照片還在上傳，等一下');return}
-      const pics=rows.length===1?d.photos.slice():[],endsNow=ends.slice();closeSheet();const ids=addItems(rows);
-      if(ids&&ids.length===1){const cur=S.items.get(ids[0]),p={};if(cur&&cur.kind==='move'&&d.tmPicked&&d.tm)p.tm=d.tm;if(cur&&cur.kind!=='move'&&d.leg&&d.leg!=='train')p.cmMode=d.leg;
+      const pics=rows.length===1?d.photos.slice():[],endsNow=ends.slice(),pl=rows.length===1&&rows[0].day>0?placeFor(rows[0],d.pos,d.slot):null;closeSheet();const ids=addItems(rows);
+      if(ids&&ids.length===1){const cur=S.items.get(ids[0]),p={};if(pl){p.slot=pl.slot;p.order=pl.order}if(cur&&cur.kind==='move'&&d.tmPicked&&d.tm)p.tm=d.tm;if(cur&&cur.kind!=='move'&&d.leg&&d.leg!=='train')p.cmMode=d.leg;
         if(cur&&Object.keys(p).length){S.items.set(ids[0],Object.assign({},cur,p));queue('items'+ids[0],()=>ref('items',ids[0]).update(p))}}
       if(ids)ids.forEach((id,i)=>{const e=endsNow[i],cur=S.items.get(id);if(e&&cur&&(!cur.time||tmin(e)>tmin(cur.time))){S.items.set(id,Object.assign({},cur,{end:e}));queue('items'+id,()=>ref('items',id).update({end:e}))}});render();
       if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}
@@ -2479,6 +2483,25 @@ async function findHours(){
     render()}}
   finally{OH_BUSY=false}}
 
+/* ---------- 新增: where the new stop goes, so it doesn't have to be dragged afterwards ----------
+   排在哪裡: 自動 (a typed time puts it after the last stop that starts no later; no time → end of its 時段, as before),
+   排在最前面, or 在「X」之後. The slot is the first one at or after X's that fits the type (美食 → meals, others → 上午／下午／晚上). */
+const slotOk=(k,kind)=>kind==='food'?k in SLOT_MEAL:k in SLOT_PART;
+function posOpts(day){if(!(day>0))return '<option value="">自動</option>';
+  return '<option value="">自動（依時間或時段）</option><option value="first">排在最前面</option>'+
+    dayItems(day).map(x=>'<option value="'+esc(x.id)+'">在「'+esc(x.title.slice(0,16))+'」之後'+(x.time?'（'+esc(x.time)+'）':'')+'</option>').join('')}
+function placeFor(r,pos,slot){if(!r||!(r.day>0))return null;const its=dayItems(r.day),kind=r.kind;let after=null;
+  if(pos&&pos!=='first'){after=its.find(x=>x.id===pos)||null;if(!after)return null}
+  else if(!pos){if(slot)return null;const t=tmin(r.time);if(t==null)return null;let any=false;
+    for(const x of its){const xt=x.time?tmin(x.time):EST[x.id]!=null?EST[x.id]:null;if(xt==null)continue;any=true;if(xt<=t)after=x}
+    if(!any)return null}
+  const ai=after?SLOT_I[after.slot]:0;let ts=SLOTS.find((s,i)=>i>=ai&&slotOk(s.k,kind)),tail=false;
+  if(!ts){ts=[...SLOTS].reverse().find(s=>slotOk(s.k,kind));tail=true}if(!ts)return null;
+  const inTs=its.filter(x=>x.slot===ts.k);let P=null,N=null;
+  if(tail)P=inTs[inTs.length-1]||null;else if(after&&after.slot===ts.k){P=after;N=inTs[inTs.indexOf(after)+1]||null}else N=inTs[0]||null;
+  const order=P&&N?(P.order+N.order)/2:P?P.order+1000:N?N.order-1000:1000;
+  return {slot:ts.k,order,after}}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2506,7 +2529,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.98';
+window.__BUILD='1.99';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
