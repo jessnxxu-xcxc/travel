@@ -1144,6 +1144,9 @@ a.gonext.legnav{text-decoration:none}
 /* 備註 on a place card takes the 簡介's line: same size, one line, marked as yours */
 .item.is-food .inote,.item.is-spot .inote,.item.is-shop .inote,.item.is-facility .inote{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.65;color:var(--ink)}
 .item.is-food .inote::before,.item.is-spot .inote::before,.item.is-shop .inote::before,.item.is-facility .inote::before{content:'📝 '}
+/* forecast says rain: a blue chip with 記得帶傘 (may wrap on a narrow phone) */
+.wx.wx-wet{border-color:#2B6F8F;background:#E8F2F8;white-space:normal;height:auto!important;min-height:24px;max-width:100%}
+.wx.wx-wet b{font-weight:700;color:#2B6F8F;white-space:nowrap}
 
 </style>
 
@@ -1877,8 +1880,11 @@ const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+Stri
 /* weather: Open-Meteo (free, no key). Within 16 days of today → forecast; otherwise → same dates last year as a hint. */
 const WXI=c=>c===0?['☀️','晴']:c<=2?['🌤️','晴時多雲']:c===3?['☁️','陰']:c<=48?['🌫️','霧']:c<=57?['🌦️','毛毛雨']:c<=67?['🌧️','雨']:c<=77?['🌨️','雪']:c<=82?['🌧️','陣雨']:c<=86?['🌨️','陣雪']:['⛈️','雷雨'];
 const WX={days:{},kind:''};
-function wxChip(n){const w=WX.days[ymd(dayDate(n))];if(!w)return '';const [ic,lb]=WXI(w.c),past=w.kind==='past';
-  return '<span class="wx'+(past?' wx-past':'')+'" title="'+(past?'去年同一天的天氣，僅供參考':'天氣預報')+'">'+(past?'<small>去年</small>':'')+'<i aria-hidden="true">'+ic+'</i>'+lb+' '+Math.round(w.hi)+'°/'+Math.round(w.lo)+'°'+(w.p!=null&&!past?' <small>☂'+w.p+'%</small>':'')+'</span>'}
+/* a forecast day that looks wet (rain/snow code, or ≥50% chance) says so: "☂ 70%・記得帶傘" */
+const wxWet=w=>w&&w.kind!=='past'&&(w.c>=51||(w.p!=null&&w.p>=50));
+function wxChip(n){const w=WX.days[ymd(dayDate(n))];if(!w)return '';const [ic,lb]=WXI(w.c),past=w.kind==='past',wet=wxWet(w);
+  return '<span class="wx'+(past?' wx-past':' wx-fc')+(wet?' wx-wet':'')+'" title="'+(past?'去年同一天的天氣，僅供參考':'天氣預報（出發前 16 天內會自動更新）')+'"><small>'+(past?'去年':'預報')+'</small><i aria-hidden="true">'+ic+'</i>'+lb+' '+Math.round(w.hi)+'°/'+Math.round(w.lo)+'°'+
+    (wet?' <b>☂'+(w.p!=null?' '+w.p+'%':'')+'・記得帶傘</b>':w.p!=null&&!past?' <small>☂'+w.p+'%</small>':'')+'</span>'}
 async function loadWeather(){
   if(!T.dest&&!(T.lat&&T.lon))return;
   const key=T.id+'-wx2',c=XLS.get(key);if(c&&Date.now()-c.at<3*36e5){Object.assign(WX,c.wx);render();return}
@@ -2584,7 +2590,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.106';
+window.__BUILD='1.107';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
