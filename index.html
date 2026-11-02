@@ -1916,7 +1916,7 @@ function openRoute(n){
   for(let i=0;i<seq.length-1;i++)legs.push([seq[i],seq[i+1]]);
   const row=(a,b)=>'<a class="leg" href="'+esc(transit(a.q,b.q))+'" target="_blank" rel="noopener"><span class="leg-i">🚃</span><span class="leg-t"><b>'+esc(a.title)+'</b><span class="leg-a">→</span><b>'+esc(b.title)+'</b></span><span class="leg-go">路線</span></a>';
   openSheet('<h2>Day '+n+' 怎麼走</h2><p class="hint2">每一段點下去會打開 Google 地圖的電車路線。</p>'+
-    (S.sample&&canWrite()&&dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length>=3?'<button type="button" class="btn ai" id="ord-ai" data-day="'+n+'">✨ 幫我排順序</button><div id="ord-box"></div>':'')+
+    (S.sample&&S.canWrite&&dayItems(n).filter(i=>PLACE_KINDS.includes(i.kind)).length>=3?'<button type="button" class="btn ai" id="ord-ai" data-day="'+n+'">✨ 幫我排順序</button><div id="ord-box"></div>':'')+
     (legs.length?'<div class="legs">'+legs.map(([a,b])=>row(a,b)).join('')+'</div>':'<div class="empty">這天還沒有地點</div>')+
     (routeUrlH(n)?'<a class="btn block leg-all" href="'+esc(routeUrlH(n))+'" target="_blank" rel="noopener">🗺️ 看整天全貌（多點地圖）</a>':''))}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.route[data-rd]');if(!a)return;e.preventDefault();e.stopPropagation();openRoute(+a.dataset.rd)},true);
@@ -2037,7 +2037,7 @@ async function wikiPics(titles){
   const img={};Object.values(q.pages||{}).forEach(p=>{if(p.thumbnail&&p.thumbnail.source)img[p.title]=p.thumbnail.source});
   return t=>{let k=t,n=0;while(fwd[k]&&n++<3)k=fwd[k];return img[k]||''}}
 async function findPics(){
-  if(PIC_BUSY||!S.sample||!canWrite())return;
+  if(PIC_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic===undefined&&it.title&&(it.area||it.q||it.map||it.aq!==undefined)).slice(0,60);
   if(!todo.length)return;PIC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
@@ -2055,7 +2055,7 @@ async function findPics(){
    aq marks "already asked" so each item is asked once; '' back from AI = not a findable place (飛機餐) and it stays a plain row. */
 let AREA_BUSY=false;
 async function findAreas(){
-  if(AREA_BUSY||!S.sample||!canWrite())return;
+  if(AREA_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.area&&!it.q&&!safeUrl(it.map)&&it.aq===undefined).slice(0,40);
   if(!todo.length)return;AREA_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
@@ -2149,7 +2149,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
 /* places without a 簡介 get one from AI (same rules as the ✨ AI 寫簡介 button); dq marks "already asked", '' back = AI wasn't sure, left empty */
 let DESC_BUSY=false;
 async function findDescs(){
-  if(DESC_BUSY||!S.sample||!canWrite())return;
+  if(DESC_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map)||it.aq!==undefined)&&it.dq===undefined).slice(0,30);
   if(!todo.length)return;DESC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
@@ -2167,7 +2167,7 @@ async function findDescs(){
    closed = weekday characters like "三" or "一二", '' = open every day or not sure; cq marks "already asked". */
 let CLOSED_BUSY=false;
 async function findClosed(){
-  if(CLOSED_BUSY||!S.sample||!canWrite())return;
+  if(CLOSED_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.cq===undefined).slice(0,40);
   if(!todo.length)return;CLOSED_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
@@ -2188,7 +2188,7 @@ function closedWarn(it){const c=[...new Set((it.closed||'')+noteClosed(it))].joi
 let DUPS={},DUP_BUSY=false;
 try{DUPS=(JSON.parse(localStorage.getItem(T.id+'-dups')||'{}').map)||{}}catch(e){DUPS={}}
 async function findDups(){
-  if(DUP_BUSY||!S.sample||!canWrite())return;
+  if(DUP_BUSY||!S.sample||!S.canWrite)return;
   const rows=[...S.lists.values()].filter(r=>['todo','book','ticket','buy'].includes(r.type)&&!r.done&&r.title).sort((a,b)=>a.id.localeCompare(b.id));
   const sig=rows.map(r=>r.id+':'+(r.day||0)+':'+r.title).join('|');let prev='';try{prev=JSON.parse(localStorage.getItem(T.id+'-dups')||'{}').sig||''}catch(e){}
   if(sig===prev)return;
@@ -2276,7 +2276,7 @@ function timeHTML0(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=nul
 /* AI: minutes by public transport and by taxi for every pair of stops it hasn't seen yet */
 let CM_BUSY=false;const CM_TRIED=new Set();
 async function findCommutes(){
-  if(CM_BUSY||!S.sample||!canWrite())return;buildNext();buildEst();
+  if(CM_BUSY||!S.sample||!S.canWrite)return;buildNext();buildEst();
   const pairs=[];for(const it of S.items.values()){const a=legPrev(it);if(!a)continue;const k=legKey(a,it);
     if((it.cmFrom!==a.id||it.cmT==null||it.cmW==null||(it.cmK&&it.cmK!==k))&&!CM_TRIED.has(it.id+'>'+k))pairs.push([a,it])}
   if(!pairs.length)return;CM_BUSY=true;
@@ -2429,7 +2429,7 @@ function moveMinField(it){const d=moveMin(it),man=it.mvMan!=null&&it.mvMan!==''?
   return '<div class="fld"><label for="e-mv">要多久</label><div class="legmin"><input class="inp" id="e-mv" inputmode="numeric" placeholder="'+esc(ph)+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
     '<span class="hint2">有填時間就自動算，沒有就交給 AI；也可以自己填，清空就交回自動。</span></div>'}
 let MV_BUSY=false;const MV_TRIED=new Set();
-async function findMoves(){if(MV_BUSY||!S.sample||!canWrite())return;
+async function findMoves(){if(MV_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>it.kind==='move'&&it.day>0&&it.title&&moveMin(it).min==null&&!MV_TRIED.has(it.id+'>'+moveKey(it))).slice(0,20);
   if(!todo.length)return;MV_BUSY=true;
   try{todo.forEach(it=>MV_TRIED.add(it.id+'>'+moveKey(it)));
@@ -2449,7 +2449,7 @@ function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=docu
    days/dN.dep = "07:30" (from the hotel). The first stop without a time is estimated from it; typed times still win.
    The day header shows "🏨 07:30 出發・預計 21:40 結束" (a day that runs past 22:00 is flagged). Tap it to change. */
 const dayDep=n=>{const v=(S.days.get('d'+n)||{}).dep;return tmin(v)!=null?v:''};
-function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],late=e!=null&&e>22*60;if(!dep&&e==null&&!canWrite())return '';
+function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],late=e!=null&&e>22*60;if(!dep&&e==null&&!S.canWrite)return '';
   const t=(dep?'🏨 '+dep+' 出發':'＋ 出發時間')+(e!=null&&e<1440?'・預計 '+tfmt(e)+' 結束':'');
   return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?'・可能太滿':'')+'</button>'}
 function openDayTitle(n){if(!canWrite())return;const d=S.days.get('d'+n)||{},cur=d.title||'';S.readSheet=false;
@@ -2476,7 +2476,7 @@ function ohWarn(it){if(!it||!it.oh||!PLACE_KINDS.includes(it.kind))return '';con
   return m?'<span class="tbad" title="營業時間 '+esc(ohText(it))+'（AI 估的，可能不準，點進去可以改）">'+m+'</span>':''}
 let OH_BUSY=false;
 async function findHours(){
-  if(OH_BUSY||!S.sample||!canWrite())return;
+  if(OH_BUSY||!S.sample||!S.canWrite)return;
   const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.ohq===undefined).slice(0,40);
   if(!todo.length)return;OH_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
@@ -2532,7 +2532,7 @@ const SHOP_STOP=/^(燒肉|餐廳|本店|分店|訂位|預約|晚餐|午餐|早�
 const shopWords=t=>String(t||'').split(/[\s・、,，（）()／\/：:]+/).filter(w=>w.length>=2&&!SHOP_STOP.test(w));
 const sameShop=(a,b)=>shopWords(a).some(w=>String(b).includes(w))||shopWords(b).some(w=>String(a).includes(w));
 const needBook=it=>PLACE_KINDS.includes(it.kind)&&NEED_BOOK.test(String(it.note||''))&&!NO_BOOK.test(String(it.note||''));
-function syncBookings(){if(!canWrite())return;let n=0;
+function syncBookings(){if(!S.canWrite)return;let n=0;
   for(const it of [...S.items.values()]){if(it.bkq!==undefined||!needBook(it))continue;
     const has=[...S.lists.values()].some(l=>(l.type==='book'||l.type==='ticket')&&sameShop(it.title,l.title));
     if(!has){create('lists',{type:'book',title:'訂位：'+it.title,note:it.note||'',done:false,day:it.day>0?it.day:0,photos:[],ts:Date.now()+n,order:Date.now()+n});n++}
@@ -2566,7 +2566,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.101';
+window.__BUILD='1.102';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
