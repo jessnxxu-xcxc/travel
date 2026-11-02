@@ -1177,6 +1177,13 @@ a.gonext.legnav{text-decoration:none}
 /* 出發前 lists get their type-and-Enter box back, on top of the list */
 .col[data-col="0"] .addrow{display:flex!important}
 .dsec .addrow+.clist,.dsec .addrow+.pool-help{margin-top:10px}
+/* 最近更新 inside 搜尋 */
+.sres .recent-h{font-size:12px;font-weight:700;color:var(--muted);margin:4px 0 2px}
+/* 今日花費 vs budget */
+.dsec-h .dbud{flex-basis:100%;color:var(--muted)}
+.dsec-h .dbud.over{color:var(--warn);font-weight:700}
+/* 哪一天: circles sit close together like a calendar (columns no wider than a circle + a little), not spread across a wide sheet */
+.dstrip{grid-template-columns:repeat(7,minmax(0,48px))!important;column-gap:6px!important;justify-content:start}
 
 </style>
 
@@ -1373,7 +1380,7 @@ function daySections(n,part){const rate=+S.meta.rate||0;
   const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
   return (part==='money'?'':'<section class="dsec dsec-todo">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
       (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>')+
-    (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
+    (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button>'+dayBudHTML(n,sum,rate)+'</div>'+
       (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>')}
 function renderMbar(){const m=money(),el=$('#mbar');const tx=m.tx[0];
   el.innerHTML='<span>旅費 <b>'+ntd(m.total*(+S.meta.rate||0))+'</b>'+(m.total?(+S.meta.budget?' <small>剩 '+ntd(Math.max(0,+S.meta.budget-m.total)*(+S.meta.rate||0))+'</small>':''):' <small>還沒記帳</small>')+'</span>'}
@@ -1492,12 +1499,12 @@ function onWriteErr(e){const c=e&&e.code;
   else toast('同步失敗，請稍後再試一次')}
 const COLS={items:'items',lists:'lists',exps:'expenses'};
 function ref(store,id){return S.db.collection(COLS[store]).doc(id)}
-function patch(store,id,p,undoMsg){const it=S[store].get(id);if(!it||!canWrite())return;
+function patch(store,id,p,undoMsg){const it=S[store].get(id);if(!it||!canWrite())return;p=Object.assign({},p,stampBy('edit'));
   const prev={};for(const k in p)prev[k]=it[k]===undefined?null:it[k];
   S[store].set(id,Object.assign({},it,p));render();
   queue(store+id,()=>ref(store,id).update(p));
   if(undoMsg)toast(undoMsg,()=>patch(store,id,prev))}
-function create(store,data){const r=S.db.collection(COLS[store]).doc();S[store].set(r.id,Object.assign({id:r.id},data));queue(store+r.id,()=>r.set(data));return r.id}
+function create(store,data){data=Object.assign({},data,stampBy('add'));const r=S.db.collection(COLS[store]).doc();S[store].set(r.id,Object.assign({id:r.id},data));queue(store+r.id,()=>r.set(data));return r.id}
 function remove(store,id,label){const it=S[store].get(id);if(!it||!canWrite())return;const data=Object.assign({},it);delete data.id;
   S[store].delete(id);render();queue(store+id,()=>ref(store,id).delete());
   toast('已刪除「'+label+'」',()=>{S[store].set(id,Object.assign({id},data));render();queue(store+id,()=>ref(store,id).set(data))})}
@@ -1692,10 +1699,10 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
   const shops=[...new Set([...[...S.items.values()].filter(i=>PLACE_KINDS.includes(i.kind)).map(i=>i.title),...[...S.exps.values()].map(x=>x.shop).filter(Boolean)])];
   const ps=people();
   openSheet('<h2>'+(id?'花費':'記一筆')+'</h2>'+
-    '<div class="fld"><label for="x-shop">記什麼</label><input class="inp" id="x-shop" list="dl-shops" placeholder="例：機票、一蘭拉麵、BEAMS" value="'+esc(base.shop)+'" autocomplete="off"><datalist id="dl-shops">'+shops.map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist></div>'+
-    '<div class="fld"><label for="x-what">細節 <small class="opt">選填</small></label><input class="inp" id="x-what" placeholder="例：星宇來回兩人、拉麵兩碗" value="'+esc(base.what)+'" autocomplete="off"></div>'+
     '<div class="fld"><span class="lbl">金額</span><div class="seg cur-seg" id="seg-cur"><button type="button" data-v="JPY" aria-pressed="'+(st.cur==='JPY')+'">¥ 日圓</button><button type="button" data-v="TWD" aria-pressed="'+(st.cur==='TWD')+'">NT$ 台幣</button></div><input class="inp" id="x-amt" aria-label="金額" inputmode="decimal" placeholder="例 2400" value="'+esc(st.cur==='TWD'&&base.orig?base.orig:base.amount)+'" autocomplete="off"><span class="amt-hint" id="x-ntd"></span></div>'+
     '<div class="fld"><span class="lbl">分類</span><div class="seg" id="seg-cat">'+CATS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.cat===k)+'">'+l+'</button>').join('')+'</div></div>'+
+    '<div class="fld"><label for="x-shop">記什麼</label><input class="inp" id="x-shop" list="dl-shops" placeholder="例：機票、一蘭拉麵、BEAMS" value="'+esc(base.shop)+'" autocomplete="off"><datalist id="dl-shops">'+shops.map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist></div>'+
+    '<div class="fld"><label for="x-what">細節 <small class="opt">選填</small></label><input class="inp" id="x-what" placeholder="例：星宇來回兩人、拉麵兩碗" value="'+esc(base.what)+'" autocomplete="off"></div>'+
     
     '<div class="fld"><span class="lbl">怎麼付</span><div class="seg" id="seg-pay">'+PAYS.map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.pay===k)+'">'+l+'</button>').join('')+'</div></div>'+
     '<div class="fld"><span class="lbl">收據／照片</span>'+photosHTML(st.photos,ro)+'</div>'+
@@ -1733,14 +1740,14 @@ function openSearch(){S.readSheet=false;
   openSheet('<h2>搜尋</h2><div class="fld"><label for="s-in">店名、地區、清單、花費</label><input class="inp" id="s-in" type="search" placeholder="例：燒肉、淺草、護照" autocomplete="off"></div><div class="sres" id="s-res"></div>',
   root=>{const i=root.querySelector('#s-in'),out=root.querySelector('#s-res');setTimeout(()=>i.focus(),50);
     const hl=(s,q)=>{const t=esc(s);if(!q)return t;const eq=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return t.replace(new RegExp(eq,'gi'),m=>'<mark>'+m+'</mark>')};
-    const run=()=>{const q=i.value.trim().toLowerCase();if(!q){out.innerHTML='';return}const res=[];
+    const run=()=>{const q=i.value.trim().toLowerCase();if(!q){out.innerHTML=recentHTML();return}const res=[];
       const has=(...f)=>f.some(x=>String(x||'').toLowerCase().includes(q));
       for(const it of S.items.values())if(has(it.title,it.area,it.note,it.desc,it.q))res.push({k:'i',id:it.id,t:it.title,w:(it.day?dayLabel(it.day)+'・'+SLOT_L[it.slot]:'口袋名單')+(it.area?'・'+it.area:''),s:it.day*10+(SLOT_I[it.slot]||0)});
       for(const r of S.lists.values())if(has(r.title,r.note))res.push({k:'l',id:r.id,t:r.title,w:'清單・'+(LT_L[r.type]||''),s:900});
       for(const e of S.exps.values())if(has(e.shop,e.what,e.payer))res.push({k:'e',id:e.id,t:(e.shop||e.what)+(e.shop&&e.what?'・'+e.what:''),w:'記帳・'+yen(+e.amount||0)+(e.payer?'・'+e.payer+' 付':'')+(e.day?'・'+md(dayDate(e.day)):''),s:950});
       res.sort((a,b)=>a.s-b.s);
       out.innerHTML=res.length?res.slice(0,40).map(r=>'<button type="button" data-k="'+r.k+'" data-id="'+esc(r.id)+'"><b>'+hl(r.t,i.value.trim())+'</b><span>'+esc(r.w)+'</span></button>').join(''):'<div class="empty">找不到「'+esc(i.value.trim())+'」</div>'};
-    i.addEventListener('input',run);
+    i.addEventListener('input',run);run();
     out.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;closeSheet();goTo(b.dataset.k,b.dataset.id)})})}
 function goTo(k,id){let sel;
   if(k==='i'){const it=S.items.get(id);if(!it)return;setActive(it.day);sel='.item[data-id="'+CSS.escape(id)+'"]'}
@@ -2615,6 +2622,25 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){AWAY_AT=Da
 /* edit sheet: 排在哪裡 — move a stop anywhere (any day, after any stop) without dragging; 不動 keeps it where it is */
 function posField(it){return '<div class="fld" id="e-posf"'+(it.day>0?'':' hidden')+'><label for="e-pos">排在哪裡<span class="opt">選了就不用拖</span></label><select class="inp" id="e-pos" data-id="'+esc(it.id)+'">'+posOpts(it.day,it.id,1)+'</select></div>'}
 
+/* ---------- who changed what ---------- */
+const myEmail=()=>((document.querySelector('#whoami b')||{}).textContent||'').trim();
+function stampBy(act){return {_by:myEmail(),_at:Date.now(),_act:act}}
+const whoName=e=>!e?'有人':e===myEmail()?'你':String(e).split('@')[0];
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?'剛剛':m<60?m+' 分鐘前':m<1440?Math.round(m/60)+' 小時前':Math.round(m/1440)+' 天前'}
+function recentHTML(){const rows=[];
+  for(const it of S.items.values())if(it._at)rows.push({k:'i',id:it.id,t:it.title,w:it.day?dayLabel(it.day):'口袋名單',it});
+  for(const r of S.lists.values())if(r._at)rows.push({k:'l',id:r.id,t:r.title,w:LT_L[r.type]||'清單',it:r});
+  for(const e of S.exps.values())if(e._at)rows.push({k:'e',id:e.id,t:(e.shop||e.what||'花費')+'・'+yen(+e.amount||0),w:'花費',it:e});
+  rows.sort((a,b)=>b.it._at-a.it._at);
+  if(!rows.length)return '<div class="empty">打字搜尋店名、地區、清單、花費。之後誰加了或改了什麼，也會列在這裡。</div>';
+  return '<div class="recent-h">最近更新</div>'+rows.slice(0,20).map(r=>'<button type="button" data-k="'+r.k+'" data-id="'+esc(r.id)+'"><b>'+esc(r.t)+'</b><span>'+esc(whoName(r.it._by))+(r.it._act==='add'?' 加了':' 改了')+'・'+ago(r.it._at)+'・'+esc(r.w)+'</span></button>').join('')}
+
+/* ---------- 今日花費 vs the budget ----------
+   the trip-days' share of the budget: (budget − what was paid before the trip) ÷ number of days */
+function dayBudHTML(n,sum,rate){const bud=+S.meta.budget||0;if(!(n>0)||!bud)return '';
+  const pre=[...S.exps.values()].filter(e=>!(e.day>0)).reduce((s,e)=>s+(+e.amount||0),0),per=Math.max(0,Math.round((bud-pre)/NDAYS));if(!per)return '';
+  const left=per-sum,m=v=>rate?ntd(v*rate):yen(v);return '<small class="dbud'+(left<0?' over':'')+'">每天預算 '+m(per)+'・'+(left>=0?'還剩 '+m(left):'超過 '+m(-left))+'</small>'}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2642,7 +2668,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.113';
+window.__BUILD='1.114';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
