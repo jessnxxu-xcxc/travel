@@ -1115,6 +1115,9 @@ body.pass-open .pass-mini{margin-bottom:12px}
 .item.mvrow .mv-n{font-size:14px!important;font-weight:400!important;color:var(--ink)}
 .item.mvrow .mv-d{color:var(--ink);white-space:nowrap}
 .item.mvrow .legarr{color:var(--muted)}
+/* newly added card */
+@keyframes newflash{0%{box-shadow:0 0 0 3px rgba(0,102,204,.35)}100%{box-shadow:0 0 0 0 rgba(0,102,204,0)}}
+.item.flash{animation:newflash 1.6s ease-out}
 
 </style>
 
@@ -1531,7 +1534,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+(ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
-    '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="開始 15:00" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<details class="more"'+(ro?' open':'')+'><summary>更多：簡介、照片、備註、地區</summary><div>'+
@@ -1571,7 +1574,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
       if(!f.title){root.querySelector('#e-title').focus();return}
       for(const [k,el] of [['time','#e-time'],['end','#e-end']])if(f[k]&&tmin(f[k])==null){toast('時間請寫成 15:00 這樣');root.querySelector(el).focus();return}
       if(f.end&&tmin(f.time)!=null&&tmin(f.end)!=null&&tmin(f.end)<=tmin(f.time)){toast('結束時間要比開始晚');root.querySelector('#e-end').focus();return}
-      const cur=S.items.get(id)||it;for(const k in f)if((cur[k]||'')!==f[k])p[k]=f[k];
+      const cur=S.items.get(id)||it;for(const k in f)if((cur[k]||'')!==f[k])p[k]=f[k];if('desc' in p)p.dq=1;
       if(st.must!==!!cur.must)p.must=st.must;if(!ro)legPatch(root,st,cur,p);
       if(st.day!==cur.day||st.slot!==cur.slot){p.day=st.day;p.slot=st.slot;p.order=maxOrder(st.day,st.slot)+1000}
       closeSheet();if(Object.keys(p).length)patch('items',id,p,p.day!=null?'已移到 '+dayLabel(st.day)+(st.day?'・'+SLOT_L[st.slot]:''):'已儲存')}
@@ -2097,6 +2100,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelectorAll('#seg-akind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===g)));
        const tg=g==='move'?(d.tmPicked?d.tm:((tmode({title:ta.value,note:nt.value})||[])[0]||'')):'';root.querySelectorAll('#seg-atm button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===tg)))}
       root.querySelector('#a-h').textContent=d.day===0?'新增到口袋':'新增行程';
+      tm.placeholder=d.day>0&&ENDCUR[d.day]!=null?'自動 約 '+tfmt(ENDCUR[d.day]):'開始 15:00';
       {const g=d.kindPicked?d.kind:(one&&rows[0]?rows[0].kind:'');root.querySelector('#a-tmf').hidden=d.day===0||!one||g!=='move';root.querySelector('#a-legf').hidden=d.day===0||!one||g==='move'||g==='todo'}
       if(one&&rows[0]){if(d.kindPicked&&d.kind)rows[0].kind=d.kind;const n=nt.value.trim();if(n)rows[0].note=rows[0].note?rows[0].note+'・'+n:n}
       root.querySelector('#a-extra').hidden=!one;root.querySelector('#a-kindf').hidden=!one;root.querySelector('#a-multi').hidden=one;
@@ -2124,7 +2128,8 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
       if(ids&&ids.length===1){const cur=S.items.get(ids[0]),p={};if(cur&&cur.kind==='move'&&d.tmPicked&&d.tm)p.tm=d.tm;if(cur&&cur.kind!=='move'&&d.leg&&d.leg!=='train')p.cmMode=d.leg;
         if(cur&&Object.keys(p).length){S.items.set(ids[0],Object.assign({},cur,p));queue('items'+ids[0],()=>ref('items',ids[0]).update(p))}}
       if(ids)ids.forEach((id,i)=>{const e=endsNow[i],cur=S.items.get(id);if(e&&cur&&(!cur.time||tmin(e)>tmin(cur.time))){S.items.set(id,Object.assign({},cur,{end:e}));queue('items'+id,()=>ref('items',id).update({end:e}))}});render();
-      if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}};
+      if(pics.length&&ids&&ids[0]){const id=ids[0],cur=S.items.get(id);if(cur){S.items.set(id,Object.assign({},cur,{photos:pics}));queue('items'+id,()=>ref('items',id).update({photos:pics}));render()}}
+      flashNew(ids)};
     setTimeout(()=>ta.focus(),50)})}
 /* places without a 簡介 get one from AI (same rules as the ✨ AI 寫簡介 button); dq marks "already asked", '' back = AI wasn't sure, left empty */
 let DESC_BUSY=false;
@@ -2226,7 +2231,7 @@ function normT(x){x=String(x||'').trim().replace('：',':');if(!x)return '';let 
 const tmin=t=>{const m=/^(\d{2}):(\d{2})$/.exec(t||'');return m&&+m[1]<24&&+m[2]<60?+m[1]*60+ +m[2]:null};
 const tfmt=n=>{n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 const fmtDur=m=>m<60?m+' 分':Math.floor(m/60)+' 小時'+(m%60?' '+m%60+' 分':'');
-let EST={},PREV={},EARLY={};
+let EST={},PREV={},EARLY={},ENDCUR={};
 const legKey=(a,b)=>[a.title,a.area,a.q,b.title,b.area,b.q].map(x=>x||'').join('|');
 /* the stop before b, unless a transport row sits between them (that row is the trip) */
 function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.day),i=its.findIndex(x=>x.id===a.id),j=its.findIndex(x=>x.id===b.id);
@@ -2237,11 +2242,17 @@ function buildEst(){EST={};PREV={};EARLY={};for(const k in NEXT)PREV[NEXT[k].id]
   for(let n=1;n<=NDAYS;n++){let cur=null,last=null;
     /* cur = when you're free again (the last end time); anything without an end makes it unknown */
     for(const it of dayItems(n)){
-      if(!it.time&&cur!=null){const l=leg(it);EST[it.id]=cur+(l&&l.min!=null?l.min:0)}
+      if(!it.time&&cur!=null){const l=leg(it),v=cur+(l&&l.min!=null?l.min:0);if(v<1440)EST[it.id]=v}
       const st=it.time?tmin(it.time):EST[it.id]!=null?EST[it.id]:null,e=tmin(it.end);
       if(it.time&&st!=null&&last!=null&&st<last)EARLY[it.id]=1;
-      const pt=e!=null?e:st;if(pt!=null&&(last==null||pt>last))last=pt;cur=e!=null?e:null;
-      if(it.kind==='move'&&e==null&&st!=null){const d=moveMin(it).min;if(d!=null)cur=st+d}}}}
+      const pt=e!=null?e:st;if(pt!=null&&(last==null||pt>last))last=pt;
+      /* no end time: assume the usual stay, so the stops after it still get a time (typed times always win and restart the chain) */
+      cur=e!=null?e:st!=null&&dwell(it)!=null?st+dwell(it):null;
+      if(it.kind==='move'&&e==null&&st!=null){const d=moveMin(it).min;if(d!=null)cur=st+d}}
+    ENDCUR[n]=cur}}
+/* usual time spent at a stop when no end time is typed: meals by 早/午/晚, sights and shops about an hour; hotel stops and todos break the chain */
+function dwell(it){if(it.kind==='food')return it.slot==='dinner'?90:it.slot==='breakfast'?45:60;
+  if(it.kind==='spot')return 90;if(it.kind==='shop')return 60;return null}
 function timeHTML(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=null&&e>s?'<small>・'+fmtDur(e-s)+'</small>':'';
   if(it.time)return '<span class="itime">'+esc(it.time)+(it.end?'–'+esc(it.end):'')+stay+'</span>'+(EARLY[it.id]?'<span class="tbad" title="這個時間比排在前面的行程早，可以拖曳調整順序">⚠ 比上一站早</span>':'');
   if(EST[it.id]!=null){const es=EST[it.id];return '<span class="itime est" title="依上一站結束時間＋交通推算">約 '+tfmt(es)+(it.end?'–'+esc(it.end):'')+(e!=null&&e>es?'<small>・'+fmtDur(e-es)+'</small>':'')+'</span>'}
@@ -2412,6 +2423,9 @@ async function findMoves(){if(MV_BUSY||!S.sample||!canWrite())return;
     render()}
   finally{MV_BUSY=false}}
 
+/* after adding: scroll to the new card and flash it, so you see where it landed (and which time it got) */
+function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=document.querySelector('.item[data-id="'+ids[0]+'"]');if(!el)return;el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1800)},80)}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -2439,7 +2453,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.94';
+window.__BUILD='1.96';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
