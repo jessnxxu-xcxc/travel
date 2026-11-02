@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="旅行手帳">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>旅行手帳</title>
-<script>try{var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;if(!sessionStorage.getItem('tn-alive')){for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(/-(day|pretab)$/.test(k))localStorage.removeItem(k)}}if(sa&&!sessionStorage.getItem('tn-alive')&&/[?&]t=/.test(location.search)){sessionStorage.setItem('tn-alive','1');location.replace(location.pathname)}sessionStorage.setItem('tn-alive','1')}catch(e){}</script>
+<script>try{var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone,away=Date.now()-(+localStorage.getItem('tn-seen')||0)>18e5;if(!sessionStorage.getItem('tn-alive')&&away){for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(/-(day|pretab)$/.test(k))localStorage.removeItem(k)}}if(sa&&away&&!sessionStorage.getItem('tn-alive')&&/[?&]t=/.test(location.search)){sessionStorage.setItem('tn-alive','1');location.replace(location.pathname)}sessionStorage.setItem('tn-alive','1')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;700&display=swap">
@@ -1184,7 +1184,6 @@ a.gonext.legnav{text-decoration:none}
 .strip .chip.past::before{border-top:3px solid var(--coral)!important;opacity:1!important;top:24px!important}
 .strip .chip.past:not(.active) .c-d{color:var(--muted)!important}
 .strip .chip.past:not(.active) .c-w{opacity:.6}
-.col-n em.past{font-style:normal;color:var(--muted)}
 
 </style>
 
@@ -1301,7 +1300,7 @@ const S={items:new Map(),days:new Map(),lists:new Map(),exps:new Map(),meta:{rat
   db:null,assets:null,sample:null,room:null,user:null,peers:[],prof:{},assetUrl:{},
   canWrite:false,drag:null,dirty:false,q:{}};
 if(!LT_L[S.sub])S.sub='book';
-(function(){const n=todayN();if(n>=1&&n<=NDAYS)S.active=n;else{const v=parseInt(ls.get(T.id+'-day'),10);if(v>=0&&v<=NDAYS)S.active=v;else if(n<1)S.active=0}})();
+(function(){const n=todayN(),v=parseInt(ls.get(T.id+'-day'),10);if(v>=0&&v<=NDAYS)S.active=v;else if(n>=1&&n<=NDAYS)S.active=n;else if(n<1)S.active=0})();
 
 function countdown(){const n=todayN();let l='出發倒數',v=1-n,u='天';
   if(n===1){l='';v='今天出發​🛫';u=''}else if(n===NDAYS){l='';v='今天回家​🛬';u=''}else if(n>=1&&n<=NDAYS){l='旅程進行中';v='Day '+n;u=md(dayDate(n))}else if(n>NDAYS){l='旅程結束';v='✓';u='回憶收藏中'}
@@ -1360,7 +1359,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
       '<section class="dsec" data-sec="pool"><div class="dsec-h">'+dicon('pin')+'<b>口袋名單</b></div><p class="pool-help">還沒決定哪天去的店或景點先記在這裡（備選）。行程有空檔時，把它<b>拖到某一天</b>，或點開改「哪一天」。</p>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+(S.canWrite?'<form class="addrow pooladd"><input class="inp" id="add-pool-0" aria-label="新增到口袋名單" placeholder="＋ 新增：teamLab、阿美橫丁的某家店" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section></section>';continue}
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
-      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':tn>n&&tn>=1?'<em class="past">・已走過</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
+      '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
       (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增」→「行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
@@ -2615,9 +2614,12 @@ function syncBookings(){if(!S.canWrite)return;let n=0;
     S.items.set(it.id,Object.assign({},it,{bkq:1}));queue('items'+it.id,()=>ref('items',it.id).update({bkq:1}))}
   if(n){render();toast('備註寫了要訂位的 '+n+' 個地方，已加到「訂位」')}}
 
-/* during the trip, coming back after a while (the app left open in the background) lands on today again — not while a sheet is open */
+/* during the trip, coming back after a while (30 min+) lands on today again — not after a short break, not while a sheet is open.
+   tn-seen = when the page was last on screen; the start-up script in <head> uses it too, so an app the phone closed in the background
+   and reopened within 30 min keeps the day you were looking at */
+const seen=()=>{try{localStorage.setItem('tn-seen',String(Date.now()))}catch(e){}};seen();setInterval(()=>{if(!document.hidden)seen()},60000);addEventListener('pagehide',seen);
 let AWAY_AT=0;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){AWAY_AT=Date.now();return}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){AWAY_AT=Date.now();seen();return}
   if(!AWAY_AT||Date.now()-AWAY_AT<30*60e3||document.querySelector('.sheet'))return;AWAY_AT=0;const tn=todayN();if(tn>=1&&tn<=NDAYS&&S.active!==tn)setActive(tn)});
 
 /* edit sheet: 排在哪裡 — move a stop anywhere (any day, after any stop) without dragging; 不動 keeps it where it is */
@@ -2663,7 +2665,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.115';
+window.__BUILD='1.116';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
