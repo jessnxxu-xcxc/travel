@@ -1150,6 +1150,14 @@ a.gonext.legnav{text-decoration:none}
 /* a checklist row shows only the first photo: a "3 張" badge says there are more (the old "+N" only appeared past three) */
 .clist .crow .ithumbs>span{display:none!important}
 .clist .crow .ithumbs:not([data-n="1"])::after{content:attr(data-n) ' 張';position:absolute;right:4px;bottom:4px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.92);font-size:12px;line-height:18px;color:var(--ink)}
+/* ＋ chooser in the page's own look: ink outline like every button, line icon on a theme-colour disc */
+.pickadd .pk{border:var(--bw,2px) solid var(--ink)!important;border-radius:18px;background:var(--surface,#fff);color:var(--ink);gap:6px}
+.pickadd .pk:hover{border-color:var(--ink);background:#fff}
+.pickadd .pk.cur{background:#FFF4D6}
+.pickadd .pk-i{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:var(--bw,2px) solid var(--ink);font-size:0;line-height:0}
+.pickadd .pk-i svg{width:20px;height:20px}
+.pickadd.pre .pk-i{width:36px;height:36px}.pickadd.pre .pk-i svg{width:18px;height:18px}
+.pickadd{margin-bottom:0}
 
 </style>
 
@@ -1326,7 +1334,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
     const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
       '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
-      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
+      (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增」→「行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+
       (n<NDAYS?(T.hotel&&T.hotel.name?'<div class="col-foot">住宿・'+esc(T.hotel.name)+'</div>':''):(T.back&&T.back.arr?'<div class="col-foot">'+esc(T.back.arr)+' 回到'+esc(T.back.to||'')+'</div>':''))+'</section>'}
   const b=$('#board'),sl=b.scrollLeft,a=document.activeElement,keep=a&&a.id&&a.id.startsWith('add-')&&b.contains(a)?a.id:'',val=keep&&a.value,ss=keep&&a.selectionStart;b.innerHTML=h;b.scrollLeft=sl;
   if(keep){const k=document.getElementById(keep);if(k){k.value=val;k.focus({preventScroll:true});try{k.setSelectionRange(ss,ss)}catch(e){}}}
@@ -2024,12 +2032,23 @@ function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[
 function openTodoAdd(day){quickAdd('todo',{day,pick:true})}
 /* ＋ always asks "新增什麼？" with every choice on one screen — no need to open the right tab first.
    出發前: the seven lists (the open tab is marked); a trip day: 行程, 今日待辦, 花費 (行程 and 待辦 are separate). */
-const PICK_PRE=[['todo','✅','待辦','出發前要做'],['pack','🧳','行李','要帶的東西'],['ticket','🎫','票券','門票、車票'],['book','🍽️','訂位','餐廳預約'],
-  ['buy','🛍️','購物','要買的東西'],['pool','📌','口袋','想去的地方'],['money','💰','花費','已付的錢']];
+/* line icons in the page's own style (16×16, 1.6 stroke), each on a theme-colour disc */
+const PK_ICO={
+  item:'<path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/>',
+  todo:'<rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><path d="M5.5 8.2l1.8 1.8 3.4-3.6"/>',
+  pack:'<rect x="2.5" y="5" width="11" height="8.5" rx="1.8"/><path d="M6 5V3.5h4V5M2.5 9h11"/>',
+  ticket:'<path d="M2.5 4.5h11v2.3a1.2 1.2 0 0 0 0 2.4v2.3h-11V9.2a1.2 1.2 0 0 0 0-2.4z"/><path d="M10 4.5v7" stroke-dasharray="1.2 1.4"/>',
+  book:'<path d="M4.5 2v4a1.75 1.75 0 0 0 3.5 0V2M6.25 7.75V14M12 2c-1.6 1-2.2 3-2.2 5.2h2.2V14"/>',
+  buy:'<path d="M3.5 5.5h9l-.8 8h-7.4z"/><path d="M6 5.5v-1a2 2 0 0 1 4 0v1"/>',
+  pool:'<path d="M4.5 2.5h7v11l-3.5-2.6-3.5 2.6z"/>',
+  money:'<circle cx="8" cy="8" r="5.8"/><path d="M5.9 5l2.1 2.9L10.1 5M8 7.9v3.6M6.2 8.5h3.6M6.2 10h3.6"/>'};
+const pkIco=(k,c)=>'<span class="pk-i" style="background:var(--'+c+')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+PK_ICO[k]+'</svg></span>';
+const PICK_PRE=[['todo','green','待辦','出發前要做'],['pack','water','行李','要帶的東西'],['ticket','yellow','票券','門票、車票'],['book','coral','訂位','餐廳預約'],
+  ['buy','yellow','購物','要買的東西'],['pool','water','口袋','想去的地方'],['money','coral','花費','已付的錢']];
 function openPicker(){if(!canWrite())return;const n=S.active,cur=n===0?preTab():'';S.readSheet=false;
-  const tiles=n===0?PICK_PRE:[['item','📍','行程','景點、美食、購物、交通'],['todo','✅','今日待辦',md(dayDate(n))+' 要辦的事'],['money','💰','花費',md(dayDate(n))+' 的花費']];
-  openSheet('<h2>新增什麼？</h2><div class="pickadd'+(n===0?' pre':'')+'">'+tiles.map(([k,i,l,h])=>
-    '<button type="button" class="pk'+(k===cur?' cur':'')+'" id="pk-'+(k==='money'?'exp':k)+'" data-k="'+k+'"><span class="pk-i" aria-hidden="true">'+i+'</span><b>'+l+'</b><small>'+esc(h)+'</small></button>').join('')+'</div>',
+  const tiles=n===0?PICK_PRE:[['item','water','行程','地點、交通'],['todo','green','今日待辦',md(dayDate(n))+' 要辦'],['money','yellow','花費',md(dayDate(n))+' 花的錢']];
+  openSheet('<h2>新增什麼？</h2><div class="pickadd'+(n===0?' pre':'')+'">'+tiles.map(([k,c,l,h])=>
+    '<button type="button" class="pk'+(k===cur?' cur':'')+'" id="pk-'+(k==='money'?'exp':k)+'" data-k="'+k+'">'+pkIco(k,c)+'<b>'+l+'</b><small>'+esc(h)+'</small></button>').join('')+'</div>',
   root=>root.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{const k=b.dataset.k;closeSheet();
     if(k==='money'){openExp(null,{day:n});setTimeout(()=>{const a=document.getElementById('x-amt');if(a)a.focus()},80);return}
     if(k==='item'){openAdd({day:n,slot:null});return}
@@ -2592,7 +2611,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.108';
+window.__BUILD='1.109';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
