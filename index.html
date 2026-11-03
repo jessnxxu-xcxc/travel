@@ -1309,6 +1309,30 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet:is(:has(#a-text),:has(#x-amt)) .fld:has(#photos){display:flex!important;flex-direction:row;align-items:center;gap:12px!important}
 .sheet:is(:has(#a-text),:has(#x-amt)) .fld:has(#photos)>.lbl{flex:0 0 auto}
 .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-alg,#seg-atm,#seg-leg){gap:2px!important;column-gap:2px!important}
+/* 編輯行程: the editing part above the dashed line fits one screen */
+.sheet:has(#e-title){gap:8px!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px}
+.sheet:has(#e-title)>*{grid-column:1/-1}
+.sheet:has(#e-title)>.fld:has(#e-note){grid-column:1}
+.sheet:has(#e-title)>.fld:has(#photos){grid-column:2;align-self:end}
+.sheet:has(#e-title)>.fld:has(#photos)>.lbl{visibility:hidden}
+.sheet:has(#e-title)>.fld:has(#photos) .photos{flex-wrap:nowrap;max-width:180px;overflow-x:auto}
+.sheet:has(#e-title)>.fld:has(#e-cm){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px}
+.sheet:has(#e-title)>.fld:has(#e-cm) .legmin{max-width:180px}
+.sheet:has(#e-title) .dstrip{row-gap:2px!important}
+.sheet:has(#e-title) .dstrip .n{width:32px!important;max-width:32px}
+.sheet:has(#e-title) .dstrip .w{line-height:14px}
+.sheet:has(#e-title) .more-flat{padding-top:12px}
+/* 編輯行程: one-line fields carry their label on the left (no label row) */
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time)){display:grid!important;grid-template-columns:44px minmax(0,1fr);align-items:center;column-gap:8px}
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time))>:is(label,.lbl){margin:0;white-space:nowrap}
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time)) .opt{display:none!important}
+.sheet:has(#e-title)>.fld:has(#e-time)>:not(label):not(.lbl){grid-column:2}
+.sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important}
+.sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg) button{font-size:12px;letter-spacing:-.02em}
+.sheet :is(#seg-alg,#seg-atm,#seg-leg){display:flex!important;flex-wrap:nowrap!important}
+.sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:1 0 auto!important;min-width:max-content!important;padding:0 3px!important}
+.sheet .legmin span{white-space:nowrap}
+.sheet:has(#e-title){gap:6px!important}
 
 </style>
 
@@ -1731,8 +1755,8 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
-    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<div class="more-flat"><div>'+
+    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
@@ -2874,7 +2898,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.122';
+window.__BUILD='1.123';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
