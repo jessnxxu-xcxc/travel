@@ -1489,7 +1489,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .seg button:focus,.pk:focus,.pretabs2 button:focus{outline:none!important;box-shadow:none!important}
 .seg button:focus-visible,.pretabs2 button:focus-visible{outline:2px dashed var(--ink)!important;outline-offset:2px}
 /* 口袋 page = 口袋名單 (places) on top, 筆記 underneath */
-.col[data-col="0"]{display:flex;flex-direction:column}
+.col[data-col="0"].active{display:flex;flex-direction:column}  /* only while it is the shown column — otherwise it stayed on screen when you picked a day */
 .col[data-col="0"]>*{min-width:0}
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec][data-sec="notes"]:not([data-sec="x"]){display:block!important;order:50}
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"]{order:40}
@@ -1504,6 +1504,9 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"]{order:40}
 /* 口袋 = one list: the places, then the notes right under them, no second heading */
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="notes"]{padding-top:0!important;margin-top:-8px}
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{display:none}
+.bar .backlink{padding:0!important;justify-content:center!important;gap:0!important}
+/* wide screens: the 13 days spread across the whole strip (no empty space on the right) */
+@media (min-width:760px){.strip .chip:not(.pool){flex:1 1 0!important;min-width:44px}}
 
 </style>
 
@@ -3150,7 +3153,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.129';
+window.__BUILD='1.130';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
