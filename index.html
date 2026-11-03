@@ -1316,7 +1316,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet:has(#e-title)>.fld:has(#photos){grid-column:2;align-self:end}
 .sheet:has(#e-title)>.fld:has(#photos)>.lbl{visibility:hidden}
 .sheet:has(#e-title)>.fld:has(#photos) .photos{flex-wrap:nowrap;max-width:180px;overflow-x:auto}
-.sheet:has(#e-title)>.fld:has(#e-cm){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px}
+.sheet:has(#e-title)>.fld:has(#e-cm):not(.legf){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px}
 .sheet:has(#e-title)>.fld:has(#e-cm) .legmin{max-width:180px}
 .sheet:has(#e-title) .dstrip{row-gap:2px!important}
 .sheet:has(#e-title) .dstrip .n{width:32px!important;max-width:32px}
@@ -1335,7 +1335,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet:has(#e-title){gap:6px!important}
 /* ===== desktop (sheet is a centred dialog, plenty of room): a tidy form — every row has its label on the left in one column,
    choices keep their natural size and sit left, no stretched or squeezed chips ===== */
-@media (min-width:760px){
+@media (min-width:560px){
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)){grid-template-columns:1fr!important;gap:12px!important}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in))>*{grid-column:1/-1!important}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own)){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
@@ -1396,7 +1396,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet .aiinfo .aiinfo-edit{font-size:14px;color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .sheet .aiinfo .aiinfo-meta{font-size:14px;color:var(--ink)}
 .sheet .aiinfo .aiinfo-desc{font-size:14px;line-height:1.7;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-@media (min-width:760px){.sheet .fld.aiinfo{grid-template-columns:1fr!important}.sheet .fld.aiinfo>*{grid-column:1!important}}
+@media (min-width:560px){.sheet .fld.aiinfo{grid-template-columns:1fr!important}.sheet .fld.aiinfo>*{grid-column:1!important}}
 /* 分享: one row to add, compact people list */
 .shadd{display:flex;gap:8px}
 .shadd .inp{flex:1;min-width:0;height:44px}
@@ -1421,7 +1421,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet:has(#e-title).ai-open .more-flat>div>.fld:has(#e-area){grid-column:1!important}
 .sheet:has(#e-title).ai-open .more-flat>div>.fld:has(#e-oh){grid-column:2!important}
 .sheet:has(#e-title) .fld:has(#e-oh) .opt,.sheet:has(#e-title) .fld:has(#e-area) .opt{display:none!important}
-@media (min-width:760px){.sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){grid-template-columns:72px minmax(0,1fr)!important}}
+@media (min-width:560px){.sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){grid-template-columns:72px minmax(0,1fr)!important}}
 /* 哪一天: touch screens swipe one row of exactly seven days (snaps to whole days, no half circle at the edge);
    mouse screens keep the two rows, since they can't swipe */
 @media (pointer:coarse){
@@ -1430,18 +1430,18 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
   .sheet .dstrip button{flex:0 0 calc(100% / 7)!important;width:calc(100% / 7)!important;min-width:0!important;scroll-snap-align:start}
 }
 /* 出發前 switch row has six choices with emoji: two rows of three on phones */
-@media (max-width:759px){.sheet .addsw #seg-addsw:has(> :nth-child(4)){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:8px!important}}
+@media (max-width:559px){.sheet .addsw #seg-addsw:has(> :nth-child(4)){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:8px!important}}
 /* 記一筆 kept to one screen: 其他人 folded, 記什麼／細節 labels on the left, 8px rows */
 .sheet:has(#x-amt):not(.own-open) .own-new{display:none!important}
 .sheet.own-open .own-add{display:none}
 .sheet .own-add{margin-left:12px;font-size:12px;color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .sheet:has(#x-amt){gap:8px!important}
-@media (max-width:759px){
+@media (max-width:559px){
   .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what)){display:grid!important;grid-template-columns:52px minmax(0,1fr);align-items:center;column-gap:8px}
   .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what))>:is(label,.lbl){margin:0;white-space:nowrap}
   .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what)) .opt{display:none!important}
 }
-@media (max-width:759px){
+@media (max-width:559px){
   .sheet .addsw #seg-addsw button{height:32px!important;min-height:32px!important}
   .sheet .addsw #seg-addsw{row-gap:6px!important}
   .sheet:has(#x-amt) .ph-add,.sheet:has(#x-amt) .ph-t{width:48px!important;height:48px!important}
@@ -1472,13 +1472,13 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet .legf .lbl .opt{display:inline;overflow-wrap:anywhere}
 .sheet .legft{overflow-wrap:anywhere}
 /* desktop: 去哪裡 keeps its label (with ☆ 必去) on top of the box */
-@media (min-width:760px){
+@media (min-width:560px){
   .sheet .fld:has(#a-text)>label{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;align-items:center;column-gap:8px}
 }
 .sheet:has(#e-title):not(.ai-open) .more-flat .fld:is(:has(#e-area),:has(#e-oh),:has(#e-desc)){display:none!important}
 /* desktop: 交通方式 chips at normal size with 8px gaps (the 2px squeeze is only for phones) */
-@media (min-width:760px){
+@media (min-width:560px){
   .sheet :is(#seg-alg,#seg-atm,#seg-leg){gap:8px!important;column-gap:8px!important;flex-wrap:wrap!important}
   .sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:0 0 auto!important;padding:0 14px!important;font-size:14px!important;letter-spacing:0!important}
 }
@@ -1495,8 +1495,8 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec][data-sec="notes"]:not([d
 body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"]{order:40}
 .col[data-col="0"] .col-foot,.col[data-col="0"]>footer{order:90}
 /* desktop: 這筆是誰的（＋其他人）keeps its label on top */
-@media (min-width:760px){.sheet .fld:has(#seg-own){display:grid!important;grid-template-columns:1fr!important}.sheet .fld:has(#seg-own)>*{grid-column:1!important}.sheet .fld:has(#seg-own)>.lbl{padding-top:0!important}}
-@media (max-width:759px){.sheet .addsw #seg-addsw:has(> :nth-child(4)):not(:has(> :nth-child(5))){grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-flow:column!important}}
+@media (min-width:560px){.sheet .fld:has(#seg-own){display:grid!important;grid-template-columns:1fr!important}.sheet .fld:has(#seg-own)>*{grid-column:1!important}.sheet .fld:has(#seg-own)>.lbl{padding-top:0!important}}
+@media (max-width:559px){.sheet .addsw #seg-addsw:has(> :nth-child(4)):not(:has(> :nth-child(5))){grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-flow:column!important}}
 /* 時段 headers, lighter: emoji + bold word, then a soft dashed rule (no boxed pill) */
 .tl .slot-h{display:flex!important;align-items:center;gap:8px}
 .tl .slot-h b{padding:0!important;border:0!important;background:none!important;font-size:14px!important;font-weight:700;gap:6px}
@@ -1507,6 +1507,37 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{displa
 .bar .backlink{padding:0!important;justify-content:center!important;gap:0!important}
 /* wide screens: the 13 days spread across the whole strip (no empty space on the right) */
 @media (min-width:760px){.strip .chip:not(.pool){flex:1 1 0!important;min-width:44px}}
+/* 記一筆: ¥ / NT$ always side by side, the amount box takes the rest */
+.sheet #seg-cur{flex-wrap:nowrap!important}
+.sheet #seg-cur button{flex:0 0 auto!important}
+.sheet .fld:has(#x-amt)>#x-amt{min-width:96px}
+/* 編輯: ☆ 必去 is a small switch inside the 名稱 box (no 標記 row) */
+.sheet .togwrap{position:relative;min-width:0}
+.sheet .togwrap .inp{width:100%;box-sizing:border-box;padding-right:88px}
+.sheet .togwrap .star-in{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:28px;padding:0 10px;border:2px solid rgba(62,58,57,.3);border-radius:999px;background:#fff;font:inherit;font-size:12px;line-height:20px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.sheet .togwrap .star-in[aria-pressed="true"]{background:var(--yellow);border-color:var(--ink);color:var(--ink);font-weight:700}
+/* 交通方式: 要多久 sits right under the choices, in the same field */
+.sheet .legf .legmin{display:flex;align-items:center;gap:8px;margin-top:8px;max-width:none!important}
+.sheet .legf .legmin label{font-size:14px;color:var(--ink);white-space:nowrap;margin:0}
+.sheet .legf .legmin .inp{width:140px;flex:0 0 auto}
+/* the 新增 switch row is always one row of equal buttons on wider screens, in every form (待辦 used to wrap) */
+@media (min-width:560px){
+  .sheet .addsw #seg-addsw{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(0,1fr)!important;grid-template-columns:none!important;gap:8px!important;flex-wrap:nowrap!important}
+  .sheet .addsw #seg-addsw button{min-width:0!important;padding:0 8px!important;white-space:nowrap}
+}
+/* chips in every form get real 8px gaps. These need the extra :not(#…) so they outrank the old phone squeeze
+   (.seg:not(#seg-cur) and :is(#seg-alg…) carry ids, which beat the plain desktop rules — that is why the gaps stayed 2–4px) */
+@media (min-width:560px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip):not(#seg-cur):not(#seg-addsw){display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;gap:8px!important;column-gap:8px!important;row-gap:8px!important;overflow:visible!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip):not(#seg-cur):not(#seg-addsw) button{flex:0 0 auto!important;min-width:56px!important;width:auto!important;padding:0 12px!important;height:36px!important;font-size:14px!important;letter-spacing:0!important}
+}
+@media (max-width:559px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) :is(#seg-alg,#seg-atm,#seg-leg):not(#seg-cur):not(#seg-addsw){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:8px!important;column-gap:8px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) :is(#seg-alg,#seg-atm,#seg-leg):not(#seg-cur):not(#seg-addsw) button{min-width:0!important;padding:0 4px!important;font-size:14px!important;letter-spacing:0!important}
+}
+/* 8px between chips everywhere (switch row on phones, 分享 role chips) */
+.sheet .addsw #seg-addsw:not(#x){column-gap:8px!important}
+.sheet .seg:is(#sh-role,.shrole-new,.shrole):not(#x){gap:8px!important}
 
 </style>
 
@@ -1920,7 +1951,7 @@ function bindPhotos(root,getIds,setIds){const box=root.querySelector('#photos');
 function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrite;S.readSheet=ro;
   const st={day:it.day,slot:it.slot,kind:it.kind||'spot',photos:(it.photos||[]).slice(),must:!!it.must};
   openSheet('<h2>'+(ro?'行程內容':'編輯行程')+'</h2>'+
-    '<div class="fld"><label for="e-title">名稱</label><input class="inp" id="e-title" value="'+esc(it.title)+'"></div>'+
+    '<div class="fld"><label for="e-title">名稱</label><div class="togwrap"><input class="inp" id="e-title" value="'+esc(it.title)+'">'+(ro?'':'<button type="button" class="star-in" id="e-must" aria-pressed="'+st.must+'" aria-label="必去">'+(st.must?'★':'☆')+' 必去</button>')+'</div></div>'+
     '<div class="fld"><label for="e-note">備註</label><textarea class="inp" id="e-note" style="min-height:64px">'+esc(it.note)+'</textarea></div>'+
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     (ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
@@ -1930,9 +1961,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':modeField(it)+legFieldAll(it))+
     '<div class="more-flat"><div>'+
-    (PLACE_KINDS.includes(it.kind)||safeUrl(it.map)?'<div class="row2"><a class="btn map-big" href="'+esc(mapUrl(it))+'" target="_blank" rel="noopener">'+PIN+'Google 地圖</a><button type="button" class="btn map-big" id="e-staff">給店員看</button></div>':'')+
     (ro?'':recField(it))+
-    '<div class="fld"><span class="lbl">標記</span><div class="seg" id="seg-must"><button type="button" data-v="1" aria-pressed="'+st.must+'">★ 必去</button><button type="button" data-v="0" aria-pressed="'+(!st.must)+'">一般</button></div></div>'+
     aiInfoHTML(it,ro)+
     '<div class="fld"><label for="e-desc">簡介'+(S.sample&&!ro?'<button type="button" class="btn sm ai" id="e-ai">✨ AI 寫簡介</button>':'')+'</label><textarea class="inp" id="e-desc" placeholder="這個地方有什麼特色、必吃必買">'+esc(it.desc)+'</textarea></div>'+(picOf(it)&&!ro?'<div class="fld picfld"><label>小圖片<span class="opt">自動從維基百科找的</span></label><div class="picrow"><img src="'+esc(picOf(it))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="btn sm" id="e-pic-rm" data-id="'+esc(it.id)+'">不要這張</button></div></div>':'')+
     (it.warn?'<div class="iwarn">⚠ '+esc(it.warn)+'</div>':'')+
@@ -1948,7 +1977,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     const rebindSlot=()=>bindSeg(root,'seg-slot',v=>st.slot=v);
     bindSeg(root,'seg-day',v=>{const n=+v;if(n===0)st.slot='pool';else if(st.slot==='pool')st.slot=st.kind==='food'?'lunch':'afternoon';st.day=n;
       root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,n,st.kind);rebindSlot();root.querySelector('#slot-wrap').closest('.fld').hidden=n===0;root.querySelector('#e-time').closest('.fld').hidden=n===0});
-    rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>{st.kind=v;if(st.day>0){st.slot=slotFit(st.slot,v);root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,st.day,v);rebindSlot()}});bindSeg(root,'seg-must',v=>st.must=v==='1');
+    rebindSlot();bindLeg(root,st);bindSeg(root,'seg-kind',v=>{st.kind=v;if(st.day>0){st.slot=slotFit(st.slot,v);root.querySelector('#slot-wrap').innerHTML=slotSeg(st.slot,st.day,v);rebindSlot()}});{const mb=root.querySelector('#e-must');if(mb)mb.addEventListener('click',()=>{st.must=!st.must;mb.setAttribute('aria-pressed',st.must);mb.textContent=(st.must?'★':'☆')+' 必去'})}
     root.querySelector('#e-cancel').onclick=closeSheet;
     const sf=root.querySelector('#e-staff');if(sf)sf.onclick=()=>showStaff(S.items.get(id)||it);
     const ex=root.querySelector('#e-exp');if(ex)ex.onclick=()=>{if(!canWrite())return;closeSheet();openExp(null,{shop:it.title,day:it.day,cat:KIND2CAT[it.kind]||'other',itemId:it.id})};
@@ -2409,12 +2438,10 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* the floating ＋ is always 新增: it opens the chooser (openPicker) */
 function fabSync(){const t=document.getElementById('fab-t');if(!t)return;t.textContent='新增';const f=document.getElementById('fab');if(f){f.setAttribute('aria-label',t.textContent);f.title=t.textContent}expSync()}
 /* adding to a checklist: the same fields as editing it (name, note, date, photos) — name or a photo is enough (購物 is often just a screenshot).
-   opt.day presets the date; opt.pick shows the 待辦／訂位／票券／購物 switch (used by a day's 今日要辦 ＋) */
-const PICK_TYPES=[['todo','待辦'],['book','預約'],['buy','想'+'買']];
+   opt.day presets the date; opt.pick = a day's 今日要辦 ＋ (no 待辦／預約／購物 choice: it is just a 待辦) */
 function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[],day:opt.day||0,type,note:!!opt.note},L=()=>LTYPES.find(x=>x.k===st.type)||{l:'清單',ph:''},full=type!=='pack';S.readSheet=false;
   const notePh=t=>t==='book'||t==='ticket'?'確認碼、時間、人數':t==='buy'?'在哪買、幫誰買、大概多少錢':'';
   openSheet('<h2>'+(opt.note?'新增筆記':opt.pick?'今日要辦・'+md(dayDate(st.day)):'新增'+esc(L().l))+'</h2>'+
-    (opt.pick||(TODO_TYPES.includes(type)&&!opt.note)?'<div class="fld"><span class="lbl">種類</span><div class="seg" id="seg-qtype">'+PICK_TYPES.map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(x[0]===type)+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
     '<div class="fld"><label for="q-in">要加什麼'+(S.assets&&full?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L().ph)+'" autocomplete="off"></div>'+
     '<div class="fld"><label for="q-note">備註<span class="opt">選填</span></label><textarea class="inp" id="q-note" style="min-height:64px" placeholder="'+esc(notePh(type))+'"></textarea></div>'+
     (full&&!opt.pick?'<div class="fld"><span class="lbl" id="q-dlbl">'+dateLbl(type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+  /* 今日要辦: the day is already chosen */
@@ -2464,7 +2491,7 @@ function openDest(k,t){const n=S.active,trip=n>0;
   else{if(k==='note')quickAdd('todo',{note:true});else if(k==='pack')quickAdd('pack');else if(trip)quickAdd('todo',{day:n,pick:true});else quickAdd('todo');if(t)setTimeout(()=>{const q=document.getElementById('q-in');if(q)q.value=t},60)}
   setTimeout(()=>addSwitch(k,trip),0)}
 function addSwitch(cur,trip){const all=document.querySelectorAll('.sheet'),sh=all[all.length-1];  /* the newest sheet (the old one may still be closing) */if(!sh||sh.querySelector('#seg-addsw'))return;
-  const CH=trip?[['item','📍 行程'],['todo','✅ 待辦'],['money','💰 花費'],['diary','📔 日記']]:[['todo','✅ 待辦'],['pack','🧳 行李'],['pool','📌 口袋'],['item','📍 行程'],['money','💰 花費'],['note','📝 筆記']];
+  const CH=trip?[['item','📍 行程'],['todo','✅ 待辦'],['money','💰 花費'],['diary','📔 日記']]:[['todo','✅ 待辦'],['pack','🧳 行李'],['pool','📌 口袋'],['money','💰 花費'],['note','📝 筆記']]  /* 出發前 行程 = the 口袋 form (pick a day there) */;
   const d=document.createElement('div');d.className='fld addsw';
   d.innerHTML='<div class="seg" id="seg-addsw">'+CH.map(([k,l])=>'<button type="button" id="pk-'+(k==='money'?'exp':k)+'" data-k="'+k+'" aria-pressed="'+(k===cur)+'">'+l+'</button>').join('')+'</div>';
   const h=sh.querySelector('h2');if(h)h.after(d);else sh.prepend(d);
@@ -2800,9 +2827,8 @@ function legField(b){const a=legPrev(b);if(!a)return '';const l=leg(b),mode=l.mo
   const ai={train:same?b.cmT:null,bus:same?b.cmT:null,taxi:same?b.cmX:null,walk:same?b.cmW:null},man=same&&b.cmMan!=null?b.cmMan:'';
   const ph=m=>ai[m]!=null?'約 '+ai[m]+'（AI）':(m==='plane'||m==='ship'?'自己填':'AI 估算中');
   return '<div class="fld legf" data-from="'+esc(a.id)+'" data-ai=\''+esc(JSON.stringify(ai))+'\'><span class="lbl">交通方式<span class="opt">從「'+esc(a.title.slice(0,16))+'」過來</span></span>'+
-    '<div class="seg" id="seg-leg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
-    '<div class="fld"><label for="e-cm">要多久</label><div class="legmin"><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+ph(mode)+'" value="'+esc(man)+'"><span>分鐘</span></div>'+
-    '<span class="hint2">分鐘數是 AI 估的，可以自己改；清空就交回 AI。</span></div>'}
+    '<div class="seg" id="seg-leg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div>'+
+    '<div class="legmin"><label for="e-cm">要多久</label><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+ph(mode)+'" value="'+esc(man)+'"><span>分鐘</span></div></div>'}
 function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0=ps.dataset.id,f0=root.querySelector('#e-posf');
     root.querySelector('#seg-day').addEventListener('click',()=>setTimeout(()=>{ps.innerHTML=posOpts(st.day,it0,1);f0.hidden=!(st.day>0)},0));
     ps.addEventListener('change',()=>{const sl=root.querySelector('#slot-wrap');if(sl)sl.closest('.fld').hidden=!!ps.value})}bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
@@ -3153,7 +3179,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.130';
+window.__BUILD='1.131';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
