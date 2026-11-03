@@ -1233,6 +1233,12 @@ a.gonext.legnav{text-decoration:none}
 .sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-pay,#seg-own){grid-auto-columns:auto!important}
 .sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important;gap:2px!important}
 @media (max-width:359px){.sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 交通 line never splits a phrase: lead, mode+minutes and 導航 each stay whole */
+.legnav .leglead,.legnav .navpill{white-space:nowrap}
+.legnav .legtx{white-space:nowrap}
+.legc .legnav{flex-wrap:wrap!important;row-gap:2px;max-width:100%;box-sizing:border-box}
+.legc .legnav{column-gap:4px!important}.legc .legnav .leglead{margin-right:0!important}.legc .legnav .navpill{margin-left:4px}
+@media (max-width:359px){.bar .pill-btn{padding:0 10px!important}}
 
 </style>
 
@@ -2444,8 +2450,9 @@ function leg(b){const a=legPrev(b);if(!a)return null;const mode=LEG_MODE(b),nl=n
   const ai=legAi(b,mode);return {a,mode,min:b.cmMan!=null&&b.cmMan!==''?+b.cmMan:nm!=null?nm:(ai!=null?+ai:null),ai:ai!=null?+ai:null}}
 const legUrl=(a,b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&origin='+encodeURIComponent(placeQuery(a))+'&destination='+encodeURIComponent(placeQuery(b));
 const legText=l=>{const m=TMODES.find(x=>x[0]===l.mode);return TM_ICON[l.mode]+' '+(m?m[1]:'')+(l.min!=null?'・約 '+l.min+' 分':'')};
+const legTextW=l=>'<span class="legtx">'+legText(l)+'</span>';
 function legLine(b,lead){const l=leg(b);if(!l)return '';const u=navUrl(b,l.mode);
-  return '<a class="gonext legbtn legnav" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖導航到「'+esc(b.title)+'」"><span class="leglead">'+lead+'</span>'+legText(l)+'<span class="navpill">'+PIN+'導航</span></a>'}
+  return '<a class="gonext legbtn legnav" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖導航到「'+esc(b.title)+'」"><span class="leglead">'+lead+'</span>'+legTextW(l)+'<span class="navpill">'+PIN+'導航</span></a>'}
 /* tap the line → Google Maps directions from where you are now (no origin = current location) */
 const navUrl=(b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&destination='+encodeURIComponent(placeQuery(b));
 /* the last line of a card: how you get to the next stop */
@@ -2505,7 +2512,8 @@ function slotSeg(sel,day,kind){if(day===0)return '<div class="seg" id="seg-slot"
 
 /* ⑧ 交通 sits between two cards on the timeline (its own row, easy to tap), not inside a card */
 const legc=h=>h?'<div class="legc">'+h+'</div>':'';
-function itemLegs(it){return (FIRST.has(it.id)?legc(legLine(it,'從飯店')):'')+(it.kind==='move'&&it.day>0?moveRowHTML(it):itemHTML(it))+legc(nextLink(it))}
+/* the day's 出發時間 and how you leave the hotel are one line: "05:00 出發 🚃 電車・約 25 分" (no time set: "從飯店 …") */
+function itemLegs(it){return (FIRST.has(it.id)?legc(legLine(it,dayDep(it.day)?dayDep(it.day)+' 出發':'從飯店')):'')+(it.kind==='move'&&it.day>0?moveRowHTML(it):itemHTML(it))+legc(nextLink(it))}
 
 
 /* ② on trip days (not the day you fly out or home) the boarding pass folds into one line that still shows the flight home */
@@ -2714,7 +2722,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.118';
+window.__BUILD='1.119';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
