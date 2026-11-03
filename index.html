@@ -1193,12 +1193,46 @@ a.gonext.legnav{text-decoration:none}
 .m{font-size:14px!important}
 .kind{padding:0 8px!important;line-height:20px!important}
 .item.is-move .imeta .kind.tmode{gap:4px!important}
-.icon-btn,.sheet-x{padding:0!important}
+.icon-btn:not(.pill-btn),.sheet-x{padding:0!important}
+.bar .pill-btn{padding:0 14px!important}
 .pass-meta div{gap:2px!important}
 .mapl{padding:0 8px 0 6px!important}
 .viewseg{padding:4px!important}
 .col-n{padding:2px 12px!important}
 .tcard .tst{padding:2px 10px!important}
+
+/* 旅行設定: 出發日 + 天數 side by side without overlapping (iOS date inputs have a wide built-in minimum) */
+.row2>*{min-width:0}
+.row2 input[type="date"]{min-width:0;width:100%;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;text-align:left}
+.row2 input[type="date"]::-webkit-date-and-time-value{text-align:left}
+/* 出發前 chip: as wide as "還有 47 項", so no letters peek out at the edge when the strip scrolls */
+.strip .chip.pool{flex:0 0 auto;min-width:max-content}
+/* 新增行程／記一筆 on one screen: choices in one swipeable row, smaller chips, hints folded away, photo box small, amount on one row */
+.sheet:is(:has(#a-text),:has(#x-amt)){gap:10px!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld{gap:4px!important;margin:0!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld>label,.sheet:is(:has(#a-text),:has(#x-amt)) .fld>.lbl{font-size:12px;line-height:16px;margin:0}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld .opt,.sheet:is(:has(#a-text),:has(#x-amt)) .hint2{display:none!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .inp{min-height:44px;height:44px;padding-block:8px;box-sizing:border-box}
+.sheet:is(:has(#a-text),:has(#x-amt)) textarea.inp{height:44px;min-height:44px!important;resize:none}
+.sheet:is(:has(#a-text),:has(#x-amt)) .seg:not(.dstrip){flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px;padding:2px 0;margin:0 -2px}
+.sheet:is(:has(#a-text),:has(#x-amt)) .seg:not(.dstrip)::-webkit-scrollbar{display:none}
+.sheet:is(:has(#a-text),:has(#x-amt)) .seg:not(.dstrip) button{flex:0 0 auto;height:32px;min-height:32px;padding:0 12px!important;font-size:14px;line-height:28px}
+.sheet:is(:has(#a-text),:has(#x-amt)) .photos{gap:6px}
+.sheet:is(:has(#a-text),:has(#x-amt)) .ph-add,.sheet:is(:has(#a-text),:has(#x-amt)) .ph-t{width:56px!important;height:56px!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .ph-add{font-size:12px;line-height:16px}
+/* 記一筆: ¥/NT$ switch and the amount on one row */
+.sheet .fld:has(#x-amt){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:8px}
+.sheet .fld:has(#x-amt)>.lbl,.sheet .fld:has(#x-amt)>.amt-hint{grid-column:1/-1}
+.sheet .fld:has(#x-amt)>.amt-hint:empty{display:none}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld>*{min-width:0}
+.sheet:has(#x-amt) .rolehint{display:none!important}
+/* six short choices fit one row on a phone, no half-cut chip: equal columns */
+.sheet:is(:has(#a-text),:has(#x-amt)) .seg:not(.dstrip):not(#seg-cur){display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;overflow:visible;margin:0}
+.sheet:is(:has(#a-text),:has(#x-amt)) .seg:not(.dstrip):not(#seg-cur) button{padding:0 2px!important;min-width:0;overflow:hidden;text-overflow:clip}
+.sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-alg,#seg-atm,#seg-leg) button{font-size:12px;letter-spacing:-.02em}
+.sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-pay,#seg-own){grid-auto-columns:auto!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important;gap:2px!important}
+@media (max-width:359px){.sheet:is(:has(#a-text),:has(#x-amt)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 </style>
 
@@ -2180,7 +2214,7 @@ function openAdd(def){if(!canWrite())return;const d={day:def.day,slot:def.slot&&
   const kindChips=()=>'<div class="seg" id="seg-akind">'+kindList().map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="'+(d.kind===k[0])+'">'+k[1]+'</button>').join('')+'</div>';
   const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+slotKeys(d.sfam||'',d.slot).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
-    '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵"></textarea><span class="hint2">地區和 Google 地圖會自動補上・也可以貼地圖連結・換行可以一次加很多個</span></div>'+
+    '<div class="fld"><label for="a-text">去哪裡？</label><textarea class="inp grow" id="a-text" rows="1" placeholder="店名或景點，例：一蘭拉麵"></textarea><span class="hint2">地區、地圖會自動補上・可貼地圖連結・換行可一次加多個</span></div>'+
     '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
     (S.assets?'<div class="fld" id="a-photof"><span class="lbl">照片<span class="opt">選填，IG、Google 地圖的截圖也可以</span></span>'+photosHTML([],false)+'</div>':'')+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
@@ -2680,7 +2714,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.117';
+window.__BUILD='1.118';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
