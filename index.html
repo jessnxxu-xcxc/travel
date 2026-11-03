@@ -1330,7 +1330,7 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important}
 .sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg) button{font-size:12px;letter-spacing:-.02em}
 .sheet :is(#seg-alg,#seg-atm,#seg-leg){display:flex!important;flex-wrap:nowrap!important}
-.sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:1 0 auto!important;min-width:max-content!important;padding:0 3px!important}
+.sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:1 0 auto!important;min-width:max-content!important;padding:0 2px!important}
 .sheet .legmin span{white-space:nowrap}
 .sheet:has(#e-title){gap:6px!important}
 /* ===== desktop (sheet is a centred dialog, plenty of room): a tidy form — every row has its label on the left in one column,
@@ -1338,9 +1338,9 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 @media (min-width:760px){
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)){grid-template-columns:1fr!important;gap:12px!important}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in))>*{grid-column:1/-1!important}
-  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
-  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc))>:is(label,.lbl){grid-column:1;align-self:start;padding-top:10px;margin:0;font-size:14px;white-space:nowrap;visibility:visible!important}
-  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc))>:not(label):not(.lbl){grid-column:2}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own)){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own))>:is(label,.lbl){grid-column:1;align-self:start;padding-top:10px;margin:0;font-size:14px;white-space:nowrap;visibility:visible!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own))>:not(label):not(.lbl){grid-column:2}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld .opt{display:none!important}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip){display:flex!important;flex-wrap:wrap!important;justify-content:flex-start;gap:8px!important;overflow:visible}
   .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip) button{flex:0 0 auto!important;min-width:64px!important;padding:0 14px!important;height:36px;font-size:14px!important;letter-spacing:0}
@@ -1466,6 +1466,44 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet .star-tog{margin-left:12px;font-size:12px;color:var(--muted);text-decoration:none;padding:0 8px;border:1.5px solid rgba(62,58,57,.3);border-radius:999px;line-height:20px}
 .sheet .star-tog[aria-pressed="true"]{color:var(--ink);background:var(--yellow);border-color:var(--ink);font-weight:700}
 .item .imeta:has(.tbad) .ioh{display:none}
+
+/* 交通 sheet: the long「從「…」過來」hint wraps inside the sheet instead of running off it */
+.sheet .legf .lbl{white-space:normal!important;display:block}
+.sheet .legf .lbl .opt{display:inline;overflow-wrap:anywhere}
+.sheet .legft{overflow-wrap:anywhere}
+/* desktop: 去哪裡 keeps its label (with ☆ 必去) on top of the box */
+@media (min-width:760px){
+  .sheet .fld:has(#a-text)>label{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;align-items:center;column-gap:8px}
+}
+.sheet:has(#e-title):not(.ai-open) .more-flat .fld:is(:has(#e-area),:has(#e-oh),:has(#e-desc)){display:none!important}
+/* desktop: 交通方式 chips at normal size with 8px gaps (the 2px squeeze is only for phones) */
+@media (min-width:760px){
+  .sheet :is(#seg-alg,#seg-atm,#seg-leg){gap:8px!important;column-gap:8px!important;flex-wrap:wrap!important}
+  .sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:0 0 auto!important;padding:0 14px!important;font-size:14px!important;letter-spacing:0!important}
+}
+/* 交通 sheet (its own small sheet): the six choices wrap onto two rows with normal gaps */
+.sheet:not(:has(#e-title)):not(:has(#a-text)) #seg-leg{flex-wrap:wrap!important;gap:8px!important;column-gap:8px!important}
+.sheet:not(:has(#e-title)):not(:has(#a-text)) #seg-leg button{flex:0 0 auto!important;padding:0 12px!important;font-size:14px!important;letter-spacing:0!important}
+/* no extra ring on the chip you just clicked (it looked like a different style); keyboard users still get one */
+.seg button:focus,.pk:focus,.pretabs2 button:focus{outline:none!important;box-shadow:none!important}
+.seg button:focus-visible,.pretabs2 button:focus-visible{outline:2px dashed var(--ink)!important;outline-offset:2px}
+/* 口袋 page = 口袋名單 (places) on top, 筆記 underneath */
+.col[data-col="0"]{display:flex;flex-direction:column}
+.col[data-col="0"]>*{min-width:0}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec][data-sec="notes"]:not([data-sec="x"]){display:block!important;order:50}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"]{order:40}
+.col[data-col="0"] .col-foot,.col[data-col="0"]>footer{order:90}
+/* desktop: 這筆是誰的（＋其他人）keeps its label on top */
+@media (min-width:760px){.sheet .fld:has(#seg-own){display:grid!important;grid-template-columns:1fr!important}.sheet .fld:has(#seg-own)>*{grid-column:1!important}.sheet .fld:has(#seg-own)>.lbl{padding-top:0!important}}
+@media (max-width:759px){.sheet .addsw #seg-addsw:has(> :nth-child(4)):not(:has(> :nth-child(5))){grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-flow:column!important}}
+/* 時段 headers, lighter: emoji + bold word, then a soft dashed rule (no boxed pill) */
+.tl .slot-h{display:flex!important;align-items:center;gap:8px}
+.tl .slot-h b{padding:0!important;border:0!important;background:none!important;font-size:14px!important;font-weight:700;gap:6px}
+.tl .slot-h::after{content:'';flex:1;border-top:1.5px dashed rgba(62,58,57,.2);margin-right:4px}
+/* 口袋 = one list: the places, then the notes right under them, no second heading */
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="notes"]{padding-top:0!important;margin-top:-8px}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{display:none}
 
 </style>
 
@@ -1899,7 +1937,6 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     (ro?'':ohField(it))+
     '<div class="fld"><label for="e-q">日文店名（地圖搜尋用）</label><input class="inp" id="e-q" placeholder="例：浅草今半 国際通り本店" value="'+esc(it.q)+'"></div>'+
     '<div class="fld"><label for="e-map">Google 地圖連結</label><input class="inp" id="e-map" inputmode="url" placeholder="貼上地圖分享連結" value="'+esc(it.map)+'"></div>'+
-    (PLACE_KINDS.includes(it.kind)?'<div class="btns"><button type="button" class="btn sm" id="e-exp">＋ 在這裡記一筆花費</button>'+(spentOn(it)?'<span class="spent">已記 '+yen(spentOn(it))+'</span>':'')+'</div>':'')+
     '</div></div>'+
     cmHTML(it,ro)+
     '<div class="btns">'+(ro?'':'<button type="button" class="btn danger" id="e-del">刪除</button>')+'<span class="sp"></span><button type="button" class="btn" id="e-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="e-save">儲存</button>')+'</div>',
@@ -2313,7 +2350,7 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
    Tap one to open it; ‹ 出發前 goes back. 待辦 holds every to-do, booking, ticket and thing to buy (a small tag says which); 筆記 = a to-do that needs no tick.
    In 待辦／行李, tap ＋ 新增 at the bottom and type: Enter adds it and opens the next line. Details (date, note, photos) → tap the row. */
 const PRE_VIEWS=['home','list','notes','bag','pool','money','s-today','s-dated','s-all','s-done'];
-function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_VIEWS.includes(v)&&v!=='home'&&!v.startsWith('s-')?v:'list'}
+function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return v==='notes'?'pool':PRE_VIEWS.includes(v)&&v!=='home'&&!v.startsWith('s-')?v:'list'}
 function setPreTab(v){try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}render();window.scrollTo&&setTimeout(()=>{const c=document.querySelector('.col[data-col="0"]');if(c&&c.getBoundingClientRect().top<0)c.scrollIntoView({block:'start'})},0)}
 const TODO_TYPES=['todo','book','ticket','buy'];
 const isTodoRow=r=>!r.nochk&&TODO_TYPES.includes(r.type)&&(r.type==='book'||r.type==='ticket'||!(r.day>0));
@@ -2332,13 +2369,15 @@ function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeou
   const todos=[...S.lists.values()].filter(isTodoRow),pack=[...S.lists.values()].filter(r=>r.type==='pack'),pool=[...S.items.values()].filter(i=>i.day===0);
   const exN=[...S.exps.values()].filter(e=>!(e.day>0)).length;
   const notes=[...S.lists.values()].filter(isNote);
-  const MY=[['list','待辦','green',todos.filter(r=>!r.done).length],['notes','筆記','pro',notes.length],['bag','行李','water',pack.filter(r=>!r.done).length],['pool','口袋','yellow',pool.length],['money','花費','coral',exN]];
+  /* by how often you use them before a trip: tick-off lists first, planning next, money, then reference notes */
+  /* 口袋 = places you want to go (can be put on a day) + notes (no tick) — both are 'things noted for later' */
+  const MY=[['list','待辦','green',todos.filter(r=>!r.done).length],['bag','行李','water',pack.filter(r=>!r.done).length],['pool','口袋','yellow',pool.length+notes.length],['money','花費','coral',exN]];
   const ICO={notes:PK_ICO.note,list:PK_ICO.todo,bag:PK_ICO.pack,pool:PK_ICO.pool,money:PK_ICO.money};
   const NAME={notes:'筆記',list:'待辦',bag:'行李',pool:'口袋名單',money:'出發前花費','s-today':'今天','s-dated':'有日期','s-all':'全部','s-done':'已完成'};
   /* one row of five tabs — tap to switch, nothing to go back from */
   let h='<div class="pretabs2" role="tablist">'+MY.map(([k,l,c,n])=>'<button type="button" role="tab" data-pre="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>').join('')+'</div>';
   h+='<section class="dsec" data-sec="list"><ul class="clist">'+todos.sort(rowSort).map(r=>listRowX(r)).join('')+addLine('list')+'</ul>'+(todos.length?'':'<p class="pool-help">要做的事、要訂的位、要買的東西、筆記，都放這裡。</p>')+'</section>';
-  h+='<section class="dsec" data-sec="notes"><ul class="clist">'+notes.sort((a,b)=>(a.order||a.ts||0)-(b.order||b.ts||0)).map(r=>listRowX(r,false)).join('')+addLine('notes')+'</ul>'+(notes.length?'':'<p class="pool-help">地址、電話、常用日文、注意事項…想記什麼都放這裡，不用打勾。</p>')+'</section>';
+  h+='<section class="dsec" data-sec="notes"><ul class="clist">'+notes.sort((a,b)=>(a.order||a.ts||0)-(b.order||b.ts||0)).map(r=>listRowX(r,false)).join('')+addLine('notes')+'</ul>'+''+'</section>';
   h+='<section class="dsec" data-sec="bag"><ul class="clist">'+pack.sort(rowSort).map(r=>listRowX(r,false)).join('')+addLine('bag')+'</ul></section>';
   if(cur.startsWith('s-')){const rows=smartRows(cur).sort(rowSort);h+='<section class="dsec" data-sec="smart">'+(rows.length?'<ul class="clist">'+rows.map(r=>listRowX(r)).join('')+'</ul>':'<p class="pool-help">這裡目前沒有東西。</p>')+'</section>'}
   return h}
@@ -2412,20 +2451,21 @@ const PLACE_RE=/https?:\/\/|拉麵|咖啡|cafe|café|店|寺|神社|公園|塔|�
 function guessDest(t,trip){if(!t)return trip?'item':'list';if(MONEY_RE.test(t))return 'money';if(!trip&&PACK_RE.test(t))return 'pack';if(TODO_RE.test(t)&&!PLACE_RE.test(t))return 'todo';
   if(PLACE_RE.test(t))return trip?'item':'pool';return trip?'item':'todo'}
 /* ＋ starts on what you're looking at: a trip day → 行程; 出發前 → the open tab (行李 tab → 行李, 筆記 tab → 筆記, …) */
-const TAB_DEST={list:'todo',notes:'note',bag:'pack',pool:'pool',money:'money'};
+const TAB_DEST={list:'todo',bag:'pack',pool:'pool',money:'money'};
 function openPicker(){if(!canWrite())return;openDest(S.active>0?'item':TAB_DEST[preTab()]||'todo','')}
 /* every add form starts with the same switch row (like 類型 in 新增行程): change it and the form changes, keeping the name you typed */
 function openDest(k,t){const n=S.active,trip=n>0;
-  if(k==='money'){openExp(null,{day:n});setTimeout(()=>{const s=document.getElementById('x-shop');if(s&&t){s.value=t;s.dispatchEvent(new Event('change',{bubbles:true}))}const a=document.getElementById('x-amt');if(a)a.focus()},80)}
+  if(k==='diary'){openDiary(n);setTimeout(()=>{const q=document.getElementById('dy-in');if(q&&t)q.value=t},60)}
+  else if(k==='money'){openExp(null,{day:n});setTimeout(()=>{const s=document.getElementById('x-shop');if(s&&t){s.value=t;s.dispatchEvent(new Event('change',{bubbles:true}))}const a=document.getElementById('x-amt');if(a)a.focus()},80)}
   else if(k==='item'||k==='pool'){openAdd(k==='pool'?{day:0,slot:'pool'}:{day:n,slot:null});if(t)setTimeout(()=>{const a=document.getElementById('a-text');if(a){a.value=t;a.dispatchEvent(new Event('input',{bubbles:true}))}},60)}
   else{if(k==='note')quickAdd('todo',{note:true});else if(k==='pack')quickAdd('pack');else if(trip)quickAdd('todo',{day:n,pick:true});else quickAdd('todo');if(t)setTimeout(()=>{const q=document.getElementById('q-in');if(q)q.value=t},60)}
   setTimeout(()=>addSwitch(k,trip),0)}
-function addSwitch(cur,trip){const sh=document.querySelector('.sheet');if(!sh||sh.querySelector('#seg-addsw'))return;
-  const CH=trip?[['item','📍 行程'],['todo','✅ 今日待辦'],['money','💰 花費']]:[['todo','✅ 待辦'],['note','📝 筆記'],['pack','🧳 行李'],['pool','📌 口袋'],['item','📍 行程'],['money','💰 花費']];
+function addSwitch(cur,trip){const all=document.querySelectorAll('.sheet'),sh=all[all.length-1];  /* the newest sheet (the old one may still be closing) */if(!sh||sh.querySelector('#seg-addsw'))return;
+  const CH=trip?[['item','📍 行程'],['todo','✅ 待辦'],['money','💰 花費'],['diary','📔 日記']]:[['todo','✅ 待辦'],['pack','🧳 行李'],['pool','📌 口袋'],['item','📍 行程'],['money','💰 花費'],['note','📝 筆記']];
   const d=document.createElement('div');d.className='fld addsw';
   d.innerHTML='<div class="seg" id="seg-addsw">'+CH.map(([k,l])=>'<button type="button" id="pk-'+(k==='money'?'exp':k)+'" data-k="'+k+'" aria-pressed="'+(k===cur)+'">'+l+'</button>').join('')+'</div>';
   const h=sh.querySelector('h2');if(h)h.after(d);else sh.prepend(d);
-  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.k===cur)return;const f=sh.querySelector('#a-text,#q-in,#x-shop');const t=f?f.value.trim():'';closeSheet();setTimeout(()=>openDest(b.dataset.k,t),0)})}
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.k===cur)return;const f=sh.querySelector('#a-text,#q-in,#x-shop,#dy-in');const t=f?f.value.trim():'';closeSheet();setTimeout(()=>openDest(b.dataset.k,t),0)})}
 document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('#fab');if(!f)return;e.preventDefault();e.stopPropagation();openPicker()},true);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.chip,[data-pre]'))setTimeout(fabSync,0)},false);
 window.__fabSync=()=>setTimeout(fabSync,0);
@@ -2830,13 +2870,15 @@ function passMini(){const h=document.getElementById('trip-hero');if(!h)return;co
 
 /* ① a new version shows up by itself: checked when the app comes back to the screen; reloads only when nothing is being typed */
 let UPD_T=0;
-async function checkUpdate(){if(Date.now()-UPD_T<60000)return;UPD_T=Date.now();
+/* no automatic reload in the first minute after opening: the page just came from the network (the service worker fetches it first), and a reload right at launch is the one navigation that could be handed to another app */
+const OPENED_AT=Date.now();
+async function checkUpdate(){if(Date.now()-OPENED_AT<60000)return;if(Date.now()-UPD_T<60000)return;UPD_T=Date.now();
   try{const t=await (await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'})).text();const m=t.match(/__BUILD='([\d.]+)'/);
     if(!m||!window.__BUILD||m[1]===window.__BUILD)return;const k='tn-upd-'+m[1];if(sessionStorage.getItem(k))return;
     const a=document.activeElement;if(document.querySelector('.sheet')||S.drag||(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName))){UPD_T=0;return}
     sessionStorage.setItem(k,'1');location.reload()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
-setTimeout(checkUpdate,4000);setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},600000);
+setTimeout(checkUpdate,61000);setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},600000);
 
 /* ---------- transport rows (交通 items) drawn like the "去下一站" line ----------
    "10:30 🚕 計程車 出門搭 Yoxi・約 40 分 ›" — tap opens the row (交通方式 + 要多久).
@@ -3108,7 +3150,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.128';
+window.__BUILD='1.129';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
