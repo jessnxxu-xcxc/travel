@@ -1333,6 +1333,35 @@ body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"])
 .sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:1 0 auto!important;min-width:max-content!important;padding:0 3px!important}
 .sheet .legmin span{white-space:nowrap}
 .sheet:has(#e-title){gap:6px!important}
+/* ===== desktop (sheet is a centred dialog, plenty of room): a tidy form — every row has its label on the left in one column,
+   choices keep their natural size and sit left, no stretched or squeezed chips ===== */
+@media (min-width:760px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)){grid-template-columns:1fr!important;gap:12px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in))>*{grid-column:1/-1!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox)>:is(label,.lbl){grid-column:1;align-self:start;padding-top:10px;margin:0;font-size:14px;white-space:nowrap;visibility:visible!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox)>:not(label):not(.lbl){grid-column:2}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld .opt{display:none!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip){display:flex!important;flex-wrap:wrap!important;justify-content:flex-start;gap:8px!important;overflow:visible}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip) button{flex:0 0 auto!important;min-width:64px!important;padding:0 14px!important;height:36px;font-size:14px!important;letter-spacing:0}
+  .sheet .addsw #seg-addsw{display:flex!important;gap:8px!important}
+  .sheet .addsw #seg-addsw button{flex:0 0 auto!important;padding:0 16px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) textarea.inp{height:64px!important;min-height:64px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .ph-add,.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .ph-t{width:64px!important;height:64px!important}
+  .sheet .dstrip{justify-content:start}
+  .sheet .fld:has(#x-amt){grid-template-columns:88px auto minmax(0,1fr)!important}
+  .sheet .fld:has(#x-amt)>#seg-cur{grid-column:2!important}.sheet .fld:has(#x-amt)>#x-amt{grid-column:3!important}
+  .sheet .fld:has(#e-time)>*:not(label):not(.lbl){max-width:320px}
+  .sheet .fld:has(#e-cm) .legmin{max-width:200px}
+  .sheet .more-flat>div{display:grid;gap:12px}
+  .sheet .more-flat .row2{grid-template-columns:repeat(2,minmax(0,200px));justify-content:start}
+}
+/* 出發前: one row of five tabs */
+.pretabs2{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:8px 0 16px}
+.pretabs2 button{display:flex;align-items:center;justify-content:center;gap:4px;height:40px;padding:0 4px;border:2px solid var(--ink);border-radius:999px;background:#fff;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;white-space:nowrap;min-width:0}
+.pretabs2 button[aria-selected="true"]{background:var(--coral);font-weight:700}
+.pretabs2 i{font-style:normal;font-size:12px;min-width:20px;height:20px;line-height:16px;padding:0 4px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);box-sizing:border-box}
+.col[data-col="0"] .pre-back{display:none!important}
 
 </style>
 
@@ -2178,7 +2207,7 @@ document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.c
    Tap one to open it; ‹ 出發前 goes back. 待辦 holds every to-do, booking, ticket and thing to buy (a small tag says which); 筆記 = a to-do that needs no tick.
    In 待辦／行李, tap ＋ 新增 at the bottom and type: Enter adds it and opens the next line. Details (date, note, photos) → tap the row. */
 const PRE_VIEWS=['home','list','notes','bag','pool','money','s-today','s-dated','s-all','s-done'];
-function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_VIEWS.includes(v)?v:'home'}
+function preTab(){let v='';try{v=localStorage.getItem(T.id+'-pretab')||''}catch(e){}return PRE_VIEWS.includes(v)&&v!=='home'&&!v.startsWith('s-')?v:'list'}
 function setPreTab(v){try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}render();window.scrollTo&&setTimeout(()=>{const c=document.querySelector('.col[data-col="0"]');if(c&&c.getBoundingClientRect().top<0)c.scrollIntoView({block:'start'})},0)}
 const TODO_TYPES=['todo','book','ticket','buy'];
 const isTodoRow=r=>!r.nochk&&TODO_TYPES.includes(r.type)&&(r.type==='book'||r.type==='ticket'||!(r.day>0));
@@ -2200,8 +2229,8 @@ function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeou
   const MY=[['list','待辦','green',todos.filter(r=>!r.done).length],['notes','筆記','pro',notes.length],['bag','行李','water',pack.filter(r=>!r.done).length],['pool','口袋','yellow',pool.length],['money','花費','coral',exN]];
   const ICO={notes:PK_ICO.note,list:PK_ICO.todo,bag:PK_ICO.pack,pool:PK_ICO.pool,money:PK_ICO.money};
   const NAME={notes:'筆記',list:'待辦',bag:'行李',pool:'口袋名單',money:'出發前花費','s-today':'今天','s-dated':'有日期','s-all':'全部','s-done':'已完成'};
-  let h='<div class="pre-back"><button type="button" class="linkbtn" data-pre="home">‹ 出發前</button><b>'+(NAME[cur]||'')+'</b></div>';
-  h+='<section class="dsec pre-home" data-sec="home"><div class="mylist">'+MY.map(([k,l,c,n])=>'<button type="button" class="myrow" data-pre="'+k+'">'+pkIco(k==='list'?'todo':k==='bag'?'pack':k==='notes'?'note':k,c).replace('pk-i','pk-i my-i')+'<span>'+l+'</span><em>'+(n||'')+'</em><i aria-hidden="true">›</i></button>').join('')+'</div></section>';
+  /* one row of five tabs — tap to switch, nothing to go back from */
+  let h='<div class="pretabs2" role="tablist">'+MY.map(([k,l,c,n])=>'<button type="button" role="tab" data-pre="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>').join('')+'</div>';
   h+='<section class="dsec" data-sec="list"><ul class="clist">'+todos.sort(rowSort).map(r=>listRowX(r)).join('')+addLine('list')+'</ul>'+(todos.length?'':'<p class="pool-help">要做的事、要訂的位、要買的東西、筆記，都放這裡。</p>')+'</section>';
   h+='<section class="dsec" data-sec="notes"><ul class="clist">'+notes.sort((a,b)=>(a.order||a.ts||0)-(b.order||b.ts||0)).map(r=>listRowX(r,false)).join('')+addLine('notes')+'</ul>'+(notes.length?'':'<p class="pool-help">地址、電話、常用日文、注意事項…想記什麼都放這裡，不用打勾。</p>')+'</section>';
   h+='<section class="dsec" data-sec="bag"><ul class="clist">'+pack.sort(rowSort).map(r=>listRowX(r,false)).join('')+addLine('bag')+'</ul></section>';
@@ -2898,7 +2927,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.123';
+window.__BUILD='1.124';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
