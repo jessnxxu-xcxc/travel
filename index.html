@@ -1571,7 +1571,7 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{displa
 /* no empty list box (e.g. 口袋 with no 筆記 yet) now that lists have no add row */
 .clist:empty{display:none!important}
 /* same rule on the day pages: 今日要辦／今日花費／今日日記 have no add button of their own — the ＋ does it (with 待辦／花費／日記 on its top row) */
-.dsec .dsec-h .slot-add,.dsec.diary .dadd{display:none!important}
+.dsec .dsec-h .slot-add{display:none!important}
 .mbar .mb-o{font-style:normal;margin-left:8px;padding-left:8px;border-left:2px solid rgba(62,58,57,.2)}
 .mbar .mb-o:first-child{margin-left:0;padding-left:0;border-left:0}
 /* the 旅費 pill never pushes ⚙／分享 off a phone screen: it shrinks (and trims) instead */
@@ -1751,6 +1751,9 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 /* 飯店：日文名稱、備註各自一列 */
 .hotel-e .hotel-en:not(#z1):not(#z2){display:block!important}
 .hotel-e .hotel-note:not(#z1):not(#z2){margin-top:2px}
+.dsec.diary .dadd:not(#z1):not(#z2){display:block!important;margin-top:8px}
+/* 飯店備註：保留她自己打的換行 */
+.hotel-e .hotel-note:not(#z1):not(#z2):not(#z3){white-space:pre-line!important}
 
 </style>
 
@@ -2713,7 +2716,7 @@ function openDest(k,t){const n=S.active,trip=n>0;
   else{if(k==='note')quickAdd('todo',{note:true});else if(k==='pack')quickAdd('pack');else if(trip)quickAdd('todo',{day:n,pick:true});else quickAdd('todo');if(t)setTimeout(()=>{const q=document.getElementById('q-in');if(q)q.value=t},60)}
   setTimeout(()=>addSwitch(k,trip),0)}
 function addSwitch(cur,trip){const all=document.querySelectorAll('.sheet'),sh=all[all.length-1];  /* the newest sheet (the old one may still be closing) */if(!sh||sh.querySelector('#seg-addsw'))return;
-  const CH=trip?[['item','📍 行程'],['todo','☑️ 待辦'],['diary','📖 日記']]:[['todo','☑️ 待辦'],['pack','🧳 行李'],['pool','🔖 口袋']]  /* 記帳 has its own 💰 button next to 旅費; same three as the 出發前 tabs; 行程 = the 口袋 form (pick a day), 筆記 = 📝 寫筆記 inside it */;
+  const CH=trip?[['item','📍 行程'],['todo','☑️ 待辦'],['pool','🔖 口袋']]:[['todo','☑️ 待辦'],['pack','🧳 行李'],['pool','🔖 口袋']]  /* 記帳 has its own 💰 button next to 旅費; same three as the 出發前 tabs; 行程 = the 口袋 form (pick a day), 筆記 = 📝 寫筆記 inside it */;
   const d=document.createElement('div');d.className='fld addsw';
   d.innerHTML='<div class="seg" id="seg-addsw">'+CH.map(([k,l])=>'<button type="button" id="pk-'+(k==='money'?'exp':k)+'" data-k="'+k+'" aria-pressed="'+(k===cur||cur==='note'&&k==='pool')+'">'+l+'</button>').join('')+'</div>';
   const h=sh.querySelector('h2');if(h)h.after(d);else sh.prepend(d);
@@ -3460,7 +3463,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.145';
+window.__BUILD='1.146';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
