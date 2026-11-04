@@ -1737,7 +1737,7 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .pass-main:not(#z1){grid-template-columns:minmax(0,1fr)!important}
 .hotel-m:not(#z1){min-width:0}
 .hotel-m .hotel-e:not(#z1):not(#z2){box-sizing:border-box;min-width:0;max-width:100%}
-@media (max-width:559px){
+@media (max-width:520px){
   .hotel-m:not(#z1){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
   .hotel-m .hotel-e:not(#z1){width:100%}
   .hotel-m .hotel-map:not(#z1){align-self:flex-start;margin-left:28px}
@@ -3504,7 +3504,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.151';
+window.__BUILD='1.152';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
