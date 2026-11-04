@@ -1756,6 +1756,8 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .hotel-e .hotel-note:not(#z1):not(#z2):not(#z3){white-space:pre-line!important}
 /* 旅費總覽：不需要新增成員 */
 #add-person{display:none!important}
+/* 停留時間：卡片名稱下一小行 */
+.item .istay{display:block;font-size:12px;line-height:1.6;color:var(--muted);white-space:nowrap}
 
 </style>
 
@@ -2177,6 +2179,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     (ro?'':posField(it))+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    (ro?'':stayField(it))+
     (ro?'':modeField(it)+legFieldAll(it))+
     '<div class="more-flat"><div>'+
     (ro?'':recField(it))+
@@ -2790,7 +2793,7 @@ async function findAreas(){
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{AREA_BUSY=false}}
-async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findDups()}
+async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findStays();await findDups()}
 /* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
 function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
@@ -3067,6 +3070,7 @@ function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0
   bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約 '+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
 function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
   const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
+  {const sb=root.querySelector('#seg-stay [aria-pressed="true"]'),v=sb?+sb.dataset.v:0;if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
   const rc=root.querySelector('#e-rec');if(rc){const v=rc.value.trim().slice(0,40);if(v!==(cur.rec||'')){p.rec=v;p.recq=1}}
   const oh=root.querySelector('#e-oh');if(oh){const v=oh.value.trim();if(v!==ohText(cur)){const m=ohParse(v);if(v===''){p.oh='';p.ol='';p.ohq=1}else if(m){p.oh=tfmt(m.o)+'-'+tfmt(m.c);p.ol=m.l!=null?tfmt(m.l):'';p.ohq=1}else toast('營業時間請寫成 10:00-21:00')}}
   const mv=root.querySelector('#e-mv');if(mv){const v=mv.value.trim(),man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),was=cur.mvMan==null||cur.mvMan===''?null:+cur.mvMan;if(man!==was)p.mvMan=man}const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from;
@@ -3307,7 +3311,7 @@ function recentHTML(){const rows=[];
    You can delete your own. 最近更新 lists it as「留言」. */
 const cmList=it=>Array.isArray(it&&it.cm)?it.cm:[];
 function withCm(h,it){if(it&&it.oh&&PLACE_KINDS.includes(it.kind)){const k=h.indexOf('<span class="ititle"');if(k>7&&h.slice(k-7,k)==='</span>')h=h.slice(0,k-7)+'<span class="nb ioh" title="營業時間 '+esc(it.oh)+'">🕒'+esc(it.oh.replace(/:00/g,'').replace(/^0/,'').replace('-','–'))+'</span>'+h.slice(k-7)}  /* 10:00-21:00 → 🕒10–21 */
-  const n=cmList(it).length,rl=recLine(it);if(!n&&!rl)return h;const i=h.indexOf('class="ititle"');if(i<0)return h;const j=h.indexOf('</span>',i);if(j<0)return h;
+  const n=cmList(it).length,rl=stayLine(it)+recLine(it);if(!n&&!rl)return h;const i=h.indexOf('class="ititle"');if(i<0)return h;const j=h.indexOf('</span>',i);if(j<0)return h;
   return h.slice(0,j+7)+(n?'<span class="cmcount" aria-label="'+n+' 則留言">💬 '+n+'</span>':'')+rl+h.slice(j+7)}
 function cmWhen(t){const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 function cmHTML(it,ro){const c=cmList(it),me=myEmail();
@@ -3356,6 +3360,29 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 const recLine=it=>it&&it.rec&&PLACE_KINDS.includes(it.kind)?'<span class="irec">✨ '+esc(it.rec)+'</span>':'';
 function recField(it){if(!PLACE_KINDS.includes(it.kind))return '';
   return '<div class="fld"><label for="e-rec">推薦<span class="opt">AI 整理的強項，不對就改</span></label><input class="inp" id="e-rec" value="'+esc(it.rec||'')+'" placeholder="'+(it.recq?'例：必吃 豚骨拉麵、溏心蛋':'AI 整理中')+'" autocomplete="off"></div>'}
+/* ---------- 停留時間: it.stay (分鐘)；AI 先估 (stayAi=true)，她手改後 stayq=1 就不再動 ---------- */
+const STAYS=[[30,'30分'],[60,'1小時'],[90,'1.5小時'],[120,'2小時'],[180,'3小時'],[240,'4小時']];
+const STAY_KINDS=['food','spot','shop','fac'];
+const stayTxt=m=>m<60?m+' 分':(m%60?(m/60).toFixed(1).replace(/\.0$/,''):m/60)+' 小時';
+const stayLine=it=>it&&+it.stay>0&&STAY_KINDS.includes(it.kind)?'<span class="istay">⏱ 停留 '+stayTxt(+it.stay)+(it.stayAi?'（AI）':'')+'</span>':'';
+function stayField(it){if(!STAY_KINDS.includes(it.kind))return '';const v=+it.stay||0;
+  return '<div class="fld"><span class="lbl">停留時間'+(it.stayAi&&v?'<span class="opt">AI 預估，不對就改</span>':'')+'</span><div class="seg" id="seg-stay">'+STAYS.map(([m,l])=>'<button type="button" data-v="'+m+'" aria-pressed="'+(m===v)+'">'+l+'</button>').join('')+'</div></div>'}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#seg-stay button');if(!b)return;e.preventDefault();e.stopPropagation();const on=b.getAttribute('aria-pressed')!=='true';b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));if(on)b.setAttribute('aria-pressed','true')},true);
+let STAY_BUSY=false;
+async function findStays(){
+  if(STAY_BUSY||!S.sample||!S.canWrite)return;
+  const todo=[...S.items.values()].filter(it=>STAY_KINDS.includes(it.kind)&&it.title&&it.stayq===undefined&&!(+it.stay>0)).slice(0,30);
+  if(!todo.length)return;STAY_BUSY=true;
+  try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
+    const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請估計一般觀光客在每一項「停留多久」，單位分鐘，只能從 30、60、90、120、180、240 選一個最接近的。不確定就給 0。只回覆 JSON 數字陣列，例如 [60,90]。\n'+
+      part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
+    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*?\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(out)||out.length!==part.length)continue;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.stayq!==undefined||+cur.stay>0)return;
+      const m=Math.round(+out[k]||0),ok=STAYS.some(([x])=>x===m),p=ok?{stay:m,stayAi:true,stayq:0}:{stayq:0};
+      S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
+    render()}}
+  finally{STAY_BUSY=false}}
 let REC_BUSY=false;
 async function findRecs(){
   if(REC_BUSY||!S.sample||!S.canWrite)return;
@@ -3465,7 +3492,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.147';
+window.__BUILD='1.148';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
