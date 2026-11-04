@@ -1748,6 +1748,9 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
   .fly-row .ap b:not(#z1),.fly-row .ap strong:not(#z1){font-size:22px!important}
 }
 @media (max-width:339px){.ft-row:not(#z1){font-size:12px!important;letter-spacing:0}}
+/* 飯店：日文名稱、備註各自一列 */
+.hotel-e .hotel-en:not(#z1):not(#z2){display:block!important}
+.hotel-e .hotel-note:not(#z1):not(#z2){margin-top:2px}
 
 </style>
 
@@ -3456,7 +3459,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.142';
+window.__BUILD='1.143';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
