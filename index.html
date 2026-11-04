@@ -1754,6 +1754,8 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .dsec.diary .dadd:not(#z1):not(#z2){display:block!important;margin-top:8px}
 /* 飯店備註：保留她自己打的換行 */
 .hotel-e .hotel-note:not(#z1):not(#z2):not(#z3){white-space:pre-line!important}
+/* 旅費總覽：不需要新增成員 */
+#add-person{display:none!important}
 
 </style>
 
@@ -1843,7 +1845,7 @@ const LTYPES=[{k:'todo',l:'行前待辦',ph:'例：買 eSIM、買迪士尼門票
 const LT_L=Object.fromEntries(LTYPES.map(t=>[t.k,t.l]));
 const START=new Date(T.start+'T00:00:00'),NDAYS=T.days,WK='日一二三四五六';
 const PLACE_KINDS=['food','spot','shop','facility'];
-const CATS=[['food','餐飲'],['shop','購物'],['move','交通'],['ticket','門票'],['stay','住宿'],['other','其他']];
+const CATS=[['food','餐飲'],['shop','購物'],['move','交通'],['ticket','門票'],['stay','住宿'],['other','雜支']];
 const CAT_L=Object.fromEntries(CATS);
 const CAT_C={food:'var(--coral)',shop:'var(--yellow)',move:'var(--green)',ticket:'var(--water)',stay:'#C9B6E4',other:'#D8D2CC'};
 const KIND2CAT={food:'food',shop:'shop',spot:'ticket',move:'move',stay:'stay'};
@@ -2276,7 +2278,7 @@ function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const r
     
     '<div class="fld"><span class="lbl">怎麼付</span><div class="seg" id="seg-pay">'+PAYS.filter(([k])=>k!=='other'||st.pay==='other').map(([k,l])=>'<button type="button" data-v="'+k+'" aria-pressed="'+(st.pay===k)+'">'+l+'</button>').join('')+'</div></div>'+
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
-    '<div class="fld"><span class="lbl">這筆是誰的</span><div class="seg" id="seg-own"><button type="button" data-v="" aria-pressed="'+(!st.own)+'">💰基金</button>'+[...new Set(S.meta.people.concat(st.own?[st.own]:[]))].map(p=>'<button type="button" data-v="'+esc(p)+'" aria-pressed="'+(st.own===p)+'">'+esc(p)+'</button>').join('')+(ro?'':'<button type="button" class="own-add">＋ 其他人</button>')+'</div>'+(ro?'':'<input class="inp own-new" id="x-ownnew" placeholder="其他人：輸入名字（例：老公）" autocomplete="off">')+'<small class="rolehint">吃喝玩樂、門票、交通選「💰基金」；個人的購物選名字</small></div>'+
+    '<div class="fld"><span class="lbl">這筆是誰的</span><div class="seg" id="seg-own"><button type="button" data-v="" aria-pressed="'+(!st.own)+'">💰基金</button>'+[...new Set(S.meta.people.concat(st.own?[st.own]:[]))].map(p=>'<button type="button" data-v="'+esc(p)+'" aria-pressed="'+(st.own===p)+'">'+esc(p)+'</button>').join('')+''+'</div>'+(ro?'':'<input class="inp own-new" id="x-ownnew" placeholder="其他人：輸入名字（例：老公）" autocomplete="off">')+'<small class="rolehint">吃喝玩樂、門票、交通選「💰基金」；個人的購物選名字</small></div>'+
     (!id&&pre&&pre.day>0?'':'<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true,'出發前')+'</div>')+
     '<div class="btns">'+(id&&!ro?'<button type="button" class="btn danger" id="x-del">刪除</button>':'')+'<span class="sp"></span><button type="button" class="btn" id="x-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="x-save">'+(id?'儲存':'記一筆')+'</button>')+'</div>',
   root=>{const q=k=>root.querySelector('#x-'+k);if(ro)root.querySelectorAll('input').forEach(x=>x.readOnly=true);
@@ -2555,7 +2557,7 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 /* money extras: payment method + budget */
 const PAYS=[['cash','現金'],['card','信用卡'],['ic','Suica／IC卡'],['other','其他']],PAY_L=Object.fromEntries(PAYS);
 function budgetHTML(total,rate){const bud=+S.meta.budget||0,pre=[...S.exps.values()].filter(e=>!(e.day>0)).reduce((s,e)=>s+(+e.amount||0),0),split=pre&&total?'<div class="pre-split"><span>出發前 '+ntd(pre*rate)+'</span><span>旅途中 '+ntd((total-pre)*rate)+'</span></div>':'';
-  return split+budgetHTML0(total,rate,bud)}
+  return split}  /* 預算功能已移除（11/04 她說不需要） */
 function budgetHTML0(total,rate,bud){
   if(!bud)return S.canWrite?'<button type="button" class="linkbtn budget-set" id="budget-btn">＋ 設定旅費預算</button>':'';
   const pct=Math.round(total/bud*100),left=bud-total;
@@ -2802,7 +2804,7 @@ window.__fillPlaces=fillPlaces;
 let ADD_MUST=false;
 function openAdd(def){if(!canWrite())return;ADD_MUST=false;const d={day:def.day,slot:def.slot&&def.slot!=='pool'?def.slot:null,kind:'',photos:[]};S.readSheet=false;
   /* 待辦 has its own ＋ choice (今日待辦), so a 行程 is never a to-do */
-  const kindList=()=>d.day===0?KINDS.filter(k=>PLACE_KINDS.includes(k[0])).concat([['buy','想'+'買'],['note','筆記']]):  /* 口袋 = her notebook: 筆記 is one of its types */KINDS.filter(k=>k[0]!=='todo');
+  const kindList=()=>d.day===0?KINDS.filter(k=>PLACE_KINDS.includes(k[0])).concat([['buy','想'+'買']]):  /* 口袋 = her notebook: 筆記 is one of its types */KINDS.filter(k=>k[0]!=='todo');
   const kindChips=()=>'<div class="seg" id="seg-akind">'+kindList().map(k=>'<button type="button" data-v="'+k[0]+'" aria-pressed="'+(d.kind===k[0])+'">'+k[1]+'</button>').join('')+'</div>';
   const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+slotKeys(d.sfam||'',d.slot).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
@@ -3463,7 +3465,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.146';
+window.__BUILD='1.147';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
