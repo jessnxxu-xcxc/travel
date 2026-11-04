@@ -1690,6 +1690,25 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .sheet .tf-del.arm{color:#C23D63;font-weight:700}
 .sheet .tf-fly>.lbl{font-size:12px;font-weight:700}
 .sheet .tf-fly>.lbl .opt{display:inline!important;margin-left:8px;font-weight:400;color:var(--muted)}
+/* 旅行設定, even shorter: small labels, 40px boxes, small covers; wide screens put pairs side by side (名稱+目的地 | 出發日+天數, 去程 | 機場, 回程) */
+.sheet:has(#tf-title){gap:10px!important}
+.sheet:has(#tf-title) .fld{gap:2px!important;margin:0!important}
+.sheet:has(#tf-title) .fld>label,.sheet:has(#tf-title) .fld>.lbl{font-size:12px!important;margin:0!important;padding:0!important}
+.sheet:has(#tf-title) .inp{height:40px!important;min-height:40px!important;padding-block:6px!important}
+.sheet:has(#tf-title) .row2{gap:8px!important}
+.sheet:has(#tf-title) #tf-theme .thbtn{flex:0 0 72px!important;min-width:72px!important}
+.sheet:has(#tf-title) #tf-theme .thart svg{height:28px!important}
+.sheet:has(#tf-title) .tf-fly{gap:6px!important;padding-top:8px!important}
+@media (min-width:560px){
+  .sheet:has(#tf-title){grid-template-columns:1fr 1fr!important;column-gap:12px!important}
+  .sheet:has(#tf-title)>*{grid-column:1/-1}
+  .sheet:has(#tf-title)>.row2{grid-column:auto!important}
+  .sheet:has(#tf-title) .tf-fly{grid-template-columns:1fr 1fr;column-gap:12px}
+  .sheet:has(#tf-title) .tf-fly>.lbl{grid-column:1/-1}
+  .sheet:has(#tf-title) .fld:not(#z1):not(#z2):not(#z3){display:flex!important;flex-direction:column!important}
+}
+.sheet:has(#tf-title) #tf-theme .thbtn{overflow:hidden}
+.sheet:has(#tf-title) #tf-theme .thart{display:block;max-width:100%;overflow:hidden}
 
 </style>
 
@@ -3386,7 +3405,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.135';
+window.__BUILD='1.136';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
