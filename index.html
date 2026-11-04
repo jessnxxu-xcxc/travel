@@ -2624,9 +2624,10 @@ function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeou
   let h='<div class="pretabs2" role="tablist">'+MY.map(([k,l,c,n])=>'<button type="button" role="tab" data-pre="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>').join('')+'</div>';
   h+='<section class="dsec" data-sec="list"><ul class="clist">'+todos.sort(rowSort).map(r=>listRowX(r)).join('')+addLine('list')+'</ul>'+(todos.length?'':'<p class="pool-help">要做的事、要訂的位、要買的東西、筆記，都放這裡。</p>')+'</section>';
   {const KT={food:'美食',spot:'景點',shop:'購物',fac:'設施',stay:'住宿',move:'交通'},key=x=>x.ts||x._at||x.order||0;
-    const rows=pool.map(i=>({t:key(i),h:'<li class="crow pk-item" data-iid="'+esc(i.id)+'"><span class="nochk-dot" aria-hidden="true"></span><button type="button" class="cbody lbody lx"><span class="kind ltype k-'+esc(i.kind||'spot')+'">'+(KT[i.kind]||'景點')+'</span>'+(i.must?'<span class="must">★</span>':'')+'<span class="ct">'+esc(i.title)+'</span>'+((i.area||i.note)?'<span class="cn">'+esc([i.area,i.note].filter(Boolean).join('・'))+'</span>':'')+thumbs(i.photos)+'</button></li>'}))
-      .concat(notes.map(r=>({t:r.order||r.ts||0,h:listRowX(r,false)})));
-    h+='<section class="dsec" data-sec="pocket">'+(rows.length?'<ul class="clist">'+rows.sort((a,b)=>a.t-b.t).map(x=>x.h).join('')+'</ul>':'<p class="pool-help">想去的店、景點、購物的、要記的事，按 ＋ 加進來。</p>')+'</section>'}
+    const KO=['food','spot','shop','fac','stay','move'],kg=k=>{const n=KO.indexOf(k||'spot');return n<0?1:n};
+    const rows=pool.map(i=>({g:kg(i.kind),t:key(i),h:'<li class="crow pk-item" data-iid="'+esc(i.id)+'"><span class="nochk-dot" aria-hidden="true"></span><button type="button" class="cbody lbody lx"><span class="kind ltype k-'+esc(i.kind||'spot')+'">'+(KT[i.kind]||'景點')+'</span>'+(i.must?'<span class="must">★</span>':'')+'<span class="ct">'+esc(i.title)+'</span>'+((i.area||i.note)?'<span class="cn">'+esc([i.area,i.note].filter(Boolean).join('・'))+'</span>':'')+thumbs(i.photos)+'</button></li>'}))
+      .concat(notes.map(r=>({g:r.type==='buy'||r.kind==='buy'?10:11,t:r.order||r.ts||0,h:listRowX(r,false)})));
+    h+='<section class="dsec" data-sec="pocket">'+(rows.length?'<ul class="clist">'+rows.sort((a,b)=>a.g-b.g||a.t-b.t).map(x=>x.h).join('')+'</ul>':'<p class="pool-help">想去的店、景點、購物的、要記的事，按 ＋ 加進來。</p>')+'</section>'}
   h+='<section class="dsec" data-sec="notes"><ul class="clist">'+notes.sort((a,b)=>(a.order||a.ts||0)-(b.order||b.ts||0)).map(r=>listRowX(r,false)).join('')+addLine('notes')+'</ul>'+''+'</section>';
   h+='<section class="dsec" data-sec="bag"><ul class="clist">'+pack.sort(rowSort).map(r=>listRowX(r,false)).join('')+addLine('bag')+'</ul></section>';
   if(cur.startsWith('s-')){const rows=smartRows(cur).sort(rowSort);h+='<section class="dsec" data-sec="smart">'+(rows.length?'<ul class="clist">'+rows.map(r=>listRowX(r)).join('')+'</ul>':'<p class="pool-help">這裡目前沒有東西。</p>')+'</section>'}
@@ -3459,7 +3460,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.144';
+window.__BUILD='1.145';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
