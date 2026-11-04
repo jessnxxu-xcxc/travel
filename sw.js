@@ -1,9 +1,9 @@
 /* 旅行手帳 service worker: the page shell and libraries are cached so the notebook opens offline.
    Trip data itself comes from the page's own local cache; Supabase API calls are never cached here. */
-const V = 'tn-v3';
+const V = 'tn-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== 'tn-ph').map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 const timeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
 self.addEventListener('fetch', e => {
   const req = e.request, u = new URL(req.url);
@@ -16,6 +16,12 @@ self.addEventListener('fetch', e => {
       return;
     }
     e.respondWith(caches.match(req).then(h => h || fetch(req).then(r => { if (r.ok) { const c = r.clone(); caches.open(V).then(x => x.put(req, c)); } return r; })));
+    return;
+  }
+  // 照片（票券截圖等）：看過一次就存在手機裡，沒網路也打得開；簽名參數每次不同，所以只用路徑當鑰匙
+  if (/\.supabase\.co$/.test(u.hostname) && u.pathname.includes('/storage/v1/object/sign/')) {
+    const key = u.origin + u.pathname;
+    e.respondWith(caches.open('tn-ph').then(c => c.match(key).then(h => h || fetch(req).then(r => { if (r.ok) c.put(key, r.clone()); return r; }))));
     return;
   }
   if (/^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(u.hostname)) {
