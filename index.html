@@ -3384,7 +3384,7 @@ function renderMbar(){const el=document.getElementById('mbar');if(!el)return;let
   el.innerHTML='<span>旅費 <b>'+ntd(t*(+S.meta.rate||0))+'</b>'+(t?'':' <small>還沒記帳</small>')+'</span>';
   /* 快速記帳: its own 💰 button right after 旅費 (not inside ＋) */
   if(S.canWrite&&!document.getElementById('mb-add')){const b=document.createElement('button');b.type='button';b.id='mb-add';b.className='icon-btn mb-add';b.setAttribute('aria-label','記一筆');b.title='記一筆';b.innerHTML='<span class="mb-emo" aria-hidden="true">💰</span>';
-    b.onclick=e=>{e.stopPropagation();openExp(null,{day:S.active>0?S.active:0});quickExp()};el.after(b)}}
+    b.onclick=e=>{e.stopPropagation();openExp(null,{day:S.active>0?S.active:0,cat:'food'});quickExp()};el.after(b)}}
 /* 旅費總覽, drawn in the trip's own style: a donut by 分類, a column per day, and who it belongs to (基金／each person).
    The list underneath (依日期／店家／分類／歸屬) is the page's own renderMoney0. */
 const CAT_E={food:'🍜',shop:'🛍️',move:'🚃',ticket:'🎟️',stay:'🏨',other:'✨'};
@@ -3459,7 +3459,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.143';
+window.__BUILD='1.144';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
