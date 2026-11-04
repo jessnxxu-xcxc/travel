@@ -1599,13 +1599,6 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{displa
 /* 出發前: three tabs now (花費 moved to 旅費) */
 .pretabs2{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 .bar .mb-add{flex:0 0 auto;font-size:18px;line-height:1}
-/* phones: 旅費 + 💰 get a line of their own under the icons, so the total is never cut */
-@media (max-width:480px){
-  .bar{flex-wrap:wrap!important;row-gap:8px!important}
-  .bar #mbar{order:10;margin-left:0}
-  .bar #mb-add{order:11}
-  .bar #mbar>span{text-overflow:clip}
-}
 /* 住宿 地圖: the same blue pill as 導航 (opens the hotel on Google Maps, not directions) */
 .pass .hm-pill{display:inline-flex;align-items:center;gap:4px;height:24px;margin-left:8px;padding:0 10px;border:2px solid var(--ink);border-radius:999px;background:var(--water);color:var(--ink);font-size:12px;font-weight:700;line-height:20px;white-space:nowrap;text-decoration:none;vertical-align:middle}
 .pass .hm-pill svg{width:14px;height:14px}
@@ -1647,7 +1640,6 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{displa
 .sheet .togwrap .inp{padding-right:48px!important}
 .sheet .togwrap:has(textarea) .star-in{top:6px}
 .sheet .togwrap:not(:has(textarea)) .star-in{top:50%;transform:translateY(-50%)}
-@media (max-width:480px){.bar::after{content:'';order:9;flex-basis:100%;height:0}}
 @media (max-width:480px){.mv-cat{grid-template-columns:1fr!important;justify-items:center}.mv-leg{width:100%}}
 #money .sumtop .budget-set{margin:0 0 0 12px!important;padding:0!important;font-size:12px}
 /* list item sheet: no 放在哪一類／要打勾嗎 rows */
@@ -1657,6 +1649,47 @@ body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{displa
 .hotel-e .hotel-en{display:block;font-size:12px;font-weight:400;color:var(--muted);line-height:16px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hotel-m .hotel-e b{display:flex;flex-direction:column;min-width:0}
 .sheet :is(#seg-qtype,#seg-ltype):not(#z1):not(#z2){gap:8px!important;column-gap:8px!important}
+/* 住宿 備註: every line shown */
+.hotel-note{white-space:pre-line!important;overflow:visible!important;text-overflow:clip!important}
+/* 口袋 tab = one list (places + 想買／筆記, tagged); the old 口袋名單 block and the separate 筆記 block are hidden there */
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pocket"]:not(#z1){display:block!important}
+body[data-pt="pool"] .col[data-col="0"] .dsec:is([data-sec="pool"],[data-sec="notes"]):not(#z1):not(#z2){display:none!important}
+body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:none!important}
+.crow.pk-item .must{font-size:12px;color:var(--ink);background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:0 6px;line-height:16px}
+/* 記帳 button: same round icon button as 搜尋 */
+.bar #mb-add svg{width:20px;height:20px}
+/* phones: 旅費 + 記帳 stay on the first row with 🏠 — the other buttons get a little tighter so everything fits */
+@media (max-width:480px){
+  .bar{flex-wrap:nowrap!important;gap:6px!important}
+  .bar #mbar{padding:0 10px!important;font-size:12px}
+  .bar #mbar>span{text-overflow:clip}
+  .bar .pill-btn{padding:0 10px!important}
+  .bar .peers,.bar .sp{display:none!important}
+  .bar #mb-add{margin-right:auto!important}
+}
+@media (max-width:559px){
+  /* 類型 (待辦／票券／訂位) is short: label and choices on one row */
+  .sheet .fld:not(#z1):not(#z2):not(#z3):is(:has(#seg-qtype),:has(#seg-ltype)){display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;align-items:center;column-gap:8px!important}
+  .sheet .fld:not(#z1):not(#z2):not(#z3):is(:has(#seg-qtype),:has(#seg-ltype))>.lbl{grid-column:1!important;margin:0!important}
+}
+/* phones: a 交通 row (✈️ 飛機・約 4 小時) never breaks inside a part, and the row grows to fit its 2nd line instead of running into the next card */
+.item.mvrow,.item.mvrow .ibody{height:auto!important;max-height:none!important;overflow:visible!important}
+.item.mvrow .ibody{flex-wrap:wrap!important;align-items:center;row-gap:4px}
+.item.mvrow :is(.mv-m,.mv-d,.itime){white-space:nowrap!important}
+.item.mvrow .mv-n{flex:1 0 100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.item.mvrow .mv-d:not(#z1){display:inline-block!important;flex:0 0 auto!important;height:auto!important}
+.item.mvrow .ibody:not(#z1){display:flex!important;flex-direction:row!important}
+/* 旅行設定: shorter — covers in one swipe row, flights as compact rows, delete as a small link at the end */
+.sheet:has(#tf-title) #tf-theme{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px!important;scrollbar-width:none;padding-bottom:4px}
+.sheet:has(#tf-title) #tf-theme::-webkit-scrollbar{display:none}
+.sheet:has(#tf-title) #tf-theme .thbtn{flex:0 0 88px!important;min-width:88px!important;padding:4px!important;font-size:12px}
+.sheet:has(#tf-title) #tf-theme .thart svg{height:40px!important;width:auto}
+.sheet .tf-fly{display:grid;gap:8px;border-top:1.5px dashed rgba(62,58,57,.3);padding-top:12px}
+.sheet .tf-fly .row2 .fld>label{font-size:12px}
+.sheet .tf-del{justify-self:center;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.sheet .tf-del.arm{color:#C23D63;font-weight:700}
+.sheet .tf-fly>.lbl{font-size:12px;font-weight:700}
+.sheet .tf-fly>.lbl .opt{display:inline!important;margin-left:8px;font-weight:400;color:var(--muted)}
 
 </style>
 
@@ -1851,7 +1884,7 @@ function listBlock(type,title,rows,day){if(day===0&&(type==='todo'||type==='buy'
 function daySections(n,part){const rate=+S.meta.rate||0;
   const ex=[...S.exps.values()].filter(e=>(e.day||0)===n).sort((a,b)=>(a.ts||0)-(b.ts||0)),sum=ex.reduce((s,e)=>s+(+e.amount||0),0);
   const todo=[...S.lists.values()].filter(r=>(r.type==='todo'||r.type==='book'||r.type==='ticket'||r.type==='buy')&&r.day===n).sort((a,b)=>(a.done-b.done)||((a.ts||0)-(b.ts||0)));
-  return (part==='money'?'':'<section class="dsec dsec-todo">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・訂位・票券・購物</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
+  return (part==='money'?'':'<section class="dsec dsec-todo">'+'<div class="dsec-h">'+dicon('todo')+'<b>今日要辦</b><small>待辦・票券・訂位</small><button type="button" class="slot-add" data-todo-day="'+n+'">＋ 新增</button></div>'+
       (todo.length?'<ul class="clist">'+todo.map(r=>rowHTML(r,true)).join('')+'</ul>':'')+'</section>')+
     (part==='todo'?'':'<section class="dsec">'+'<div class="dsec-h">'+dicon('money')+'<b>今日花費</b>'+(sum?'<span class="dsum">'+ntd(sum*rate)+'</span><small>≈ '+yen(sum)+'</small>':'')+'<button type="button" class="slot-add" data-exp-day="'+n+'">＋ 記一筆</button></div>'+
       (ex.length?'<div class="drows">'+ex.map(e=>eRow(e,rate)).join('')+'</div>':'')+'</section>')}
@@ -2151,9 +2184,9 @@ function openDayTitle(n){if(!canWrite())return;const cur=(S.days.get('d'+n)||{})
     const go=()=>{const v=i.value.trim();closeSheet();if(v!==cur)setDayTitle(n,v)};root.querySelector('#d-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
 
 function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWrite;S.readSheet=ro;const st={day:r.day||0,type:r.type,photos:(r.photos||[]).slice()};
-  openSheet('<h2>'+(r.type==='pack'?'行李':(r.nochk||r.type==='buy')&&!(r.day>0)?'口袋':r.type==='book'||r.type==='ticket'?'票券／訂位':'待辦')+'</h2>'+
+  openSheet('<h2>'+(r.type==='pack'?'行李':(r.nochk||r.type==='buy')&&!(r.day>0)?'口袋':r.type==='ticket'?'票券':r.type==='book'?'訂位':'待辦')+'</h2>'+
     '<div class="fld"><label for="l-title">名稱</label><input class="inp" id="l-title" value="'+esc(r.title)+'"></div>'+
-    (r.type!=='pack'&&r.type!=='buy'&&!r.nochk&&!ro?'<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-ltype">'+[['todo','待辦'],['book','票券／訂位']].map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(r.type===x[0]||(x[0]==='book'&&r.type==='ticket'))+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
+    (r.type!=='pack'&&r.type!=='buy'&&!r.nochk&&!ro?'<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-ltype">'+[['todo','待辦'],['ticket','票券'],['book','訂位']].map(x=>'<button type="button" data-v="'+x[0]+'" aria-pressed="'+(r.type===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>':'')+
     '<div class="fld"><label for="l-note">備註</label><textarea class="inp" id="l-note" style="min-height:64px" placeholder="'+(r.type==='book'||r.type==='ticket'?'確認碼、時間、人數':r.type==='buy'?'在哪買、幫誰買':'')+'">'+esc(r.note)+'</textarea></div>'+
     (r.type!=='pack'?'<div class="fld"><span class="lbl" id="l-dlbl">'+dateLbl(r.type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+
     (r.type!=='pack'?'<div class="fld"><span class="lbl">照片（票券截圖、商品照）</span>'+photosHTML(st.photos,ro)+'</div>':'')+
@@ -2163,7 +2196,7 @@ function openListEdit(id){const r=S.lists.get(id);if(!r)return;const ro=!S.canWr
     bindPhotos(root,()=>st.photos,ids=>{st.photos=ids;const cur=S.lists.get(id);if(cur){S.lists.set(id,Object.assign({},cur,{photos:ids}));queue('lists'+id,()=>ref('lists',id).update({photos:ids}));render()}});
     root.querySelector('#l-del').onclick=()=>{closeSheet();remove('lists',id,r.title)};
     root.querySelector('#l-save').onclick=()=>{const t=root.querySelector('#l-title').value.trim(),n=root.querySelector('#l-note').value.trim();if(!t){root.querySelector('#l-title').focus();return}
-      const cur=S.lists.get(id)||r,p={};if(t!==cur.title)p.title=t;if(n!==(cur.note||''))p.note=n;if(r.type!=='pack'&&st.day!==(cur.day||0))p.day=st.day;if(r.type!=='pack'&&st.type&&st.type!==cur.type&&!(st.type==='book'&&cur.type==='ticket'))p.type=st.type;if(r.type!=='pack'&&st.nochk!==!!cur.nochk)p.nochk=st.nochk;
+      const cur=S.lists.get(id)||r,p={};if(t!==cur.title)p.title=t;if(n!==(cur.note||''))p.note=n;if(r.type!=='pack'&&st.day!==(cur.day||0))p.day=st.day;if(r.type!=='pack'&&st.type&&st.type!==cur.type&&!0)p.type=st.type;if(r.type!=='pack'&&st.nochk!==!!cur.nochk)p.nochk=st.nochk;
       closeSheet();if(Object.keys(p).length)patch('lists',id,p,(p.day!=null||p.type)?'已移到'+listWhere(p.type||cur.type,p.day!=null?p.day:(cur.day||0)):'已儲存')}})}
 
 function openExp(id,pre){const e=id?S.exps.get(id):null;if(id&&!e)return;const ro=!S.canWrite;if(!id&&!canWrite())return;S.readSheet=ro;
@@ -2506,7 +2539,7 @@ function setPreTab(v){try{localStorage.setItem(T.id+'-pretab',v)}catch(x){}rende
 const TODO_TYPES=['todo','book','ticket','buy'];
 const isTodoRow=r=>!r.nochk&&TODO_TYPES.includes(r.type)&&r.type!=='buy'&&(r.type==='book'||r.type==='ticket'||!(r.day>0));
 const isNote=r=>(!!r.nochk||r.type==='buy')&&!(r.day>0);  /* 口袋 also holds 購物 (things to buy, no date yet) */
-const ltag=r=>r.nochk?['筆記','k-note']:r.type==='buy'?['想'+'買','k-shop']:r.type==='book'||r.type==='ticket'?['票券／訂位','k-spot']:null;  /* the tag says the 類型 picked in the sheet */  /* 購物 written in two parts: the build turns the literal word into 購物 */
+const ltag=r=>r.nochk?['筆記','k-note']:r.type==='buy'?['想'+'買','k-shop']:r.type==='ticket'?['票券','k-food']:r.type==='book'?['訂位','k-spot']:r.type==='todo'?['待辦','k-todo']:null;  /* same tags as 今日要辦 */  /* the tag says the 類型 picked in the sheet */  /* 購物 written in two parts: the build turns the literal word into 購物 */
 function listRowX(r,showDate){const tg=ltag(r);return '<li class="crow'+(r.done?' done':'')+(r.nochk?' nochk':'')+'" data-lid="'+esc(r.id)+'">'+
   (r.nochk?'<span class="nochk-dot" aria-hidden="true"></span>':'<button type="button" class="ibtn chk lchk" aria-label="打勾" aria-pressed="'+(r.done?'true':'false')+'">✓</button>')+
   '<button type="button" class="cbody lbody lx">'+(tg?'<span class="kind ltype '+tg[1]+'">'+tg[0]+'</span>':'')+
@@ -2529,6 +2562,10 @@ function preTabsHTML(){const cur=preTab();document.body.dataset.pt=cur;setTimeou
   /* one row of five tabs — tap to switch, nothing to go back from */
   let h='<div class="pretabs2" role="tablist">'+MY.map(([k,l,c,n])=>'<button type="button" role="tab" data-pre="'+k+'" aria-selected="'+(k===cur)+'">'+l+(n?'<i>'+n+'</i>':'')+'</button>').join('')+'</div>';
   h+='<section class="dsec" data-sec="list"><ul class="clist">'+todos.sort(rowSort).map(r=>listRowX(r)).join('')+addLine('list')+'</ul>'+(todos.length?'':'<p class="pool-help">要做的事、要訂的位、要買的東西、筆記，都放這裡。</p>')+'</section>';
+  {const KT={food:'美食',spot:'景點',shop:'購物',fac:'設施',stay:'住宿',move:'交通'},key=x=>x.ts||x._at||x.order||0;
+    const rows=pool.map(i=>({t:key(i),h:'<li class="crow pk-item" data-iid="'+esc(i.id)+'"><span class="nochk-dot" aria-hidden="true"></span><button type="button" class="cbody lbody lx"><span class="kind ltype k-'+esc(i.kind||'spot')+'">'+(KT[i.kind]||'景點')+'</span>'+(i.must?'<span class="must">★</span>':'')+'<span class="ct">'+esc(i.title)+'</span>'+((i.area||i.note)?'<span class="cn">'+esc([i.area,i.note].filter(Boolean).join('・'))+'</span>':'')+thumbs(i.photos)+'</button></li>'}))
+      .concat(notes.map(r=>({t:r.order||r.ts||0,h:listRowX(r,false)})));
+    h+='<section class="dsec" data-sec="pocket">'+(rows.length?'<ul class="clist">'+rows.sort((a,b)=>a.t-b.t).map(x=>x.h).join('')+'</ul>':'<p class="pool-help">想去的店、景點、購物的、要記的事，按 ＋ 加進來。</p>')+'</section>'}
   h+='<section class="dsec" data-sec="notes"><ul class="clist">'+notes.sort((a,b)=>(a.order||a.ts||0)-(b.order||b.ts||0)).map(r=>listRowX(r,false)).join('')+addLine('notes')+'</ul>'+''+'</section>';
   h+='<section class="dsec" data-sec="bag"><ul class="clist">'+pack.sort(rowSort).map(r=>listRowX(r,false)).join('')+addLine('bag')+'</ul></section>';
   if(cur.startsWith('s-')){const rows=smartRows(cur).sort(rowSort);h+='<section class="dsec" data-sec="smart">'+(rows.length?'<ul class="clist">'+rows.map(r=>listRowX(r)).join('')+'</ul>':'<p class="pool-help">這裡目前沒有東西。</p>')+'</section>'}
@@ -2567,7 +2604,7 @@ function quickAdd(type,opt){opt=opt||{};if(!canWrite())return;const st={photos:[
     '<div class="fld"><label for="q-in">要加什麼'+(S.assets&&full?'<span class="opt">也可以只放照片</span>':'')+'</label><input class="inp" id="q-in" placeholder="'+esc(L().ph)+'" autocomplete="off"></div>'+
     '<div class="fld"><label for="q-note">備註<span class="opt">選填</span></label><textarea class="inp" id="q-note" style="min-height:64px" placeholder="'+esc(notePh(type))+'"></textarea></div>'+
     (S.assets&&full?'<div class="fld"><span class="lbl">照片</span>'+photosHTML([],false)+'</div>':'')+
-    (TIX_OK(type,opt)?'<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-qtype"><button type="button" data-v="todo" aria-pressed="true">待辦</button><button type="button" data-v="book" aria-pressed="false">票券／訂位</button></div></div>':'')+
+    (TIX_OK(type,opt)?'<div class="fld"><span class="lbl">類型</span><div class="seg" id="seg-qtype"><button type="button" data-v="todo" aria-pressed="true">待辦</button><button type="button" data-v="ticket" aria-pressed="false">票券</button><button type="button" data-v="book" aria-pressed="false">訂位</button></div></div>':'')+
     (full&&!opt.pick?'<div class="fld"><span class="lbl" id="q-dlbl">'+dateLbl(type)+'</span>'+daySeg(st.day,true,'不限')+'</div>':'')+  /* 今日要辦: the day is already chosen */
     '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="q-cancel">取消</button><button type="button" class="btn pri" id="q-ok">加入</button></div>',
   root=>{const i=root.querySelector('#q-in'),nt=root.querySelector('#q-note');if(type!=='buy')setTimeout(()=>i.focus(),50);
@@ -3000,12 +3037,14 @@ function listWhere(type,day){const l=(LTYPES.find(x=>x.k===type)||{l:'清單'}).
   return type==='todo'?'行前待辦':l}
 function dateLbl(type){return type==='todo'?'哪一天要做<span class="opt">不選＝出發前要做的</span>':type==='buy'?'哪一天買<span class="opt">不選＝出發前要買的</span>':'使用日期<span class="opt">選填</span>'}
 
-/* 時段 follows 類型: 美食 → 早餐／午餐／晚餐; other types → 上午／下午／晚上; type not known yet → all six */
-const SLOT_MEAL={breakfast:'morning',lunch:'afternoon',dinner:'evening'},SLOT_PART={morning:'breakfast',afternoon:'lunch',evening:'dinner'};
-function slotKeys(kind,sel){const meal=kind==='food',all=!kind;return SLOTS.filter(s=>all||(meal?s.k in SLOT_MEAL:s.k in SLOT_PART)||s.k===sel)}
+/* 時段 follows 類型: 美食 → 早餐／午餐／下午茶／晚餐／宵夜; other types → 上午／下午／晚上; type not known yet → all six.
+   A stored slot from the other family is shown as its nearest match (a 景點 saved at 午餐 shows 下午) */
+const SLOT_MEAL={breakfast:'morning',lunch:'afternoon',dinner:'evening'},SLOT_PART={morning:'breakfast'};
+const FOOD_SLOTS=[['breakfast','早餐'],['lunch','午餐'],['afternoon','下午茶'],['dinner','晚餐'],['evening','宵夜']],PART_SLOTS=[['morning','上午'],['afternoon','下午'],['evening','晚上']];
+function slotKeys(kind,sel){return (!kind?SLOTS.map(s=>[s.k,s.l]):kind==='food'?FOOD_SLOTS:PART_SLOTS).map(([k,l])=>({k,l}))}
 function slotFit(slot,kind){if(!slot||slot==='pool'||!kind)return slot;if(kind==='food')return SLOT_PART[slot]||slot;return SLOT_MEAL[slot]||slot}
 function slotSeg(sel,day,kind){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
-  return '<div class="seg" id="seg-slot">'+slotKeys(kind,sel).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(sel===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
+  return '<div class="seg" id="seg-slot">'+slotKeys(kind,sel).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(slotFit(sel,kind)===s.k)+'">'+s.l+'</button>').join('')+'</div>'}
 
 /* ⑧ 交通 sits between two cards on the timeline (its own row, easy to tap), not inside a card */
 const legc=h=>h?'<div class="legc">'+h+'</div>':'';
@@ -3283,7 +3322,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 function renderMbar(){const el=document.getElementById('mbar');if(!el)return;let t=0;for(const e of S.exps.values())t+=+e.amount||0;
   el.innerHTML='<span>旅費 <b>'+ntd(t*(+S.meta.rate||0))+'</b>'+(t?'':' <small>還沒記帳</small>')+'</span>';
   /* 快速記帳: its own 💰 button right after 旅費 (not inside ＋) */
-  if(S.canWrite&&!document.getElementById('mb-add')){const b=document.createElement('button');b.type='button';b.id='mb-add';b.className='icon-btn mb-add';b.setAttribute('aria-label','記一筆');b.title='記一筆';b.textContent='💰';
+  if(S.canWrite&&!document.getElementById('mb-add')){const b=document.createElement('button');b.type='button';b.id='mb-add';b.className='icon-btn mb-add';b.setAttribute('aria-label','記一筆');b.title='記一筆';b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M16 15h2"/><path d="M7 3.5h7"/></svg>';
     b.onclick=e=>{e.stopPropagation();openExp(null,{day:S.active>0?S.active:0})};el.after(b)}}
 /* 旅費總覽, drawn in the trip's own style: a donut by 分類, a column per day, and who it belongs to (基金／each person).
    The list underneath (依日期／店家／分類／歸屬) is the page's own renderMoney0. */
@@ -3315,7 +3354,10 @@ function moneyViz(){const el=document.getElementById('money');if(!el)return;cons
 
 /* the sheet's title follows the 類型 you pick (待辦 ⇄ 票券／訂位) */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#seg-qtype button,#seg-ltype button');if(!b)return;const h=b.closest('.sheet')&&b.closest('.sheet').querySelector('h2');if(!h||/今日要辦/.test(h.textContent))return;
-  const l=b.dataset.v==='book'?'票券／訂位':'待辦';h.textContent=b.closest('#seg-qtype')?'新增'+l:l},true);
+  const l=b.dataset.v==='ticket'?'票券':b.dataset.v==='book'?'訂位':'待辦';h.textContent=b.closest('#seg-qtype')?'新增'+l:l},true);
+
+/* 口袋 rows of places open the place's own sheet */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.crow.pk-item .cbody');if(!b)return;e.preventDefault();e.stopPropagation();openEdit(b.closest('.crow').dataset.iid)},true);
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -3344,7 +3386,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.134';
+window.__BUILD='1.135';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -3535,16 +3577,15 @@ window.__BUILD='1.134';
     const f = (id, label, val, ph, type) => '<div class="fld"><label for="' + id + '">' + label + '</label><input class="inp" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(val == null ? '' : val) + '" placeholder="' + esc(ph || '') + '" autocomplete="off"></div>';
     const themes = Object.keys(TH).map(k => '<button type="button" data-v="' + k + '" aria-pressed="' + (T.theme === k) + '" class="thbtn"><span class="thart">' + TH[k].svg + '</span>' + TH[k].label + '</button>').join('');
     sheet('<h2>' + (isNew ? '新旅行' : '旅行設定') + '</h2>' +
-      f('tf-title', '旅行名稱', T.title, '例：27 京都賞楓') + f('tf-dest', '目的地', T.dest, '例：京都') +
+      '<div class="row2">' + f('tf-title', '旅行名稱', T.title, '例：27 京都賞楓') + f('tf-dest', '目的地', T.dest, '例：京都') + '</div>' +
       '<div class="row2">' + f('tf-start', '出發日', T.start, '', 'date') + f('tf-days', '天數', T.days, '例 5', 'number') + '</div>' +
       '<div class="fld"><span class="lbl">封面插圖</span><div class="seg thseg" id="tf-theme">' + themes + '</div></div>' +
-      '<details class="more"' + (isNew ? '' : ' open') + '><summary>航班與住宿（可之後再填）</summary><div>' +
+      '<div class="tf-fly"><span class="lbl">航班<span class="opt">可之後再填</span></span>' +
       '<div class="row2">' + f('tf-on', '去程航班', T.out.no, '例 JX804') + f('tf-ot', '起飛 → 抵達', [T.out.dep, T.out.arr].filter(Boolean).join('-'), '例 15:00-19:00') + '</div>' +
       '<div class="row2">' + f('tf-of', '出發機場', T.out.fromCode ? T.out.fromCode + ' ' + (T.out.from || '') : '', '例 TPE 桃園 T1') + f('tf-oa', '抵達機場', T.out.toCode ? T.out.toCode + ' ' + (T.out.to || '') : '', '例 NRT 成田 T2') + '</div>' +
       '<div class="row2">' + f('tf-bn', '回程航班', T.back.no, '例 JX805') + f('tf-bt', '起飛 → 抵達', [T.back.dep, T.back.arr].filter(Boolean).join('-'), '例 20:10-23:20') + '</div>' +
-      f('tf-hn', '住宿', T.hotel.name, '例 大井町 TRACKS 大都會大飯店') + f('tf-hx', '住宿備註', T.hotel.note, '例 最後一天 11:00 退房') +
-      '</div></details>' +
-      (isNew ? '' : '<div class="fld"><span class="lbl">刪除這趟旅行</span><button type="button" class="btn danger" id="tf-del">刪除旅行（所有行程、記帳、清單都會刪除）</button></div>') +
+      '</div>' + (isNew ? f('tf-hn', '住宿', T.hotel.name, '例 大井町 TRACKS 大都會大飯店') : '') +
+      (isNew ? '' : '<button type="button" class="linkbtn tf-del" id="tf-del">刪除這趟旅行</button>') +
       '<div class="btns"><button type="button" class="btn pri block" id="tf-ok">' + (isNew ? '建立旅行' : '儲存') + '</button></div>',
       (root, close) => {
         let theme = T.theme;
@@ -3567,7 +3608,7 @@ window.__BUILD='1.134';
           const data = Object.assign({}, isNew ? {} : T, { title, dest: v('tf-dest'), theme, start, days,
             out: { no: v('tf-on'), dep: od, arr: oa, fromCode: ofc, from: of, toCode: oac, to: oaN },
             back: { no: v('tf-bn'), dep: bd, arr: ba, fromCode: oac, from: oaN, toCode: ofc, to: of },
-            hotel: { name: v('tf-hn'), note: v('tf-hx') } });
+            hotel: isNew ? { name: v('tf-hn') } : (T.hotel || {}) });  /* 住宿 is edited from the boarding pass */
           delete data.id;
           if (isNew) {
             const id = (title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0, 12) || 'trip') + '-' + rid().slice(0, 6);
@@ -3649,8 +3690,8 @@ window.__BUILD='1.134';
         '<div class="ft-row">' + fmtDate(oDate) + ' ' + (o.dep ? o.dep + (o.arr ? ' → ' + o.arr : '') : '') + '</div>'
         : '<div class="fly-row"><div class="ap"><b>' + fmtDate(T.start) + '</b><span>出發</span></div><div class="fly"><span class="fline">' + plane + '</span></div><div class="ap r"><b>' + fmtDate(end) + '</b><span>回程</span></div></div>') +
       ((b.no || h.name) ? '<div class="pass-meta">' + (b.no ? '<div><span>' + bLabel + fmtDate(bDate) + '</span><b>' + esc(b.no) + '</b><small class="nb">' + esc([b.dep, b.arr].filter(Boolean).join(' → ')) + '</small></div>' : '<div></div>') +
-        (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + '<button type="button" class="hotel-e" aria-label="改住宿">' + esc(h.name) + (h.en ? '<span class="hotel-en">' + esc(h.en) + '</span>' : '') + '</button>' + ' <a class="hotel-map navpill hm-pill" href="' + esc(h.map || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(h.en || h.q || h.name)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>地圖</a>' + '</b><small class="nb">' + esc((h.note || '').split('\n')[0]) + '</small></div>' : '') + '</div>' : '') +
-      (h.name ? '<div class="hotel-m"><button type="button" class="hotel-e"><span>🏨</span><b>' + esc(h.name) + (h.en ? '<span class="hotel-en">' + esc(h.en) + '</span>' : '') + '</b></button><a class="hotel-map" href="' + esc(h.map || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(h.en || h.q || h.name)) + '" target="_blank" rel="noopener"><em><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>地圖</em></a></div>' : '') +
+        (h.name ? '<div><span>住宿 ' + (T.days - 1) + ' 晚</span><b>' + '<button type="button" class="hotel-e" aria-label="改住宿">' + esc(h.name) + (h.en ? '<span class="hotel-en">' + esc(h.en) + '</span>' : '') + '</button>' + ' <a class="hotel-map navpill hm-pill" href="' + esc(h.map || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(h.en || h.q || h.name)) + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>地圖</a>' + '</b><small class="nb hotel-note">' + esc(h.note || '') + '</small></div>' : '') + '</div>' : '') +
+      (h.name ? '<div class="hotel-m"><button type="button" class="hotel-e"><span>🏨</span><b>' + esc(h.name) + (h.en ? '<span class="hotel-en">' + esc(h.en) + '</span>' : '') + (h.note ? '<span class="hotel-en hotel-note">' + esc(h.note) + '</span>' : '') + '</b></button><a class="hotel-map" href="' + esc(h.map || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(h.en || h.q || h.name)) + '" target="_blank" rel="noopener"><em><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>地圖</em></a></div>' : '') +
       '</div><div class="pass-stub"><span id="cd-l">出發倒數</span><b id="cd">–</b><span id="cd-u">天</span></div></div>';
   }
 
