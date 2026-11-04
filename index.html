@@ -1758,6 +1758,11 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 #add-person{display:none!important}
 /* 停留時間：卡片名稱下一小行 */
 .item .istay{display:block;font-size:12px;line-height:1.6;color:var(--muted);white-space:nowrap}
+/* 停留時間：六格等寬一排，不換行、不被切 */
+#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px!important;overflow:visible!important;flex-wrap:nowrap!important;margin:0!important;padding:0!important}
+#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) button{width:auto!important;min-width:0!important;padding:0 2px!important;height:32px;min-height:32px;font-size:14px;line-height:28px;white-space:nowrap;letter-spacing:0}
+@media (max-width:480px){#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) button{font-size:12px}#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){gap:8px!important}}
+@media (max-width:340px){#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){gap:4px!important}}
 
 </style>
 
@@ -3361,7 +3366,7 @@ const recLine=it=>it&&it.rec&&PLACE_KINDS.includes(it.kind)?'<span class="irec">
 function recField(it){if(!PLACE_KINDS.includes(it.kind))return '';
   return '<div class="fld"><label for="e-rec">推薦<span class="opt">AI 整理的強項，不對就改</span></label><input class="inp" id="e-rec" value="'+esc(it.rec||'')+'" placeholder="'+(it.recq?'例：必吃 豚骨拉麵、溏心蛋':'AI 整理中')+'" autocomplete="off"></div>'}
 /* ---------- 停留時間: it.stay (分鐘)；AI 先估 (stayAi=true)，她手改後 stayq=1 就不再動 ---------- */
-const STAYS=[[30,'30分'],[60,'1小時'],[90,'1.5小時'],[120,'2小時'],[180,'3小時'],[240,'4小時']];
+const STAYS=[[30,'30分'],[60,'1小時'],[90,'90分'],[120,'2小時'],[180,'3小時'],[240,'4小時']];
 const STAY_KINDS=['food','spot','shop','fac'];
 const stayTxt=m=>m<60?m+' 分':(m%60?(m/60).toFixed(1).replace(/\.0$/,''):m/60)+' 小時';
 const stayLine=it=>it&&+it.stay>0&&STAY_KINDS.includes(it.kind)?'<span class="istay">⏱ 停留 '+stayTxt(+it.stay)+(it.stayAi?'（AI）':'')+'</span>':'';
@@ -3492,7 +3497,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.148';
+window.__BUILD='1.149';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
