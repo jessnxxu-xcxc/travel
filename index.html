@@ -3426,7 +3426,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.138';
+window.__BUILD='1.140';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -3767,7 +3767,9 @@ window.__BUILD='1.138';
   const room = { async presence(p) { myState = Object.assign({}, myState, p, { name: nameOf(session.user) }); if (ch) await ch.track(myState); },
     onPeers(fn) { ch = sb.channel('room-' + TRIP.id, { config: { presence: { key: session.user.id } } }); ch.on('presence', { event: 'sync' }, () => { const st = ch.presenceState(), peers = []; for (const k of Object.keys(st)) { const p = st[k][0] || {}; names[k] = { name: p.name || '', color: '' }; peers.push({ peer: k, by: k, isMe: k === session.user.id, sameTab: k === session.user.id, kind: 'viewer', guest: false, presence: p, updatedAt: Date.now() }); } fn({ peers, joined: [], left: [], updated: [] }); }).subscribe(s => { if (s === 'SUBSCRIBED') ch.track(myState); }); return () => sb.removeChannel(ch); } };
   const UK = 'tn-photo-urls', urls = (() => { try { const o = JSON.parse(localStorage.getItem(UK) || '{}'), r = {}, lim = Date.now() - 5 * 864e5; for (const k in o) if (o[k].at > lim) r[k] = o[k].u; return r; } catch (e) { return {}; } })(), pending = new Set(); let waiters = [];
-  const keepUrls = () => { try { const o = JSON.parse(localStorage.getItem(UK) || '{}'), now = Date.now(); for (const k in urls) if (!o[k] || o[k].u !== urls[k]) o[k] = { u: urls[k], at: now }; localStorage.setItem(UK, JSON.stringify(o)); } catch (e) {} };
+  const warm = list => { if (navigator.onLine && 'serviceWorker' in navigator) list.forEach(u => fetch(u, { mode: 'no-cors' }).catch(() => {})); };
+  setTimeout(() => warm(Object.values(urls)), 4000);
+  const keepUrls = () => { try { const o = JSON.parse(localStorage.getItem(UK) || '{}'), now = Date.now(); for (const k in urls) if (!o[k] || o[k].u !== urls[k]) { o[k] = { u: urls[k], at: now }; warm([urls[k]]); } localStorage.setItem(UK, JSON.stringify(o)); } catch (e) {} };
   window.__photoUrl = (id, onReady) => { if (urls[id]) return urls[id]; if (onReady) waiters.push(onReady); if (!pending.has(id)) { pending.add(id); queueMicrotask(async () => { const ids = [...pending]; pending.clear(); const { data } = await sb.storage.from('photos').createSignedUrls(ids, 604800); (data || []).forEach(r => { if (r.signedUrl) urls[r.path] = r.signedUrl; }); keepUrls(); const w = waiters; waiters = []; w.forEach(f => f()); }); } return 'data:image/gif;base64,R0lGODlhAQABAAAAACw='; };
   const assets = { async upload(blob, opts) { const type = (opts && opts.contentType) || blob.type || 'image/jpeg', ext = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), path = TRIP.id + '/' + rid() + '.' + ext; const { error } = await sb.storage.from('photos').upload(path, blob, { contentType: type, upsert: false }); if (error) throw err(/quota|size/i.test(error.message) ? 'quota_exceeded' : 'unavailable', error.message); const { data } = await sb.storage.from('photos').createSignedUrl(path, 604800); urls[path] = data && data.signedUrl; return { id: path, url: urls[path], sizeBytes: blob.size, contentType: type }; }, async delete(id) { await sb.storage.from('photos').remove([id]); } };
 
