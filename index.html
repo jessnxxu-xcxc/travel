@@ -1709,6 +1709,10 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 }
 .sheet:has(#tf-title) #tf-theme .thbtn{overflow:hidden}
 .sheet:has(#tf-title) #tf-theme .thart{display:block;max-width:100%;overflow:hidden}
+/* 哪一天/使用日期: one row, swipe sideways (she asked 11/04); selected day is scrolled into view on open */
+.dstrip:not(#z1):not(#z2){display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;column-gap:6px!important;padding:4px 2px!important;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.dstrip:not(#z1):not(#z2) button{flex:0 0 48px!important;width:48px!important;scroll-snap-align:center}
+.dstrip:not(#z1):not(#z2) .n{width:42px!important;height:42px!important}
 
 </style>
 
@@ -3377,6 +3381,11 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 
 /* 口袋 rows of places open the place's own sheet */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.crow.pk-item .cbody');if(!b)return;e.preventDefault();e.stopPropagation();openEdit(b.closest('.crow').dataset.iid)},true);
+// 日期列：滑鼠滾輪也能左右捲、可按住拖曳（手機本來就能滑）
+document.addEventListener('wheel',e=>{const s=e.target.closest&&e.target.closest('.dstrip');if(!s||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;if(s.scrollWidth<=s.clientWidth)return;s.scrollLeft+=e.deltaY;e.preventDefault()},{passive:false});
+(()=>{let s=null,x0=0,l0=0,moved=false;document.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;const t=e.target.closest&&e.target.closest('.dstrip');if(!t)return;s=t;x0=e.clientX;l0=t.scrollLeft;moved=false});
+document.addEventListener('pointermove',e=>{if(!s)return;const dx=e.clientX-x0;if(Math.abs(dx)>4){moved=true;s.style.scrollSnapType='none';s.scrollLeft=l0-dx}});
+document.addEventListener('pointerup',()=>{if(s){s.style.scrollSnapType='';if(moved){const b=e=>{e.stopPropagation();e.preventDefault()};document.addEventListener('click',b,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',b,true),50)}}s=null})})();
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -3405,7 +3414,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.136';
+window.__BUILD='1.137';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
