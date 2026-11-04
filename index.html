@@ -1720,6 +1720,34 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .dstrip.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent)}
 
 #mb-add .mb-emo{font-size:20px;line-height:1}
+/* 11/04 debug：飯店名稱／日文名在手機不要截斷，完整換行顯示；旅費金額不被擠掉尾數 */
+.hotel-e b:not(#z1),.hotel-en:not(#z1){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;line-height:1.4}
+#mbar:not(#z1):not(#z2){flex:0 0 auto!important}
+#mbar:not(#z1):not(#z2)>*{overflow:visible!important}
+@media (max-width:389px){
+  #mbar:not(#z1):not(#z2)>span{font-size:0!important}
+  #mbar:not(#z1):not(#z2)>span b{font-size:12px!important}
+}
+@media (max-width:359px){
+  .bar:not(#z1):not(#z2){column-gap:4px!important;gap:4px!important}
+  #mbar:not(#z1):not(#z2){padding:0 8px!important}
+}
+.pass-meta b:not(#z1),.pass-meta .hotel-en:not(#z1){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+/* 手機登機證：飯店文字用滿寬度，地圖鈕放下方；窄手機縮小右側天數欄 */
+.pass-main:not(#z1){grid-template-columns:minmax(0,1fr)!important}
+.hotel-m:not(#z1){min-width:0}
+.hotel-m .hotel-e:not(#z1):not(#z2){box-sizing:border-box;min-width:0;max-width:100%}
+@media (max-width:559px){
+  .hotel-m:not(#z1){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
+  .hotel-m .hotel-e:not(#z1){width:100%}
+  .hotel-m .hotel-map:not(#z1){align-self:flex-start;margin-left:28px}
+}
+@media (max-width:374px){
+  .pass:not(#z1):not(#z2){grid-template-columns:minmax(0,1fr) 64px!important}
+  .pass-main:not(#z1):not(#z2){padding-left:10px!important;padding-right:10px!important}
+  .fly-row .ap b:not(#z1),.fly-row .ap strong:not(#z1){font-size:22px!important}
+}
+@media (max-width:339px){.ft-row:not(#z1){font-size:12px!important;letter-spacing:0}}
 
 </style>
 
@@ -3428,7 +3456,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.141';
+window.__BUILD='1.142';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
