@@ -1806,6 +1806,51 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
   .sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
 }
 .sheet .sugf .btn.sug{width:100%;height:40px;font-size:14px;justify-content:center;white-space:normal;line-height:18px}
+/* 交通 sheet matches the 行程 sheet: 3×2 mode grid, label on top, small boxes */
+.sheet #seg-leg:not(#z1):not(#z2):not(#z3):not(#z4){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;flex-wrap:nowrap!important}
+.sheet #seg-leg:not(#z1):not(#z2):not(#z3):not(#z4) button{min-width:0!important;width:100%!important;height:36px!important;padding:0 4px!important;font-size:14px!important;letter-spacing:0!important;justify-content:center}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4){display:grid!important;grid-template-columns:120px auto!important;column-gap:8px;row-gap:0;align-items:center;justify-content:start;margin-top:12px!important;max-width:none!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3)>label{grid-column:1/-1;display:block!important;font-size:14px!important;color:var(--muted)!important;font-weight:700;margin:0 0 6px!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4) .inp,.sheet #lg-dep:not(#z1):not(#z2){width:120px!important;height:40px!important;min-height:40px!important;font-size:16px!important;padding:0 8px!important;text-align:center;border-radius:12px!important}
+.sheet .legft{line-height:24px}
+/* 停留時間: six chips + a typed-minutes box, all in one row */
+.sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7){display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important}
+.sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7) button{padding:0!important;font-size:12px!important;letter-spacing:-.02em!important;min-width:0!important;height:36px!important}
+.sheet #seg-stay #e-stay{width:100%!important;min-width:0;height:36px!important;min-height:36px!important;padding:0 2px!important;font-size:14px!important;text-align:center;border-radius:18px!important}
+/* 要多久 (and 出發 in the 交通 sheet): label, box, 分鐘 on one line */
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin-top:12px!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4)>label{display:inline!important;margin:0!important;font-size:14px!important;white-space:nowrap}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) .inp{width:96px!important;flex:0 0 96px;font-size:14px!important}
+.sheet .legf .depmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) .inp{width:80px!important;flex:0 0 80px}
+.sheet .legf .depmin>label[for="e-cm"]{margin-left:8px!important}
+/* ===== one size system for the time rows (行程 + 交通 sheets) =====
+   label 14px bold muted · boxes 40px tall, radius 12, 14px text · chips 36px · gaps 8px */
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;margin:12px 0 0!important;max-width:none!important;width:auto!important;grid-template-columns:none!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{display:inline!important;margin:0!important;font-size:14px!important;font-weight:700!important;color:var(--muted)!important;white-space:nowrap!important;grid-column:auto!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>span{font-size:14px!important;color:var(--muted)!important;white-space:nowrap!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex:0 0 104px!important;width:104px!important;height:40px!important;min-height:40px!important;padding:0 8px!important;font-size:14px!important;text-align:center!important;border-radius:12px!important}
+.sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) #lg-dep{flex:0 0 80px!important;width:80px!important}
+.sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label[for="e-cm"]{margin-left:8px!important}
+.sheet:has(#e-title) .trange:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{height:40px!important;min-height:40px!important;font-size:14px!important;border-radius:12px!important}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>button,.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>#e-stay{height:36px!important;min-height:36px!important;min-width:0!important;padding:0!important;font-size:12px!important;letter-spacing:0!important;border-radius:18px!important;text-align:center!important}
+@media(max-width:359px){
+  .sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex-basis:76px!important;width:76px!important}
+  .sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) #lg-dep{flex-basis:64px!important;width:64px!important}
+  .sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label[for="e-cm"]{margin-left:0!important}
+}
+@media(max-width:359px){.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{padding:0 4px!important}}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9),.sheet #seg-leg:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){grid-auto-flow:row!important;grid-auto-columns:auto!important}
+.sheet #seg-leg:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+@media(max-width:767px){.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:12px!important}}
+@media(max-width:767px){.sheet:has(#e-title) .fld:has(#e-time):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:12px!important}}
+@media(min-width:768px){.sheet .fld.cmbox:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>.lbl{font-size:14px!important}}
+@media(max-width:359px){
+  .sheet #seg-slot:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) button{padding:0 2px!important;font-size:12px!important;min-width:0!important}
+  .sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{font-size:12px!important}
+}
+@media(min-width:768px){.sheet .fld.legf:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>.lbl,.sheet .fld:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:14px!important}}
 
 </style>
 
@@ -3111,7 +3156,7 @@ function nextLink(it){const nx=NEXT[it.id];return nx?legLine(nx,'去下一站'):
 /* 交通 sheet: 交通方式 (six choices), minutes, Google route */
 function legField(b){const a=legPrev(b);if(!a)return '';const l=leg(b),mode=l.mode,same=b.cmFrom===a.id&&!(b.cmK&&b.cmK!==legKey(a,b));
   const ai={train:same?b.cmT:null,bus:same?b.cmT:null,taxi:same?b.cmX:null,walk:same?b.cmW:null},man=same&&b.cmMan!=null?b.cmMan:'';
-  const ph=m=>ai[m]!=null?'約 '+ai[m]+'（AI）':(m==='plane'||m==='ship'?'自己填':'AI 估算中');
+  const ph=m=>ai[m]!=null?'約'+ai[m]+'（AI）':(m==='plane'||m==='ship'?'自己填':'AI 估算中');
   return '<div class="fld legf" data-from="'+esc(a.id)+'" data-ai=\''+esc(JSON.stringify(ai))+'\'><span class="lbl">交通方式<span class="opt">從「'+esc(a.title.slice(0,16))+'」過來</span></span>'+
     '<div class="seg" id="seg-leg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(mode===k)+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div>'+
     '<div class="legmin"><label for="e-cm">要多久</label><input class="inp" id="e-cm" inputmode="numeric" placeholder="'+ph(mode)+'" value="'+esc(man)+'"><span>分鐘</span></div></div>'}
@@ -3119,10 +3164,10 @@ function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0
     root.querySelector('#seg-day').addEventListener('click',()=>setTimeout(()=>{ps.innerHTML=posOpts(st.day,it0,1);f0.hidden=!(st.day>0)},0));
     ps.addEventListener('change',()=>{const sl=root.querySelector('#slot-wrap');if(sl)sl.closest('.fld').hidden=!!ps.value})}bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
   const ai=JSON.parse(f.dataset.ai||'{}');
-  bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約 '+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
+  bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約'+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
 function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
   const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
-  {const si=root.querySelector('#e-stay'),v=si?Math.max(0,Math.min(1440,Math.round(+si.value.replace(/[^\d.]/g,'')||0))):0;if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
+  {const si=root.querySelector('#e-stay'),sb=root.querySelector('#seg-stay button[aria-pressed="true"]'),tv=si?Math.max(0,Math.min(1440,Math.round(+si.value.replace(/[^\d.]/g,'')||0))):0,v=tv||(sb?+sb.dataset.v:0);if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
   const rc=root.querySelector('#e-rec');if(rc){const v=rc.value.trim().slice(0,40);if(v!==(cur.rec||'')){p.rec=v;p.recq=1}}
   const oh=root.querySelector('#e-oh');if(oh){const v=oh.value.trim();if(v!==ohText(cur)){const m=ohParse(v);if(v===''){p.oh='';p.ol='';p.ohq=1}else if(m){p.oh=tfmt(m.o)+'-'+tfmt(m.c);p.ol=m.l!=null?tfmt(m.l):'';p.ohq=1}else toast('營業時間請寫成 10:00-21:00')}}
   const mv=root.querySelector('#e-mv');if(mv){const v=mv.value.trim(),man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),was=cur.mvMan==null||cur.mvMan===''?null:+cur.mvMan;if(man!==was)p.mvMan=man}const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from;
@@ -3135,12 +3180,9 @@ function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
 function openLeg(bid){const b=S.items.get(bid);if(!b)return;const a=legPrev(b);if(!a)return;const ro=!S.canWrite;S.readSheet=ro;const st={};const l=leg(b);
   const first=FIRST.has(bid),dep=(S.days.get('d'+b.day)||{}).dep||'';
   openSheet('<h2>交通</h2><p class="legft">'+esc(first?'飯店':a.title)+'<span>→</span>'+esc(b.title)+'</p>'+
-    (first&&!ro?'<div class="fld"><label for="lg-dep">幾點從飯店出發</label><input class="inp" id="lg-dep" inputmode="numeric" placeholder="例 07:30" value="'+esc(dep)+'"></div>':'')+
-    (ro?'<p class="hint2">'+legText(l)+'</p>':legField(b))+
-    '<a class="btn block" id="leg-go" href="'+esc(legUrl(a,b,l.mode))+'" target="_blank" rel="noopener">🗺️ 看路線（Google 地圖）</a>'+
+    (ro?'<p class="hint2">'+legText(l)+'</p>':first?legField(b).replace('<div class="legmin">','<div class="legmin depmin"><label for="lg-dep">出發</label><input class="inp" id="lg-dep" inputmode="numeric" placeholder="07:30" value="'+esc(dep)+'">'):legField(b))+
     '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="leg-cancel">'+(ro?'關閉':'取消')+'</button>'+(ro?'':'<button type="button" class="btn pri" id="leg-save">儲存</button>')+'</div>',
   root=>{root.querySelector('#leg-cancel').onclick=closeSheet;if(ro)return;bindLeg(root,st);
-    root.querySelector('#seg-leg').addEventListener('click',()=>setTimeout(()=>{root.querySelector('#leg-go').href=legUrl(a,b,st.legMode)},0));
     root.querySelector('#leg-save').onclick=()=>{const cur=S.items.get(bid)||b,p={};
       const di=root.querySelector('#lg-dep');if(di){const v=normT(di.value);if(v&&tmin(v)==null){toast('時間請寫成 07:30 這樣');di.focus();return}
         if(v!==dep){const dd=Object.assign({},S.days.get('d'+b.day),{dep:v});S.days.set('d'+b.day,dd);queue('d'+b.day,()=>S.db.collection('days').doc('d'+b.day).set(dd))}}
@@ -3423,8 +3465,8 @@ const STAY_KINDS=['food','spot','shop','fac'];
 const stayTxt=m=>m<60?m+' 分':(m%60?(m/60).toFixed(1).replace(/\.0$/,''):m/60)+' 小時';
 const stayLine=it=>it&&+it.stay>0&&STAY_KINDS.includes(it.kind)?'<span class="istay">⏱ 停留 '+stayTxt(+it.stay)+(it.stayAi?'（AI）':'')+'</span>':'';
 function stayField(it){if(!STAY_KINDS.includes(it.kind))return '';const v=+it.stay||0;
-  return '<div class="fld"><span class="lbl">停留時間'+(it.stayAi&&v?'<span class="opt">AI 預估，不對就改</span>':'')+'</span><div class="seg" id="seg-stay">'+STAYS.map(([m,l])=>'<button type="button" data-v="'+m+'" aria-pressed="'+(m===v)+'">'+l+'</button>').join('')+'</div><div class="minrow"><input class="inp" id="e-stay" inputmode="numeric" placeholder="自己填" value="'+(v||'')+'" autocomplete="off"><span>分鐘</span></div></div>'}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#seg-stay button');if(!b)return;e.preventDefault();e.stopPropagation();const on=b.getAttribute('aria-pressed')!=='true';b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));if(on)b.setAttribute('aria-pressed','true');const i=document.getElementById('e-stay');if(i)i.value=on?b.dataset.v:''},true);
+  return '<div class="fld"><span class="lbl">停留時間'+(it.stayAi&&v?'<span class="opt">AI 預估，不對就改</span>':'')+'</span><div class="seg" id="seg-stay">'+STAYS.map(([m,l])=>'<button type="button" data-v="'+m+'" aria-pressed="'+(m===v)+'">'+l+'</button>').join('')+'<input class="inp" id="e-stay" inputmode="numeric" placeholder="自填" aria-label="停留幾分鐘（自己填）" value="'+(v&&!STAYS.some(([m])=>m===v)?v:'')+'" autocomplete="off"></div></div>'}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#seg-stay button');if(!b)return;e.preventDefault();e.stopPropagation();const on=b.getAttribute('aria-pressed')!=='true';b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));if(on)b.setAttribute('aria-pressed','true');const i=document.getElementById('e-stay');if(i)i.value=''},true);
 document.addEventListener('input',e=>{if(!e.target||e.target.id!=='e-stay')return;const v=Math.round(+e.target.value.replace(/[^\d.]/g,'')||0);document.querySelectorAll('#seg-stay button').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.v===v)))});
 let STAY_BUSY=false;
 async function findStays(){
@@ -3567,7 +3609,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.158';
+window.__BUILD='1.159';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
