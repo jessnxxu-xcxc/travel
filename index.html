@@ -3242,7 +3242,7 @@ function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=docu
    days/dN.dep = "07:30" (from the hotel). The first stop without a time is estimated from it; typed times still win.
    The day header shows "🏨 07:30 出發・預計 21:40 結束" (a day that runs past 22:00 is flagged). Tap it to change. */
 const dayDep=n=>{const v=(S.days.get('d'+n)||{}).dep;return tmin(v)!=null?v:''};
-function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],eg=ENDGUESS[n],late=e!=null?e>22*60:eg!=null&&eg>22*60;if(!dep&&e==null&&!S.canWrite)return '';
+function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],eg=ENDGUESS[n],late=n<NDAYS&&(e!=null?e>22*60:eg!=null&&eg>22*60);if(!dep&&e==null&&!S.canWrite)return '';
   const t=(dep?'🏨 '+dep+' 出發':'＋ 出發時間')+(e!=null&&e<1440?'・預計 '+tfmt(e)+' 結束':'');
   return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?(e!=null?'・可能太滿':'・可能太滿（以 9 點出發估）'):'')+'</button>'}
 function openDayTitle(n){if(!canWrite())return;const d=S.days.get('d'+n)||{},cur=d.title||'';S.readSheet=false;
@@ -3567,7 +3567,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.157';
+window.__BUILD='1.158';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
