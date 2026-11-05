@@ -1805,6 +1805,7 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 @media(max-width:340px){
   .sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
 }
+.sheet .sugf .btn.sug{width:100%;height:40px;font-size:14px;justify-content:center;white-space:normal;line-height:18px}
 
 </style>
 
@@ -2223,6 +2224,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     (ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
+    (ro?'':sugField(it))+
     (ro?'':posField(it))+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
@@ -3023,7 +3025,7 @@ function normT(x){x=String(x||'').trim().replace('：',':');if(!x)return '';let 
 const tmin=t=>{const m=/^(\d{2}):(\d{2})$/.exec(t||'');return m&&+m[1]<24&&+m[2]<60?+m[1]*60+ +m[2]:null};
 const tfmt=n=>{n=((n%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 const fmtDur=m=>m<60?m+' 分':Math.floor(m/60)+' 小時'+(m%60?' '+m%60+' 分':'');
-let EST={},PREV={},EARLY={},ENDCUR={};
+let EST={},PREV={},EARLY={},ENDCUR={},ENDGUESS={};
 const legKey=(a,b)=>[a.title,a.area,a.q,b.title,b.area,b.q].map(x=>x||'').join('|');
 /* the stop before b, unless a transport row sits between them (that row is the trip) */
 function legPrev(b){const a=PREV[b.id];if(!a)return null;const its=dayItems(b.day),i=its.findIndex(x=>x.id===a.id),j=its.findIndex(x=>x.id===b.id);
@@ -3041,9 +3043,12 @@ function buildEst(){EST={};PREV={};EARLY={};for(const k in NEXT)PREV[NEXT[k].id]
       /* no end time: assume the usual stay, so the stops after it still get a time (typed times always win and restart the chain) */
       cur=e!=null?e:st!=null&&dwell(it)!=null?st+dwell(it):null;
       if(it.kind==='move'&&e==null&&st!=null){const d=moveMin(it).min;if(d!=null)cur=st+d}}
-    ENDCUR[n]=cur}}
+    ENDCUR[n]=cur;
+    /* no 出發時間 and no typed times: guess the day's end from 09:00 so a packed day still gets flagged */
+    if(cur==null&&!dayDep(n)){let g=9*60,ok=false;for(const it of dayItems(n)){if(!isStop(it)&&it.kind!=='move')continue;const t=tmin(it.time);if(t!=null)g=Math.max(g,t);else{const l=leg(it);g+=l&&l.min!=null?l.min:20}
+        const e=tmin(it.end),d=dwell(it);g=e!=null?Math.max(g,e):g+(d!=null?d:60);ok=true}ENDGUESS[n]=ok?g:null}else ENDGUESS[n]=null}}
 /* usual time spent at a stop when no end time is typed: meals by 早/午/晚, sights and shops about an hour; hotel stops and todos break the chain */
-function dwell(it){if(it.kind==='food')return it.slot==='dinner'?90:it.slot==='breakfast'?45:60;
+function dwell(it){if(+it.stay>0&&STAY_KINDS.includes(it.kind))return +it.stay;if(it.kind==='food')return it.slot==='dinner'?90:it.slot==='breakfast'?45:60;
   if(it.kind==='spot')return 90;if(it.kind==='shop')return 60;return null}
 function timeHTML(it){return timeHTML0(it)+ohWarn(it)}
 function timeHTML0(it){const s=tmin(it.time),e=tmin(it.end),stay=s!=null&&e!=null&&e>s?'<small>・'+fmtDur(e-s)+'</small>':'';
@@ -3237,9 +3242,9 @@ function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=docu
    days/dN.dep = "07:30" (from the hotel). The first stop without a time is estimated from it; typed times still win.
    The day header shows "🏨 07:30 出發・預計 21:40 結束" (a day that runs past 22:00 is flagged). Tap it to change. */
 const dayDep=n=>{const v=(S.days.get('d'+n)||{}).dep;return tmin(v)!=null?v:''};
-function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],late=e!=null&&e>22*60;if(!dep&&e==null&&!S.canWrite)return '';
+function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],eg=ENDGUESS[n],late=e!=null?e>22*60:eg!=null&&eg>22*60;if(!dep&&e==null&&!S.canWrite)return '';
   const t=(dep?'🏨 '+dep+' 出發':'＋ 出發時間')+(e!=null&&e<1440?'・預計 '+tfmt(e)+' 結束':'');
-  return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?'・可能太滿':'')+'</button>'}
+  return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?(e!=null?'・可能太滿':'・可能太滿（以 9 點出發估）'):'')+'</button>'}
 function openDayTitle(n){if(!canWrite())return;const d=S.days.get('d'+n)||{},cur=d.title||'';S.readSheet=false;
   openSheet('<h2>Day '+n+'・'+md(dayDate(n))+'</h2><div class="fld"><label for="d-title">這天主要去哪</label><input class="inp" id="d-title" placeholder="例 上野・淺草" value="'+esc(cur)+'"></div>'+
    '<div class="fld"><label for="d-dep">幾點從飯店出發<span class="opt">選填，每天可以不一樣；沒填時間的行程會從這裡往後排</span></label><input class="inp" id="d-dep" inputmode="numeric" placeholder="例 07:30" value="'+esc(d.dep||'')+'"></div>'+
@@ -3526,6 +3531,15 @@ function swapDays(a,b){if(!canWrite()||!(a>0)||!(b>0)||a===b)return;let k=0;
   S.days.set('d'+a,na);S.days.set('d'+b,nb);queue('d'+a,()=>S.db.collection('days').doc('d'+a).set(na));queue('d'+b,()=>S.db.collection('days').doc('d'+b).set(nb));
   render();toast('Day '+a+' 和 Day '+b+' 已交換')}
 
+/* ---------- 口袋 → 哪一天: suggest the day that already has stops in the same area (else the lightest day) ---------- */
+function sugDay(it){if(!it||it.day!==0||!PLACE_KINDS.includes(it.kind))return null;const a=String(it.area||'').trim();let best=null;
+  if(a){for(let n=1;n<=NDAYS;n++){const k=dayItems(n).filter(x=>x.area&&(String(x.area).includes(a)||a.includes(String(x.area)))).length;if(k&&(!best||k>best.k))best={n,k,why:'同在'+a}}}
+  if(!best){for(let n=2;n<NDAYS;n++){const k=dayItems(n).filter(isStop).length;if(!best||k<best.k)best={n,k,why:'這天行程最少'}}}
+  return best}
+function sugField(it){const b=sugDay(it);if(!b)return '';
+  return '<div class="fld sugf"><button type="button" class="btn sug" id="e-sug" data-day="'+b.n+'">📅 排進 Day '+b.n+'（'+md(dayDate(b.n))+'・'+esc(b.why)+'）</button></div>'}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-sug');if(!b)return;const sh=b.closest('.sheet'),db=sh&&sh.querySelector('#seg-day [data-v="'+b.dataset.day+'"]');if(db){db.click();b.closest('.fld').hidden=true;const p=sh.querySelector('#e-posf');(p||db).scrollIntoView({block:'center',behavior:'smooth'})}});
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -3553,7 +3567,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.156';
+window.__BUILD='1.157';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
