@@ -3553,7 +3553,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.155';
+window.__BUILD='1.156';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -3576,6 +3576,11 @@ window.__BUILD='1.155';
   const lastTrip = (() => { try { return localStorage.getItem('tn-last-trip') || ''; } catch (e) { return ''; } })();
   const goLast = () => { if (!tripId && lastTrip && localStorage.getItem('trip-meta-' + lastTrip)) { location.replace('./?t=' + encodeURIComponent(lastTrip)); return true; } return false; };
   if (tripId) { try { localStorage.setItem('tn-last-trip', tripId); } catch (e) {} }
+  // opened fresh from the home-screen icon (iOS remembers the trip URL it was added from): start at the trip list.
+  // sessionStorage is empty only on a fresh launch, so moving around inside the app never bounces back here
+  { let fresh = false; try { fresh = !sessionStorage.getItem('tn-open'); sessionStorage.setItem('tn-open', '1'); } catch (e) {}
+    const pwa = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+    if (fresh && pwa && tripId && navigator.onLine) { location.replace('./'); return; } }
   if (!tripId && !navigator.onLine && goLast()) return;
   // opened from the home screen: iOS fades whatever sits right under the status bar, so pages get extra top room
   if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('pwa');
