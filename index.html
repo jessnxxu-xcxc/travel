@@ -1884,6 +1884,14 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 
 .hm-pill:not(#q1):not(#q2),.legnav .navpill:not(#q1):not(#q2){background:var(--green)!important}
 .hotel-m em:not(#q1):not(#q2){background:var(--green)!important}
+/* 時段標題：小膠囊，取代虛線 */
+.slot-h:not(#q1):not(#q2)::after{display:none!important}
+.slot-h:not(#q1):not(#q2)>b{display:inline-flex;align-items:center;gap:6px;padding:4px 14px 4px 10px!important;border:2px solid rgba(62,58,57,.18)!important;border-radius:999px;background:var(--sunk)!important;line-height:20px}
+/* 只留開始時間；結束由停留時間推算 */
+.trange:not(#q1):not(#q2):not(#q3){grid-template-columns:minmax(0,50%)!important}
+.trange:not(#q1)>span,#e-end:not(#q1),#a-end:not(#q1){display:none!important}
+/* 要多久交給 AI 自動抓 */
+.sheet:has(#e-title) .fld:has(#e-mv):not(#q1){display:none!important}
 
 </style>
 
@@ -2305,7 +2313,7 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     (ro?'':sugField(it))+
     (ro?'':posField(it))+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
-    '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">時間<span class="opt">開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
+    '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">開始時間<span class="opt">選填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
     (ro?'':stayField(it))+
     (ro?'':modeField(it)+legFieldAll(it))+
     '<div class="more-flat"><div>'+
@@ -2946,7 +2954,7 @@ function openAdd(def){if(!canWrite())return;ADD_MUST=false;const d={day:def.day,
     '<div class="fld" id="a-posf"'+(d.day===0?' hidden':'')+'><label for="a-pos">排在哪裡<span class="opt">選了就不用再拖</span></label><select class="inp" id="a-pos">'+posOpts(d.day)+'</select></div>'+
     '<div id="a-slot">'+slotChips()+'</div>'+
     '<div id="a-extra">'+
-      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">時間<span class="opt">選填，開始、結束都可以不填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
+      '<div class="fld" id="a-timef"'+(d.day===0?' hidden':'')+'><label for="a-time">開始時間<span class="opt">選填</span></label><div class="trange"><input class="inp" id="a-time" inputmode="numeric" placeholder="開始 15:00" autocomplete="off"><span>–</span><input class="inp" id="a-end" inputmode="numeric" placeholder="結束 19:00" autocomplete="off"></div></div>'+
       '<div class="fld" id="a-legf"'+(d.day===0?' hidden':'')+'><span class="lbl">交通方式<span class="opt">從上一站過來</span></span><div class="seg" id="seg-alg">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="'+(k==='train')+'">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
       '<div class="fld" id="a-tmf" hidden><span class="lbl">交通方式<span class="opt">這段交通搭什麼</span></span><div class="seg" id="seg-atm">'+TM_ORDER.map(k=>'<button type="button" data-v="'+k+'" aria-pressed="false">'+TM_ICON[k]+' '+TMODES.find(x=>x[0]===k)[1]+'</button>').join('')+'</div></div>'+
 
@@ -3656,7 +3664,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.169';
+window.__BUILD='1.170';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
