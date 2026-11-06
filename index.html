@@ -1867,6 +1867,20 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .col-h .col-sub:not(#q1):not(#q2){flex-wrap:wrap!important;min-width:0;max-width:100%}
 .col-h .dtchip:not(#q1){max-width:100%;white-space:normal}
 .item .imap:not(#q1){background:var(--water)!important;font-weight:700;height:24px;min-height:24px;padding:0 10px;gap:4px}
+/* 留言 removed */
+.sheet .cmbox,.item .cmcount,.cmlist{display:none!important}
+/* empty 資訊 block (住宿／交通): no stray dashed line */
+.sheet .more-flat:not(:has(.fld:not([hidden]))){display:none!important}
+/* 交通方式 of a transport row: 3 per line like the trip-to sheet */
+.sheet #seg-tm:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:8px!important;flex-wrap:nowrap!important}
+.sheet #seg-tm:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) button{min-width:0!important;width:100%!important;height:36px!important;padding:0 4px!important;font-size:14px!important;letter-spacing:0!important;justify-content:center}
+/* 要多久 of a transport row: label, box, 分鐘 on one line */
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{margin:0!important;font-size:12px!important;font-weight:700;color:var(--muted)!important;white-space:nowrap}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .legmin{display:flex!important;align-items:center;gap:8px;margin:0!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex:0 0 104px!important;width:104px!important;height:40px!important;min-height:40px!important;padding:0 8px!important;font-size:14px!important;text-align:center;border-radius:12px!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) span{font-size:14px;color:var(--muted);white-space:nowrap}
+@media(min-width:768px){.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:14px!important}}
 
 </style>
 
@@ -3183,7 +3197,7 @@ function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0
     ps.addEventListener('change',()=>{const sl=root.querySelector('#slot-wrap');if(sl)sl.closest('.fld').hidden=!!ps.value})}bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
   const ai=JSON.parse(f.dataset.ai||'{}');
   bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約'+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
-function legPatch(root,st,cur,p){if('title' in p&&p.title!==cur.title){const mv=root.querySelector('#e-map');if(!('map' in p)&&!(mv&&mv.value.trim()!==(cur.map||''))){p.map='';}if(!('q' in p)){p.q=''}if(!('desc' in p)){p.desc=''}Object.assign(p,{aq:null,pic:null,oh:'',ol:'',ohq:null,cq:null,rec:'',recq:null,dq:null},cur.stayq?{}:{stay:0,stayq:null,stayAi:false})}
+function legPatch(root,st,cur,p){if('title' in p&&p.title!==cur.title){const mv=root.querySelector('#e-map');if(!('map' in p)&&!(mv&&mv.value.trim()!==(cur.map||''))){p.map='';}if(!('q' in p)){p.q=''}if(!('desc' in p)){p.desc=''}{const ar=root.querySelector('#e-area');if(!('area' in p)&&!(ar&&ar.value.trim()!==(cur.area||'')))p.area=''}Object.assign(p,{aq:null,pic:null,oh:'',ol:'',ohq:null,cq:null,closed:'',rec:'',recq:null,dq:null,cmT:null,cmX:null,cmW:null,cmK:null},cur.stayq?{}:{stay:0,stayq:null,stayAi:false})}
   if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
   const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
   {const si=root.querySelector('#e-stay'),sb=root.querySelector('#seg-stay button[aria-pressed="true"]'),tv=si?Math.max(0,Math.min(1440,Math.round(+si.value.replace(/[^\d.]/g,'')||0))):0,v=tv||(sb?+sb.dataset.v:0);if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
@@ -3639,7 +3653,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.165';
+window.__BUILD='1.166';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
