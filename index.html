@@ -1903,6 +1903,7 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 /* 一致：表單裡所有單行欄位（名稱、要加什麼、備註、排在哪裡、時間、推薦）都 48px */
 .sheet :is(input.inp,select.inp,select,#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#e-stay):not(#e-desc):not([type=checkbox]):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){height:48px!important;min-height:48px!important;font-size:16px!important;border-radius:14px!important}
 .sheet :is(#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){padding:12px 16px!important;line-height:20px!important}
+.item .ioh{cursor:pointer;text-decoration:underline dotted rgba(62,58,57,.35);text-underline-offset:4px}
 
 </style>
 
@@ -3647,6 +3648,17 @@ function fixAreaFromTitle(){if(!S.canWrite)return;let n=0;
     if(!hit||it.area===hit)continue;const p={area:hit};S.items.set(it.id,Object.assign({},it,p));queue('items'+it.id,()=>ref('items',it.id).update(p));n++}
   if(n)render()}
 
+/* 卡片上點 🕒 營業時間就能改；手改過的 AI 不再覆蓋 */
+function openHours(id){const it=S.items.get(id);if(!it||!canWrite())return;S.readSheet=false;
+  openSheet('<h2>營業時間</h2><div class="fld"><label for="oh-in">'+esc(String(it.title||'').slice(0,30))+'<span class="opt">例 08:00-20:00，可加「最後 19:30」；清空＝不顯示</span></label><input class="inp" id="oh-in" inputmode="text" placeholder="08:00-20:00" value="'+esc(ohText(it))+'"></div>'+
+   '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="oh-cancel">取消</button><button type="button" class="btn pri" id="oh-ok">儲存</button></div>',
+  root=>{const i=root.querySelector('#oh-in');root.querySelector('#oh-cancel').onclick=closeSheet;
+    const go=()=>{const v=i.value.trim();let p;if(!v)p={oh:'',ol:'',ohq:1,ohv:2};else{const m=ohParse(v);if(!m){toast('請寫成 08:00-20:00 這樣');i.focus();return}p={oh:tfmt(m.o)+'-'+tfmt(m.c),ol:m.l!=null?tfmt(m.l):'',ohq:1,ohv:2}}
+      const cur=S.items.get(id);if(!cur){closeSheet();return}if((cur.oh||'')===p.oh&&(cur.ol||'')===p.ol){closeSheet();return}
+      S.items.set(id,Object.assign({},cur,p));queue('items'+id,()=>ref('items',id).update(p));closeSheet();render();toast('已更新營業時間')};
+    root.querySelector('#oh-ok').onclick=go;i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}})})}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.item .ioh');if(!b||!canWrite())return;const c=b.closest('.item');if(!c||!c.dataset.id)return;e.preventDefault();e.stopPropagation();openHours(c.dataset.id)},true);
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -3674,7 +3686,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.173';
+window.__BUILD='1.174';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
