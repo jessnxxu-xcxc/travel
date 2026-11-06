@@ -1851,6 +1851,11 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
   .sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{font-size:12px!important}
 }
 @media(min-width:768px){.sheet .fld.legf:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>.lbl,.sheet .fld:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:14px!important}}
+/* trip list card: title + status on one line, dates under it */
+.tcard .tbody:not(#q1):not(#q2){grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:4px}
+.tcard .tbody:not(#q1)>b{grid-column:1;grid-row:1;min-width:0;overflow-wrap:anywhere}
+.tcard .tbody:not(#q1)>.tst{grid-column:2;grid-row:1;margin:0!important;white-space:nowrap;justify-self:end}
+.tcard .tbody:not(#q1)>span:not(.tst){grid-column:1/-1;grid-row:2}
 
 </style>
 
@@ -2024,7 +2029,7 @@ function renderBoard(){const g=groups(),tn=todayN();let h='';buildNext();buildEs
     if(n===0){h+='<section class="col'+act+'" data-col="0"><header class="col-h"><div class="col-t"><span class="col-n">BEFORE</span><span class="col-title" style="cursor:default">出發前準備</span></div></header>'+preTabsHTML()+
       listBlock('todo','行前待辦',listRows('todo').sort(byDate),0)+listBlock('pack','行李清單',listRows('pack'),0)+listBlock('book','訂位',listRows('book').sort(byDate),0)+listBlock('ticket','票券',listRows('ticket').sort(byDate),0)+listBlock('buy','購物',listRows('buy').sort(byDate),0)+preMoneyHTML()+
       '<section class="dsec" data-sec="pool"><div class="dsec-h">'+dicon('pin')+'<b>口袋名單</b></div><p class="pool-help">還沒決定哪天去的店或景點先記在這裡（備選）。行程有空檔時，把它<b>拖到某一天</b>，或點開改「哪一天」。</p>'+slotHTML(0,{k:'pool',l:'口袋名單'},g['0|pool'])+(S.canWrite?'<form class="addrow pooladd"><input class="inp" id="add-pool-0" aria-label="新增到口袋名單" placeholder="＋ 新增：teamLab、阿美橫丁的某家店" autocomplete="off"><button class="btn pri" type="submit">加入</button></form>':'')+'</section></section>';continue}
-    const d=dayDate(n),wd=d.getDay(),title=(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
+    const d=dayDate(n),wd=d.getDay(),title=autoDayTitle(n)||(S.days.get('d'+n)||{}).title||'',ru=routeUrlH(n);
     h+='<section class="col'+act+'" data-col="'+n+'"><header class="col-h"><div class="col-date'+(wd===0||wd===6?' wkend':'')+'"><b>'+md(d)+'</b><span>週'+WK[wd]+'</span></div>'+
       '<div class="col-t"><span class="col-n">DAY '+n+(tn===n?'<em>・今天</em>':'')+'</span><button type="button" class="col-title'+(title?'':' ph-title')+'" data-edit-day="'+n+'">'+(title?esc(title):'點這裡寫今天去哪')+'</button>'+'<div class="col-sub">'+daySum(n)+dayTimeChip(n)+wxChip(n)+(ru?'<a class="route" data-rd="'+n+'" href="'+esc(ru)+'" target="_blank" rel="noopener" aria-label="用 Google 地圖開今天的路線"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="4" r="2"/><path d="M6 12h3a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6"/></svg><span class="rl">今日路線</span></a>':'')+'</div></div></header>'+
       (dayItems(n).length?'':'<div class="empty-day">這天還沒有排行程<br>按右下角「＋ 新增」→「行程」加第一個地點</div>')+'<div class="tl">'+SLOTS.map((s,i)=>slotHTML(n,s,g[n+'|'+s.k],tn===n&&i===curSlot())).join('')+'</div>'+daySections(n)+diaryHTML(n)+
@@ -2857,7 +2862,7 @@ async function wikiPics(titles){
   return t=>{let k=t,n=0;while(fwd[k]&&n++<3)k=fwd[k];return img[k]||''}}
 async function findPics(){
   if(PIC_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic===undefined&&it.title&&(it.area||it.q||it.map||it.aq!==undefined)).slice(0,60);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.pic==null&&it.title&&(it.area||it.q||it.map||it.aq!=null)).slice(0,60);
   if(!todo.length)return;PIC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的地點。請替每一個找出最符合的日文維基百科條目標題（必須是確實存在的條目，例如「東京ディズニーシー」「浅草寺」）。餐廳、小店、咖啡廳，或找不到、不確定的，一律填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["浅草寺",""]。\n'+
@@ -2867,7 +2872,7 @@ async function findPics(){
     const want=[...new Set(names.filter(n=>typeof n==='string'&&n.trim()).map(n=>n.trim()))];
     let get=()=>'';if(want.length){try{get=await wikiPics(want)}catch(e){break}}
     part.forEach((it,k)=>{const n=typeof names[k]==='string'?names[k].trim():'',src=n?get(n):'',pic=PIC_OK.test(src)&&!/\.svg/i.test(src)?src:'none';
-      const cur=S.items.get(it.id);if(!cur||cur.pic!==undefined)return;S.items.set(it.id,Object.assign({},cur,{pic}));queue('items'+it.id,()=>ref('items',it.id).update({pic}))});
+      const cur=S.items.get(it.id);if(!cur||cur.pic!=null)return;S.items.set(it.id,Object.assign({},cur,{pic}));queue('items'+it.id,()=>ref('items',it.id).update({pic}))});
     render()}}
   finally{PIC_BUSY=false}}
 /* places typed without an area (e.g. 小町通商店街) get one from AI, so they count as real places: framed card, tag and a Google Maps link.
@@ -2875,19 +2880,19 @@ async function findPics(){
 let AREA_BUSY=false;
 async function findAreas(){
   if(AREA_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.area&&!it.q&&!safeUrl(it.map)&&it.aq===undefined).slice(0,40);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.area&&!it.q&&!safeUrl(it.map)&&it.aq==null).slice(0,40);
   if(!todo.length)return;AREA_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'旅行行程裡的項目，括號裡是那天的主要地區。請替每一項寫出它在 Google 地圖上所在的地區名稱（繁體中文，2 到 6 個字，例如「鎌倉」「澀谷」「江之島」）。如果不是一個找得到的實際地點（例如「飛機餐」「自由活動」），填空字串。只回覆 JSON 陣列，順序和編號一一對應，例如 ["鎌倉",""]。\n'+
       part.map((it,k)=>{const dt=it.day?(S.days.get('d'+it.day)||{}).title:'';return (k+1)+'. '+it.title.slice(0,30)+(dt?'（'+String(dt).slice(0,16)+'）':'')}).join('\n');
     let names;try{const r=await S.sample(prompt);names=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(names)||names.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.area||cur.aq!==undefined)return;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.area||cur.aq!=null)return;
       const v=typeof names[k]==='string'?names[k].trim().slice(0,12):'',p=v?{area:v,aq:1}:{aq:1};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{AREA_BUSY=false}}
-async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findStays();await findDups()}
+async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findStays();await findBookAi();await findDups()}
 /* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
 function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
@@ -2974,14 +2979,14 @@ function openAdd(def){if(!canWrite())return;ADD_MUST=false;const d={day:def.day,
 let DESC_BUSY=false;
 async function findDescs(){
   if(DESC_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map)||it.aq!==undefined)&&it.dq===undefined).slice(0,30);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&!it.desc&&(it.area||it.q||safeUrl(it.map)||it.aq!=null)&&it.dq==null).slice(0,30);
   if(!todo.length)return;DESC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
     const prompt='請替下面每一項寫一段簡介，用繁體中文（台灣用語），每段 30 到 70 字，給去'+(T.dest||'日本')+'旅遊的人看：說明它是什麼、以什麼出名（招牌菜或必看重點）。只寫你確定的事實，不要寫營業時間或價格；不確定是哪一間或不認識的，填空字串。只回覆 JSON 陣列，順序和編號一一對應。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.desc||cur.dq!==undefined)return;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.desc||cur.dq!=null)return;
       const v=typeof out[k]==='string'?out[k].trim().replace(/^["「『]|["」』]$/g,'').slice(0,120):'',p=v?{desc:v,dq:1}:{dq:1};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
@@ -2992,14 +2997,14 @@ async function findDescs(){
 let CLOSED_BUSY=false;
 async function findClosed(){
   if(CLOSED_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.cq===undefined).slice(0,40);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.cq==null).slice(0,40);
   if(!todo.length)return;CLOSED_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請寫出每一個固定的每週公休日（定休日），用「一二三四五六日」裡的字表示，例如「三」或「一二」。全年無休、只有不定休、或你不確定的，一律填空字串，不要猜。只回覆 JSON 陣列，順序和編號一一對應。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+(it.area?'（'+String(it.area).slice(0,12)+'）':'')).join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.cq!==undefined)return;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.cq!=null)return;
       const v=typeof out[k]==='string'?[...new Set(out[k].replace(/[^一二三四五六日]/g,''))].join(''):'',p={closed:v.length<7?v:'',cq:1};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
@@ -3165,7 +3170,8 @@ function bindLeg(root,st){const ps=root.querySelector('#e-pos');if(ps){const it0
     ps.addEventListener('change',()=>{const sl=root.querySelector('#slot-wrap');if(sl)sl.closest('.fld').hidden=!!ps.value})}bindSeg(root,'seg-tm',v=>st.tm=v);const f=root.querySelector('.legf');if(!f)return;st.legMode=(root.querySelector('#seg-leg [aria-pressed="true"]')||{dataset:{v:'train'}}).dataset.v;
   const ai=JSON.parse(f.dataset.ai||'{}');
   bindSeg(root,'seg-leg',v=>{st.legMode=v;const cm=root.querySelector('#e-cm');if(cm)cm.placeholder=ai[v]!=null?'約'+ai[v]+'（AI）':(v==='plane'||v==='ship'?'自己填':'AI 估算中')})}
-function legPatch(root,st,cur,p){if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
+function legPatch(root,st,cur,p){if('title' in p&&p.title!==cur.title){const mv=root.querySelector('#e-map');if(!('map' in p)&&!(mv&&mv.value.trim()!==(cur.map||''))){p.map='';}if(!('q' in p)){p.q=''}if(!('desc' in p)){p.desc=''}Object.assign(p,{aq:null,pic:null,oh:'',ol:'',ohq:null,cq:null,rec:'',recq:null,dq:null},cur.stayq?{}:{stay:0,stayq:null,stayAi:false})}
+  if(st.tm&&st.tm!==(cur.tm||''))p.tm=st.tm;
   const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
   {const si=root.querySelector('#e-stay'),sb=root.querySelector('#seg-stay button[aria-pressed="true"]'),tv=si?Math.max(0,Math.min(1440,Math.round(+si.value.replace(/[^\d.]/g,'')||0))):0,v=tv||(sb?+sb.dataset.v:0);if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
   const rc=root.querySelector('#e-rec');if(rc){const v=rc.value.trim().slice(0,40);if(v!==(cur.rec||'')){p.rec=v;p.recq=1}}
@@ -3202,10 +3208,10 @@ function listWhere(type,day){const l=(LTYPES.find(x=>x.k===type)||{l:'清單'}).
   return type==='todo'?'行前待辦':l}
 function dateLbl(type){return type==='todo'?'哪一天要做<span class="opt">不選＝出發前要做的</span>':type==='buy'?'哪一天買<span class="opt">不選＝出發前要買的</span>':'使用日期<span class="opt">選填</span>'}
 
-/* 時段 follows 類型: 美食 → 早餐／午餐／下午茶／晚餐／宵夜; other types → 上午／下午／晚上; type not known yet → all six.
+/* 時段 follows 類型: 美食 → 早餐／早午餐／午餐／下午茶／晚餐; other types → 上午／下午／晚上; type not known yet → all six.
    A stored slot from the other family is shown as its nearest match (a 景點 saved at 午餐 shows 下午) */
-const SLOT_MEAL={breakfast:'morning',lunch:'afternoon',dinner:'evening'},SLOT_PART={morning:'breakfast'};
-const FOOD_SLOTS=[['breakfast','早餐'],['lunch','午餐'],['afternoon','下午茶'],['dinner','晚餐'],['evening','宵夜']],PART_SLOTS=[['morning','上午'],['afternoon','下午'],['evening','晚上']];
+const SLOT_MEAL={breakfast:'morning',lunch:'afternoon',dinner:'evening'},SLOT_PART={evening:'dinner'};
+const FOOD_SLOTS=[['breakfast','早餐'],['morning','早午餐'],['lunch','午餐'],['afternoon','下午茶'],['dinner','晚餐']],PART_SLOTS=[['morning','上午'],['afternoon','下午'],['evening','晚上']];
 function slotKeys(kind,sel){return (!kind?SLOTS.map(s=>[s.k,s.l]):kind==='food'?FOOD_SLOTS:PART_SLOTS).map(([k,l])=>({k,l}))}
 function slotFit(slot,kind){if(!slot||slot==='pool'||!kind)return slot;if(kind==='food')return SLOT_PART[slot]||slot;return SLOT_MEAL[slot]||slot}
 function slotSeg(sel,day,kind){if(day===0)return '<div class="seg" id="seg-slot"><button type="button" data-v="pool" aria-pressed="true">口袋名單</button></div>';
@@ -3288,11 +3294,11 @@ function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],eg=ENDGUESS[n],late=n<ND
   const t=(dep?'🏨 '+dep+' 出發':'＋ 出發時間')+(e!=null&&e<1440?'・預計 '+tfmt(e)+' 結束':'');
   return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?(e!=null?'・可能太滿':'・可能太滿（以 9 點出發估）'):'')+'</button>'}
 function openDayTitle(n){if(!canWrite())return;const d=S.days.get('d'+n)||{},cur=d.title||'';S.readSheet=false;
-  openSheet('<h2>Day '+n+'・'+md(dayDate(n))+'</h2><div class="fld"><label for="d-title">這天主要去哪</label><input class="inp" id="d-title" placeholder="例 上野・淺草" value="'+esc(cur)+'"></div>'+
+  openSheet('<h2>Day '+n+'・'+md(dayDate(n))+'</h2><div class="fld" hidden><label for="d-title">這天主要去哪</label><input class="inp" id="d-title" placeholder="例 上野・淺草" value="'+esc(cur)+'"></div>'+
    '<div class="fld"><label for="d-dep">幾點從飯店出發<span class="opt">選填，每天可以不一樣；沒填時間的行程會從這裡往後排</span></label><input class="inp" id="d-dep" inputmode="numeric" placeholder="例 07:30" value="'+esc(d.dep||'')+'"></div>'+
-   '<div class="fld"><label for="d-swap">跟哪一天交換<span class="opt">整天的行程、待辦、標題一起換</span></label><div class="swaprow"><select class="inp" id="d-swap"><option value="">選一天</option>'+Array.from({length:NDAYS},(_,k)=>k+1).filter(k=>k!==n).map(k=>'<option value="'+k+'">Day '+k+'・'+md(dayDate(k))+((S.days.get('d'+k)||{}).title?'・'+esc(String(S.days.get('d'+k).title).slice(0,12)):'')+'</option>').join('')+'</select><button type="button" class="btn" id="d-swapgo">交換</button></div></div>'+
+   '<div class="fld"><label for="d-swap">跟哪一天交換<span class="opt">整天的行程、待辦、標題一起換</span></label><div class="swaprow"><select class="inp" id="d-swap"><option value="">選一天</option>'+Array.from({length:NDAYS},(_,k)=>k+1).filter(k=>k!==n).map(k=>'<option value="'+k+'">Day '+k+'・'+md(dayDate(k))+((autoDayTitle(k)||(S.days.get('d'+k)||{}).title)?'・'+esc(String(autoDayTitle(k)||S.days.get('d'+k).title).slice(0,12)):'')+'</option>').join('')+'</select><button type="button" class="btn" id="d-swapgo">交換</button></div></div>'+
    '<div class="btns"><span class="sp"></span><button type="button" class="btn" id="d-cancel">取消</button><button type="button" class="btn pri" id="d-ok">儲存</button></div>',
-  root=>{root.querySelector('#d-swapgo').onclick=()=>{const m=+root.querySelector('#d-swap').value;if(!m){toast('先選要交換的那一天');return}closeSheet();swapDays(n,m)};const i=root.querySelector('#d-title'),dp=root.querySelector('#d-dep');setTimeout(()=>i.focus(),50);root.querySelector('#d-cancel').onclick=closeSheet;
+  root=>{root.querySelector('#d-swapgo').onclick=()=>{const m=+root.querySelector('#d-swap').value;if(!m){toast('先選要交換的那一天');return}closeSheet();swapDays(n,m)};const i=root.querySelector('#d-title'),dp=root.querySelector('#d-dep');root.querySelector('#d-cancel').onclick=closeSheet;
     const go=()=>{const v=i.value.trim(),dv=normT(dp.value);if(dv&&tmin(dv)==null){toast('時間請寫成 07:30 這樣');dp.focus();return}
       closeSheet();if(v!==cur||dv!==(d.dep||'')){const nd=Object.assign({},d,{title:v,dep:dv});S.days.set('d'+n,nd);render();queue('d'+n,()=>S.db.collection('days').doc('d'+n).set(nd))}};
     root.querySelector('#d-ok').onclick=go;[i,dp].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')go()}))})}
@@ -3315,14 +3321,14 @@ function ohWarn(it){if(!it||!it.oh||!PLACE_KINDS.includes(it.kind))return '';con
 let OH_BUSY=false;
 async function findHours(){
   if(OH_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.ohq===undefined).slice(0,40);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.ohq==null).slice(0,40);
   if(!todo.length)return;OH_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
     const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請寫出每一個一般的開門與關門時間（24 小時制，格式 10:00-21:00），如果你確定有最後入場或最後點餐時間，加在後面，例如「10:00-21:00 最後 20:30」。每週各天不同、不確定、或需要預約時段的，填空字串，不要猜。只回覆 JSON 陣列，順序和編號一一對應。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+(it.area?'（'+String(it.area).slice(0,12)+'）':'')).join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.ohq!==undefined)return;const h=typeof out[k]==='string'?ohParse(out[k]):null;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.ohq!=null)return;const h=typeof out[k]==='string'?ohParse(out[k]):null;
       const p=h?{oh:tfmt(h.o)+'-'+tfmt(h.c),ol:h.l!=null?tfmt(h.l):'',ohq:1}:{ohq:1};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
@@ -3471,14 +3477,14 @@ document.addEventListener('input',e=>{if(!e.target||e.target.id!=='e-stay')retur
 let STAY_BUSY=false;
 async function findStays(){
   if(STAY_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>STAY_KINDS.includes(it.kind)&&it.title&&it.stayq===undefined&&!(+it.stay>0)).slice(0,30);
+  const todo=[...S.items.values()].filter(it=>STAY_KINDS.includes(it.kind)&&it.title&&it.stayq==null&&!(+it.stay>0)).slice(0,30);
   if(!todo.length)return;STAY_BUSY=true;
   try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
     const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請估計一般觀光客在每一項「停留多久」，單位分鐘，只能從 30、60、90、120、180、240 選一個最接近的。不確定就給 0。只回覆 JSON 數字陣列，例如 [60,90]。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*?\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.stayq!==undefined||+cur.stay>0)return;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.stayq!=null||+cur.stay>0)return;
       const m=Math.round(+out[k]||0),ok=STAYS.some(([x])=>x===m),p=ok?{stay:m,stayAi:true,stayq:0}:{stayq:0};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
@@ -3486,14 +3492,14 @@ async function findStays(){
 let REC_BUSY=false;
 async function findRecs(){
   if(REC_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&it.recq===undefined&&(it.area||it.q||safeUrl(it.map)||it.aq!==undefined)).slice(0,30);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&it.recq==null&&(it.area||it.q||safeUrl(it.map)||it.aq!=null)).slice(0,30);
   if(!todo.length)return;REC_BUSY=true;
   try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
     const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請替每一項整理一行「強項」，用繁體中文（台灣用語），20 字以內：餐廳寫「必吃：」加最有名的 1 到 2 道菜；商店寫「必買：」加最有名的 1 到 2 樣商品；其他寫「特色：」加最大的特色。只寫你確定的；不確定就給空字串，不要猜。只回覆 JSON 陣列，順序和編號一一對應。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.recq!==undefined)return;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.recq!=null)return;
       const v=typeof out[k]==='string'?out[k].trim().replace(/^["「『]|["」』]$/g,'').slice(0,40):'',p=v?{rec:v,recq:1}:{recq:1};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
@@ -3582,6 +3588,27 @@ function sugField(it){const b=sugDay(it);if(!b)return '';
   return '<div class="fld sugf"><button type="button" class="btn sug" id="e-sug" data-day="'+b.n+'">📅 排進 Day '+b.n+'（'+md(dayDate(b.n))+'・'+esc(b.why)+'）</button></div>'}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-sug');if(!b)return;const sh=b.closest('.sheet'),db=sh&&sh.querySelector('#seg-day [data-v="'+b.dataset.day+'"]');if(db){db.click();b.closest('.fld').hidden=true;const p=sh.querySelector('#e-posf');(p||db).scrollIntoView({block:'center',behavior:'smooth'})}});
 
+/* ---------- 每天的標題 = 當天行程的地區 (依順序、不重複、最多 4 個)，改行程就跟著變 ---------- */
+function autoDayTitle(n){const seen=[];for(const it of dayItems(n)){if(!isStop(it))continue;const a=String(it.area||'').trim();if(a&&!seen.includes(a)&&!/^(日本|東京都?)$/.test(a))seen.push(a)}return seen.slice(0,4).join('・')}
+
+/* ---------- 要不要先訂位: AI 看美食和需要門票的景點，建議先訂的加進「訂位」待辦 (bka 記住問過了；刪掉那筆待辦就不會再加) ---------- */
+let BKA_BUSY=false;
+async function findBookAi(){
+  if(BKA_BUSY||!S.sample||!S.canWrite)return;
+  const todo=[...S.items.values()].filter(it=>(it.kind==='food'||it.kind==='spot')&&it.title&&it.bka==null&&it.bkq==null).slice(0,30);
+  if(!todo.length)return;BKA_BUSY=true;let added=0;
+  try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
+    const prompt='下面是'+(T.dest||'日本')+'的餐廳和景點。請判斷一般觀光客去之前「需要先訂位或先買票預約」嗎（很難排到、只收預約、門票常賣完 → 1；現場排隊或直接進去就好 → 0；不確定 → 0）。只回覆 JSON 數字陣列，例如 [1,0]。\n'+
+      part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
+    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*?\]/)||['[]'])[0])}catch(e){break}
+    if(!Array.isArray(out)||out.length!==part.length)continue;
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.bka!=null)return;const need=+out[k]===1;
+      if(need&&!NO_BOOK.test(String(cur.note||''))&&![...S.lists.values()].some(l=>(l.type==='book'||l.type==='ticket')&&sameShop(cur.title,l.title))){
+        create('lists',{type:'book',title:(cur.kind==='food'?'訂位：':'預約：')+cur.title,note:'AI 建議先'+(cur.kind==='food'?'訂位':'預約'),done:false,day:cur.day>0?cur.day:0,photos:[],ts:Date.now()+added,order:Date.now()+added});added++}
+      S.items.set(it.id,Object.assign({},cur,{bka:need?1:0}));queue('items'+it.id,()=>ref('items',it.id).update({bka:need?1:0}))})}}
+  finally{BKA_BUSY=false}
+  if(added){render();toast('AI 建議先訂位的 '+added+' 個地方，已加到「訂位」')}}
+
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
 (async function boot(){
@@ -3609,7 +3636,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.159';
+window.__BUILD='1.160';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
