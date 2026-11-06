@@ -3162,7 +3162,9 @@ function legLine(b,lead){const l=leg(b);if(!l)return '';const u=mapUrl(b);
   /* the mode and minutes are a button (change 步行→電車, the minutes, 出發時間); only 導航 opens Google Maps */
   return '<div class="gonext legnav"><button type="button" class="legedit" data-leg="'+esc(b.id)+'" aria-label="修改到「'+esc(b.title)+'」的交通"><span class="leglead">'+lead+'</span>'+legTextW(l)+'</button><a class="navpill" href="'+esc(u)+'" target="_blank" rel="noopener" aria-label="在 Google 地圖打開「'+esc(b.title)+'」">'+PIN+'地圖</a></div>'}
 /* after the last stop of a day (not the last day): the way back to the hotel */
-function backLine(it){const h=HOTEL();if(!h||!(it.day>0)||it.day>=NDAYS||NEXT[it.id]||!isStop(it))return '';
+function backLine(it){const h=HOTEL();if(!h||!(it.day>0)||it.day>=NDAYS||!PLACE_KINDS.includes(it.kind))return '';
+  /* only after the day's last place (a shop with no area yet still counts as a later stop) */
+  {const its=dayItems(it.day),i=its.findIndex(x=>x.id===it.id);if(its.slice(i+1).some(x=>x.kind!=='todo'))return ''}
   return '<div class="gonext legnav back"><span class="leglead">🏨 回飯店</span><a class="navpill" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(h)+'" target="_blank" rel="noopener" aria-label="在 Google 地圖打開飯店">'+PIN+'地圖</a></div>'}
 /* tap the line → Google Maps directions from where you are now (no origin = current location) */
 const navUrl=(b,mode)=>'https://www.google.com/maps/dir/?api=1&travelmode='+(mode==='taxi'?'driving':mode==='walk'?'walking':'transit')+'&destination='+encodeURIComponent(placeQuery(b));
@@ -3629,7 +3631,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.163';
+window.__BUILD='1.164';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
