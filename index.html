@@ -1894,6 +1894,15 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .sheet:has(#e-title) .fld:has(#e-mv):not(#q1){display:none!important}
 .sheet:has(#e-title) .legmin:has(#e-cm):not(#q1):not(#q2){display:none!important}
 .sheet:has(#e-title) .legf .legmin:has(#e-cm):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){display:none!important}
+/* 一致：所有「備註」都同一個高度；簡介給足空間；地區／營業時間交給 AI */
+.sheet :is(#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3){height:48px!important;min-height:48px!important;max-height:none;padding-top:12px!important;padding-bottom:12px!important;line-height:20px!important;font-size:16px!important;resize:vertical}
+.sheet #e-desc:not(#q1):not(#q2):not(#q3){height:auto!important;min-height:120px!important;line-height:24px!important}
+.sheet:has(#e-title) .fld:is(:has(#e-area),:has(#e-oh)):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){display:none!important}
+.sheet.ai-open .aiinfo .aiinfo-desc:not(#q1){display:none!important}
+.sheet.ai-open:has(#e-title) .fld:has(#e-desc):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+/* 一致：表單裡所有單行欄位（名稱、要加什麼、備註、排在哪裡、時間、推薦）都 48px */
+.sheet :is(input.inp,select.inp,select,#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#e-stay):not(#e-desc):not([type=checkbox]):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){height:48px!important;min-height:48px!important;font-size:16px!important;border-radius:14px!important}
+.sheet :is(#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){padding:12px 16px!important;line-height:20px!important}
 
 </style>
 
@@ -2312,7 +2321,6 @@ function openEdit(id){const it=S.items.get(id);if(!it)return;const ro=!S.canWrit
     '<div class="fld"><span class="lbl">照片</span>'+photosHTML(st.photos,ro)+'</div>'+
     (ro?'':'<div class="fld"><span class="lbl">類型</span>'+kindSeg(st.kind)+'</div>')+
     '<div class="fld"><span class="lbl">哪一天</span>'+daySeg(st.day,true)+'</div>'+
-    (ro?'':sugField(it))+
     (ro?'':posField(it))+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><span class="lbl">時段</span><div id="slot-wrap">'+slotSeg(st.slot,st.day,st.kind)+'</div></div>'+
     '<div class="fld"'+(st.day===0?' hidden':'')+'><label for="e-time">開始時間<span class="opt">選填</span></label><div class="trange"><input class="inp" id="e-time" inputmode="numeric" placeholder="'+(EST[it.id]!=null?'自動 約 '+tfmt(EST[it.id]):'開始 15:00')+'" value="'+esc(it.time)+'"><span>–</span><input class="inp" id="e-end" inputmode="numeric" placeholder="結束" value="'+esc(it.end||'')+'"></div></div>'+
@@ -2949,7 +2957,7 @@ function openAdd(def){if(!canWrite())return;ADD_MUST=false;const d={day:def.day,
   const slotChips=()=>d.day===0?'':'<div class="fld"><span class="lbl">時段<span class="opt">不選就依時間排，再點一次取消</span></span><div class="seg" id="seg-aslot">'+slotKeys(d.sfam||'',d.slot).map(s=>'<button type="button" data-v="'+s.k+'" aria-pressed="'+(d.slot===s.k)+'">'+s.l+'</button>').join('')+'</div></div>';
   openSheet('<h2 id="a-h">'+(d.day===0?'新增到口袋':'新增行程')+'</h2>'+
     '<div class="fld"><label for="a-text">'+(d.day===0?'要加什麼':'去哪裡')+'</label><div class="togwrap"><textarea class="inp grow" id="a-text" rows="1" placeholder="'+(d.day===0?'店名、景點，或任何想記的事':'店名或景點，例：一蘭拉麵')+'"></textarea><button type="button" class="star-in" id="a-must" aria-pressed="false" aria-label="必去" title="必去">★</button></div><span class="hint2">地區、地圖會自動補上・可貼地圖連結・換行可一次加多個</span></div>'+
-    '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" style="min-height:64px" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
+    '<div class="fld" id="a-notef"><label for="a-note">備註<span class="opt">選填</span></label><textarea class="inp" id="a-note" rows="1" placeholder="訂位資訊、想點什麼、要注意的事"></textarea></div>'+
     (S.assets?'<div class="fld" id="a-photof"><span class="lbl">照片<span class="opt">選填，IG、Google 地圖的截圖也可以</span></span>'+photosHTML([],false)+'</div>':'')+
     '<div class="fld" id="a-kindf"><span class="lbl">類型<span class="opt">打完名稱會先幫你選，不對再點</span></span><div id="a-kind">'+kindChips()+'</div></div>'+
     (def.day>0?'':'<div class="fld"><span class="lbl">哪一天</span>'+daySeg(d.day,true)+'</div>')+  /* added from a trip day: it goes on that day */
@@ -3215,7 +3223,7 @@ function legPatch(root,st,cur,p){if('title' in p&&p.title!==cur.title){const mv=
   const ps=root.querySelector('#e-pos');st.posOrder=null;if(ps&&ps.value&&st.day>0){const pl=placeFor({day:st.day,kind:st.kind,time:''},ps.value,null,cur.id);if(pl){st.slot=pl.slot;st.posOrder=pl.order}}
   {const si=root.querySelector('#e-stay'),sb=root.querySelector('#seg-stay button[aria-pressed="true"]'),tv=si?Math.max(0,Math.min(1440,Math.round(+si.value.replace(/[^\d.]/g,'')||0))):0,v=tv||(sb?+sb.dataset.v:0);if(root.querySelector('#seg-stay')&&v!==(+cur.stay||0)){p.stay=v;p.stayq=1;p.stayAi=false}}
   const rc=root.querySelector('#e-rec');if(rc){const v=rc.value.trim().slice(0,40);if(v!==(cur.rec||'')){p.rec=v;p.recq=1}}
-  const oh=root.querySelector('#e-oh');if(oh){const v=oh.value.trim();if(v!==ohText(cur)){const m=ohParse(v);if(v===''){p.oh='';p.ol='';p.ohq=1}else if(m){p.oh=tfmt(m.o)+'-'+tfmt(m.c);p.ol=m.l!=null?tfmt(m.l):'';p.ohq=1}else toast('營業時間請寫成 10:00-21:00')}}
+  const oh=root.querySelector('#e-oh');if(oh){const v=oh.value.trim();if(v!==ohText(cur)){const m=ohParse(v);if(v===''){p.oh='';p.ol='';p.ohq=1;p.ohv=2}else if(m){p.oh=tfmt(m.o)+'-'+tfmt(m.c);p.ol=m.l!=null?tfmt(m.l):'';p.ohq=1;p.ohv=2}else toast('營業時間請寫成 10:00-21:00')}}
   const mv=root.querySelector('#e-mv');if(mv){const v=mv.value.trim(),man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),was=cur.mvMan==null||cur.mvMan===''?null:+cur.mvMan;if(man!==was)p.mvMan=man}const f=root.querySelector('.legf');if(!f)return;const from=f.dataset.from;
   if(!from){if(LEG_MODE(cur)!==st.legMode)p.cmMode=st.legMode;return}const v=root.querySelector('#e-cm').value.trim();
   const man=v===''?null:Math.max(0,Math.round(+v.replace(/[^\d.]/g,'')||0)),same=cur.cmFrom===from;
@@ -3361,15 +3369,15 @@ function ohWarn(it){if(!it||!it.oh||!PLACE_KINDS.includes(it.kind))return '';con
 let OH_BUSY=false;
 async function findHours(){
   if(OH_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&it.ohq==null).slice(0,40);
+  const todo=[...S.items.values()].filter(it=>PLACE_KINDS.includes(it.kind)&&it.title&&(it.area||it.q||safeUrl(it.map))&&(it.ohq==null||(it.ohq===1&&it.oh&&!it.ohv))).slice(0,40);
   if(!todo.length)return;OH_BUSY=true;
   try{for(let i=0;i<todo.length;i+=20){const part=todo.slice(i,i+20);
-    const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請寫出每一個一般的開門與關門時間（24 小時制，格式 10:00-21:00），如果你確定有最後入場或最後點餐時間，加在後面，例如「10:00-21:00 最後 20:30」。每週各天不同、不確定、或需要預約時段的，填空字串，不要猜。只回覆 JSON 陣列，順序和編號一一對應。\n'+
+    const prompt='下面是'+(T.dest||'日本')+'的店家和景點。請寫出每一個「這間分店」實際的開門與關門時間（24 小時制，格式 10:00-21:00）。只有在你非常確定這間分店的時間時才填；同品牌不同分店時間常不同，不能拿別家分店或一般印象來猜，如果你確定有最後入場或最後點餐時間，加在後面，例如「10:00-21:00 最後 20:30」。每週各天不同、不確定、或需要預約時段的，填空字串，不要猜。只回覆 JSON 陣列，順序和編號一一對應。\n'+
       part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+(it.area?'（'+String(it.area).slice(0,12)+'）':'')).join('\n');
     let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*\]/)||['[]'])[0])}catch(e){break}
     if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.ohq!=null)return;const h=typeof out[k]==='string'?ohParse(out[k]):null;
-      const p=h?{oh:tfmt(h.o)+'-'+tfmt(h.c),ol:h.l!=null?tfmt(h.l):'',ohq:1}:{ohq:1};
+    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||(cur.ohq!=null&&!(cur.ohq===1&&cur.oh&&!cur.ohv)))return;const h=typeof out[k]==='string'?ohParse(out[k]):null;
+      const p=h?{oh:tfmt(h.o)+'-'+tfmt(h.c),ol:h.l!=null?tfmt(h.l):'',ohq:1,ohv:2}:{oh:'',ol:'',ohq:1,ohv:2};
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{OH_BUSY=false}}
@@ -3666,7 +3674,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.172';
+window.__BUILD='1.173';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
