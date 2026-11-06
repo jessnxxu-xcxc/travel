@@ -1861,6 +1861,11 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .tcard .tbody:not(#q1):not(#q2)>b{flex:1 0 auto;max-width:100%}
 .tcard .tbody:not(#q1):not(#q2)>.tst{order:2;flex:0 0 auto}
 .tcard .tbody:not(#q1):not(#q2)>span:not(.tst){order:3;flex:0 0 100%}
+/* day header: long auto titles and chips wrap inside the column */
+.col-h .col-t:not(#q1){min-width:0}
+.col-h .col-title:not(#q1):not(#q2){white-space:normal!important;overflow-wrap:anywhere;word-break:keep-all;max-width:100%}
+.col-h .col-sub:not(#q1):not(#q2){flex-wrap:wrap!important;min-width:0;max-width:100%}
+.col-h .dtchip:not(#q1){max-width:100%;white-space:normal}
 
 </style>
 
@@ -3297,7 +3302,7 @@ function flashNew(ids){if(!ids||!ids.length)return;setTimeout(()=>{const el=docu
 const dayDep=n=>{const v=(S.days.get('d'+n)||{}).dep;return tmin(v)!=null?v:''};
 function dayTimeChip(n){const dep=dayDep(n),e=ENDCUR[n],eg=ENDGUESS[n],late=n<NDAYS&&(e!=null?e>22*60:eg!=null&&eg>22*60);if(!dep&&e==null&&!S.canWrite)return '';
   const t=(dep?'🏨 '+dep+' 出發':'＋ 出發時間')+(e!=null&&e<1440?'・預計 '+tfmt(e)+' 結束':'');
-  return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?(e!=null?'・可能太滿':'・可能太滿（以 9 點出發估）'):'')+'</button>'}
+  return '<button type="button" class="dtchip'+(late?' late':'')+(dep?'':' dim')+'" data-edit-day="'+n+'" aria-label="每天出發時間">'+t+(late?'・可能太滿':'')+'</button>'}
 function openDayTitle(n){if(!canWrite())return;const d=S.days.get('d'+n)||{},cur=d.title||'';S.readSheet=false;
   openSheet('<h2>Day '+n+'・'+md(dayDate(n))+'</h2><div class="fld" hidden><label for="d-title">這天主要去哪</label><input class="inp" id="d-title" placeholder="例 上野・淺草" value="'+esc(cur)+'"></div>'+
    '<div class="fld"><label for="d-dep">幾點從飯店出發<span class="opt">選填，每天可以不一樣；沒填時間的行程會從這裡往後排</span></label><input class="inp" id="d-dep" inputmode="numeric" placeholder="例 07:30" value="'+esc(d.dep||'')+'"></div>'+
@@ -3624,7 +3629,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.162';
+window.__BUILD='1.163';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
