@@ -2892,7 +2892,7 @@ async function findAreas(){
       S.items.set(it.id,Object.assign({},cur,p));queue('items'+it.id,()=>ref('items',it.id).update(p))});
     render()}}
   finally{AREA_BUSY=false}}
-async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findStays();await findBookAi();await findDups()}
+async function fillPlaces(){syncBookings();await findAreas();await findCommutes();await findMoves();await findPics();await findDescs();await findClosed();await findHours();await findRecs();await findStays();await findDups()}
 /* runs once the AI is ready, then every 30 s while the page is open (only asks when something new is missing an area or picture) */
 function picsLater(){let n=0;(function go(){if(S.sample&&S.items.size){fillPlaces();setInterval(()=>{if(!document.hidden&&!window.__noAutoFill)fillPlaces()},30000)}else if(++n<20)setTimeout(go,1500)})()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#e-pic-rm');if(!b)return;
@@ -3591,23 +3591,6 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* ---------- 每天的標題 = 當天行程的地區 (依順序、不重複、最多 4 個)，改行程就跟著變 ---------- */
 function autoDayTitle(n){const seen=[];for(const it of dayItems(n)){if(!isStop(it))continue;const a=String(it.area||'').trim();if(a&&!seen.includes(a)&&!/^(日本|東京都?)$/.test(a))seen.push(a)}return seen.slice(0,4).join('・')}
 
-/* ---------- 要不要先訂位: AI 看美食和需要門票的景點，建議先訂的加進「訂位」待辦 (bka 記住問過了；刪掉那筆待辦就不會再加) ---------- */
-let BKA_BUSY=false;
-async function findBookAi(){
-  if(BKA_BUSY||!S.sample||!S.canWrite)return;
-  const todo=[...S.items.values()].filter(it=>(it.kind==='food'||it.kind==='spot')&&it.title&&it.bka==null&&it.bkq==null).slice(0,30);
-  if(!todo.length)return;BKA_BUSY=true;let added=0;
-  try{for(let i=0;i<todo.length;i+=10){const part=todo.slice(i,i+10);
-    const prompt='下面是'+(T.dest||'日本')+'的餐廳和景點。請判斷一般觀光客去之前「需要先訂位或先買票預約」嗎（很難排到、只收預約、門票常賣完 → 1；現場排隊或直接進去就好 → 0；不確定 → 0）。只回覆 JSON 數字陣列，例如 [1,0]。\n'+
-      part.map((it,k)=>(k+1)+'. '+it.title.slice(0,40)+'（'+(KIND_L[it.kind]||'景點')+(it.area?'・'+String(it.area).slice(0,12):'')+'）').join('\n');
-    let out;try{const r=await S.sample(prompt);out=JSON.parse((r.text.match(/\[[\s\S]*?\]/)||['[]'])[0])}catch(e){break}
-    if(!Array.isArray(out)||out.length!==part.length)continue;
-    part.forEach((it,k)=>{const cur=S.items.get(it.id);if(!cur||cur.bka!=null)return;const need=+out[k]===1;
-      if(need&&!NO_BOOK.test(String(cur.note||''))&&![...S.lists.values()].some(l=>(l.type==='book'||l.type==='ticket')&&sameShop(cur.title,l.title))){
-        create('lists',{type:'book',title:(cur.kind==='food'?'訂位：':'預約：')+cur.title,note:'AI 建議先'+(cur.kind==='food'?'訂位':'預約'),done:false,day:cur.day>0?cur.day:0,photos:[],ts:Date.now()+added,order:Date.now()+added});added++}
-      S.items.set(it.id,Object.assign({},cur,{bka:need?1:0}));queue('items'+it.id,()=>ref('items',it.id).update({bka:need?1:0}))})}}
-  finally{BKA_BUSY=false}
-  if(added){render();toast('AI 建議先訂位的 '+added+' 個地方，已加到「訂位」')}}
 
 /* ---------- boot ---------- */
 const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater();if(cached)setSync('wait','更新中');
@@ -3636,7 +3619,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.160';
+window.__BUILD='1.161';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
