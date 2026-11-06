@@ -1866,7 +1866,7 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .col-h .col-title:not(#q1):not(#q2){white-space:normal!important;overflow-wrap:anywhere;word-break:keep-all;max-width:100%}
 .col-h .col-sub:not(#q1):not(#q2){flex-wrap:wrap!important;min-width:0;max-width:100%}
 .col-h .dtchip:not(#q1){max-width:100%;white-space:normal}
-.item .imap:not(#q1){background:var(--water)!important;font-weight:700;height:24px;min-height:24px;padding:0 10px;gap:4px}
+.item .imap:not(#q1){background:var(--green)!important;font-weight:700;height:24px;min-height:24px;padding:0 10px;gap:4px}
 /* 留言 removed */
 .sheet .cmbox,.item .cmcount,.cmlist{display:none!important}
 /* empty 資訊 block (住宿／交通): no stray dashed line */
@@ -3631,7 +3631,7 @@ const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater()
 (async function boot(){
   const C=window.claude,use=n=>C&&C.use?C.use(n).catch(()=>null):Promise.resolve(null);
   const db=await use('db');
-  if(!db){if(cached){setSync('off','離線');notice('<b>目前離線</b>顯示的是上次同步的行程（'+new Date(cached.at).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'），連上網路後重新整理就會更新。')}else{setSync('off','未連線');notice('<b>還看不到行程</b>這台裝置還沒存過這趟旅行，連上網路後重新整理。')}return}
+  if(!db){if(cached){setSync('off','離線')}else{setSync('off','未連線');notice('<b>還看不到行程</b>這台裝置還沒存過這趟旅行，連上網路後重新整理。')}return}
   S.db=db;
   const u=await use('user');S.user=u;let can=null;try{if(u)can=await u.can('data.write')}catch(e){}
   S.canWrite=can!==false;setSync(S.canWrite?'wait':'ro',S.canWrite?'同步中':'只能檢視');
@@ -3653,7 +3653,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 </script>
 
 <script>
-window.__BUILD='1.166';
+window.__BUILD='1.167';
 /* Platform layer for the self-hosted travel notebook.
    - Google sign-in; only the admin and people invited to a trip get anything (enforced by Postgres RLS).
    - Without ?t= it shows the bookshelf of trips; with ?t=<id> it boots the trip page (window.__bootTrip)
@@ -3748,7 +3748,7 @@ window.__BUILD='1.166';
       gate('<div class="gate-card">' + art('travel') + '<h1>旅行手帳</h1><p>' + (hashErr ? '這個 Google 帳號還沒有被邀請。請用受邀的帳號登入，或請手帳主人邀請你。' : '這是私人的旅行手帳，只有受邀的人能看。') + '</p><button type="button" class="btn pri block" data-login>用 Google 登入</button></div>');
       return 'out';
     }
-    let res; try { res = await sb.rpc('my_access'); } catch (e) { res = { error: e }; }
+    let res; for (let i = 0; i < 3; i++) { try { res = await sb.rpc('my_access'); } catch (e) { res = { error: e }; } if (!res.error || !navigator.onLine) break; await new Promise(r => setTimeout(r, 1500 * (i + 1))); }
     const { data, error } = res;
     if (error) {
       if (tripId && localStorage.getItem('trip-meta-' + tripId)) return 'offline';
@@ -4035,7 +4035,7 @@ window.__BUILD='1.166';
     // trip page
     let ok = st === 'ok', data = null, ferr = null;
     if (ok) {
-      try { const r = await sb.from('trips').select('id,data').eq('id', tripId).maybeSingle(); data = r.data; ferr = r.error; } catch (e) { ferr = e; }
+      for (let i = 0; i < 3; i++) { try { const r = await sb.from('trips').select('id,data').eq('id', tripId).maybeSingle(); data = r.data; ferr = r.error; } catch (e) { ferr = e; } if (!ferr || !navigator.onLine) break; await new Promise(r => setTimeout(r, 1500 * (i + 1))); }
       if (ferr && localStorage.getItem('trip-meta-' + tripId)) { ok = false; }
       else if (!data) { gate('<div class="gate-card">' + art('travel') + '<h1>找不到這趟旅行</h1><p>可能已被刪除，或還沒有分享給你。</p><a class="btn pri block" href="' + location.pathname + '">回我的旅行</a></div>'); return; }
     }
@@ -4049,6 +4049,7 @@ window.__BUILD='1.166';
       if (!TRIP) { gate('<div class="gate-card"><h1>目前離線</h1><p>這台裝置還沒有存過這趟旅行，連上網路後再打開。</p></div>'); return; }
     }
     if (!TRIP) return;
+    if (!ok) { const again = () => { const n = +(sessionStorage.getItem('tn-retry') || 0); if (n < 5) { sessionStorage.setItem('tn-retry', n + 1); location.reload(); } }; addEventListener('online', again, { once: true }); if (navigator.onLine) setTimeout(again, 8000); } else sessionStorage.removeItem('tn-retry');
     document.body.classList.remove('gated'); $('#app').hidden = false;
     document.title = TRIP.title + '｜旅行手帳';
     $('#trip-hero').innerHTML = hero(TRIP);
