@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- 改完 app.css 或 trip.js 後，用這頁不用登入就能看到行程主畫面長怎樣。
+     資料是寫死的假資料，不會連到任何伺服器。
+     注意：上面那段畫面骨架要跟 index.html 的 <div id="app"> 保持一致，index.html 改了這裡也要跟著改。 --><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>主畫面測試頁（假資料，不連伺服器）</title>
+<link rel="stylesheet" href="CSSHREF">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<div id="app" hidden>
+  <header class="hero gut wrapc" id="trip-hero">
+    <div class="pass"><div class="pass-main"><span class="cd-l" id="cd-l"></span><b class="cd" id="cd"></b><span class="cd-u" id="cd-u"></span></div>
+    <span class="sync" id="sync"><i id="sync-t"></i></span></div>
+  </header>
+  <div class="bar-wrap"><div class="wrapc gut"><div class="bar">
+    <button type="button" class="mbar" id="mbar" aria-label="旅費總覽"></button>
+    <span class="sp"></span><div class="peers" id="peers" hidden></div>
+    <button type="button" class="icon-btn" id="search-btn" aria-label="搜尋">S</button>
+  </div><nav class="strip" id="strip" aria-label="選擇日期"></nav>
+  <div class="strip-gap" id="strip-gap" hidden></div></div></div>
+  <div class="notice gut wrapc" id="notice" hidden><div id="notice-t"></div></div>
+  <div class="layout gut"><div class="mainc">
+  <section class="nowc" id="now" hidden></section>
+  <main class="board" id="board"></main>
+  </div></div>
+  <footer class="site-foot gut wrapc" id="site-foot"></footer>
+  <input type="file" accept="image/*" multiple id="cam-file" hidden>
+  <button class="fab" id="fab" type="button"><span id="fab-t">新增</span></button>
+</div>
+<div id="layer"></div>
+<script src="THEMEHREF"></script>
+<script src="TRIPHREF"></script>
+<script>
+/* 假的資料庫替身：只為了把登入後的主畫面在本機跑起來比對，不連任何伺服器 */
+const DAY0='2026-12-01';
+const ITEMS=[
+ {id:'i1',day:1,slot:'morning',kind:'spot',title:'清水寺',area:'東山區',dur:90,order:1000,time:'09:00',note:'先走產寧坂',photos:[]},
+ {id:'i2',day:1,slot:'lunch',kind:'food',title:'壹錢洋食',area:'祇園',dur:60,order:2000,time:'12:00',photos:[]},
+ {id:'i3',day:1,slot:'afternoon',kind:'shop',title:'錦市場',area:'中京區',dur:75,order:3000,photos:[]},
+ {id:'i4',day:2,slot:'morning',kind:'spot',title:'嵐山竹林',area:'右京區',dur:60,order:1000,time:'08:30',photos:[]},
+ {id:'i5',day:2,slot:'dinner',kind:'food',title:'一蘭拉麵',area:'四条',dur:45,order:2000,photos:[]},
+ {id:'i6',day:0,slot:'pool',kind:'spot',title:'伏見稻荷（還沒排）',area:'伏見區',dur:120,order:1000,photos:[]}
+];
+const LISTS=[
+ {id:'l1',type:'todo',title:'換日幣',done:true,day:0,photos:[],ts:1,order:1},
+ {id:'l2',type:'pack',title:'行動電源',done:false,day:0,photos:[],ts:2,order:2},
+ {id:'l3',type:'book',title:'訂嵐山小火車',done:false,day:0,photos:[],ts:3,order:3},
+ {id:'l4',type:'todo',title:'買伴手禮',done:false,day:2,photos:[],ts:4,order:4}
+];
+const EXPS=[
+ {id:'e1',day:1,amount:1200,cat:'food',pay:'cash',shop:'壹錢洋食',split:'fund',ts:1},
+ {id:'e2',day:1,amount:4500,cat:'shop',pay:'card',shop:'錦市場',split:'self',payer:'Jess',ts:2},
+ {id:'e3',day:2,amount:980,cat:'food',pay:'cash',shop:'一蘭',split:'fund',ts:3}
+];
+const COLS={items:ITEMS,lists:LISTS,expenses:EXPS,days:[{id:'d1',title:'東山散步'},{id:'d2',title:'嵐山一日'}]};
+const snapOf=rows=>({docs:rows.map(r=>({id:r.id,data:()=>r})),metadata:{fromCache:false}});
+const noop=()=>Promise.resolve();
+const docApi=()=>({set:noop,update:noop,delete:noop,get:()=>Promise.resolve({exists:false,data:()=>({})}),onSnapshot(cb){cb({exists:false,data:()=>({})});return noop}});
+const META={rate:0.21,people:['Jess','Ray'],rateAuto:false,budget:60000};
+const db={
+  collection:name=>({doc:docApi,onSnapshot(cb){setTimeout(()=>cb(snapOf(COLS[name]||[])),0);return noop}}),
+  doc(path){ if(path==='meta/settings') return {onSnapshot(cb){setTimeout(()=>cb({exists:true,data:()=>META}),0);return noop},set:noop,update:noop};
+    return docApi(); }
+};
+window.claude={use:async n=>({db,user:{can:async()=>true,name:'Jess',email:'j@example.com'},room:null,assets:null,sample:null}[n]||null)};
+window.__photoUrl=()=>'';
+window.__onDay=()=>{};
+document.getElementById('app').hidden=false;
+window.__bootTrip({id:'t1',dest:'京都',start:DAY0,days:3,theme:'travel',
+  hotel:{name:'京都四条飯店'},back:{arr:'18:40',to:'桃園',dep:'15:10',from:'關西'}});
+</script>
+</body></html>

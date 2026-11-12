@@ -1,0 +1,4 @@
+#!/bin/sh
+# 每次 commit 前自動更新版本號，免得大家手機上看到舊版
+python3 "$(git rev-parse --show-toplevel)/build.py" || exit 1
+git add index.html sw.js

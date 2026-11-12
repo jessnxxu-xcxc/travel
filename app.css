@@ -1,0 +1,1886 @@
+/* Layout: 旅遊手帳。點點方格紙底、紙膠帶標題、印章日期、貼紙標籤；一頁到底：行程 → 記帳 → 清單 */
+:root{
+  --bg:#F7F4EF; --surface:#FFFFFF; --sunk:#F2EDE6; --dot:#E3DCD2;
+  --ink:#26232E; --muted:#6E6877; --line:#E5DDD3; --line-strong:#CEC3B6;
+  --sakura:#D6456D; --sakura-soft:#FBE8ED; --ai:#34508F; --ai-soft:#E8EDF6;
+  --k-food:#C23D63; --k-spot:#34508F; --k-shop:#6A4C9C; --k-move:#5E6472; --k-stay:#2F7A6B; --k-todo:#946016; --k-facility:#2B6F8F; --kb-facility:#E2F0F6;
+  --kb-food:#FBE8ED; --kb-spot:#E8EDF6; --kb-shop:#EFEAF7; --kb-move:#EEEFF2; --kb-stay:#E3F1EC; --kb-todo:#F7EEDD;
+  --tape-pink:rgba(214,69,109,.2); --tape-blue:rgba(52,80,143,.16); --tape-mint:rgba(196,150,70,.22); --tape-yellow:rgba(196,150,70,.22); --hl:rgba(214,69,109,.16);
+  --ok:#2F7A6B; --warn:#946016; --warn-soft:#F7EEDD;
+  --paper-shadow:0 1px 0 rgba(90,70,50,.05),0 8px 18px -12px rgba(70,50,30,.28);
+  --scrim:rgba(38,35,46,.42); --shadow:0 12px 32px rgba(40,30,25,.18);
+  color-scheme:light;
+  --fs-xs:12px; --fs:14px; --fs-md:16px; --fs-lg:18px;   /* 字級：改這裡就全站一起改 */
+  --bd:2px solid var(--ink); --pill:999px;                /* 最常用的外框和膠囊圓角 */
+  --page-w:912px;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--font);font-size:var(--fs);line-height:1.6;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.nb{white-space:nowrap}
+.wrapc{max-width:var(--page-w);margin:0 auto}
+
+/* hero */
+.hero{padding-block:20px 12px;display:grid;gap:12px}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:0 8px;min-width:0;flex-wrap:wrap}
+.brand h1{margin:0;font-size:32px;font-weight:900;letter-spacing:-.01em;line-height:1.1}
+.brand h1 em{font-style:normal;color:var(--sakura)}
+.brand .sub{color:var(--muted);font-size:var(--fs);font-weight:500;white-space:nowrap}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:var(--pill);padding:4px 10px;white-space:nowrap;background:var(--surface)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--line-strong)}
+.sync[data-s="live"] i{background:var(--ok)}
+.sync[data-s="ro"] i{background:var(--warn)}
+.sync[data-s="off"] i{background:var(--sakura)}
+.pass{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 112px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 2px 10px rgba(23,32,58,.06)}
+.pass::before,.pass::after{content:"";position:absolute;right:104px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.pass::before{top:-9px;clip-path:inset(50% 0 0 0)}
+.pass::after{bottom:-9px;clip-path:inset(0 0 50% 0)}
+.pass-main{padding:18px 20px;display:grid;gap:14px;min-width:0}
+.fly-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px}
+.ap{display:grid;gap:2px}
+.ap.r{text-align:right}
+.ap b{font-size:32px;font-weight:900;line-height:1;letter-spacing:.02em}
+.ap span{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.fly{display:grid;justify-items:center;gap:4px;min-width:0}
+.fn{font-size:var(--fs-xs);font-weight:700;color:var(--sakura);white-space:nowrap}
+.ft{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.fline{position:relative;width:100%;height:20px;display:grid;place-items:center;color:var(--sakura)}
+.fline::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px dashed var(--line-strong)}
+.fline svg{position:relative;width:20px;height:20px;transform:rotate(90deg);background:var(--surface);padding:0 2px}
+.pass-meta{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;border-top:1px dashed var(--line);padding-top:12px}
+.pass-meta div{display:grid;gap:1px;min-width:0}
+.pass-meta span{font-size:var(--fs-xs);color:var(--muted)}
+.pass-meta b{font-size:var(--fs);font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.pass-meta small{font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.pass-stub{border-left:2px dashed var(--line);display:grid;place-content:center;justify-items:center;text-align:center;gap:2px;padding:12px 8px;background:var(--sakura-soft);border-radius:0 19px 19px 0}
+.pass-stub span{font-size:var(--fs-xs);color:var(--muted);font-weight:500;white-space:nowrap}
+.pass-stub b{font-size:36px;font-weight:900;line-height:1.05;color:var(--sakura);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pass-stub b.sm{font-size:24px}
+@media (max-width:520px){.pass-meta{display:none}.pass-main{padding-block:16px!important}.fly .ft{white-space:normal;text-align:center;max-width:9em}.pass{grid-template-columns:minmax(0,1fr) 88px}.pass::before,.pass::after{right:80px}.pass-main{padding:14px}.ap b{font-size:26px}.pass-meta{grid-template-columns:1fr}.pass-stub b{font-size:30px}.pass-stub b.sm{font-size:20px}}
+@media (min-width:760px){.brand h1{font-size:40px}}
+
+/* sticky bar */
+.bar-wrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:8px;padding-block:8px 0}
+.tabs{display:flex;gap:18px;padding:0 2px}
+.tabs button{border:0;background:transparent;border-bottom:3px solid transparent;border-radius:0;padding:6px 2px;font-size:var(--fs-md);font-weight:700;color:var(--muted);white-space:nowrap}
+.tabs button[aria-current="true"]{color:var(--ink);border-bottom-color:var(--sakura)}
+.bar .sp{flex:1}
+.peers{display:flex;align-items:center}
+.peer{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;color:#fff;border:2px solid var(--bg);margin-left:-6px;position:relative}
+.peer:first-child{margin-left:0}
+.peers-l{font-size:var(--fs-xs);color:var(--muted);margin-right:6px;white-space:nowrap}
+@media (max-width:400px){.peers-l{display:none}.tabs button{padding:6px 12px}}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);flex:0 0 auto}
+.icon-btn svg{width:18px;height:18px}
+.strip{display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.c-month{flex:0 0 auto;align-self:center;font-size:var(--fs-xs);font-weight:700;color:var(--muted);writing-mode:vertical-rl;letter-spacing:.1em;padding-right:2px}
+.chip{position:relative;flex:0 0 auto;display:grid;justify-items:center;gap:2px;min-width:44px;padding:2px 0;border:0;background:transparent;font-variant-numeric:tabular-nums}
+.chip .c-w{font-size:var(--fs-xs);color:var(--muted);line-height:1.4;white-space:nowrap}
+.chip.wkend .c-w{color:var(--sakura)}
+.chip .c-d{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:var(--fs-lg);font-weight:700;border:2px solid transparent;transition:background .15s,border-color .15s,color .15s}
+.chip:hover .c-d{background:var(--sunk)}
+.chip.today .c-d{border-color:var(--sakura);color:var(--sakura)}
+.chip.active .c-d{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.chip .c-dots{display:flex;gap:2px;height:6px;align-items:center}
+.chip .c-dots i{width:4px;height:4px;border-radius:50%;background:var(--sakura);opacity:.75}
+.chip.pool .c-d{border:2px dashed var(--line-strong);font-size:var(--fs);color:var(--muted)}
+.chip.pool.active .c-d{border-style:solid}
+.chip.drop .c-d{background:var(--sakura);border-color:var(--sakura);color:#fff;transform:scale(1.1)}
+.chip .pdots{position:absolute;top:14px;right:0;display:flex;gap:2px}
+.chip .pdots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.strip-gap{height:8px}
+
+/* now card */
+.nowc{padding-block:24px 0}
+.nowcard{border:1px solid var(--sakura);background:var(--surface);border-radius:20px;box-shadow:0 6px 20px rgba(214,69,109,.1);padding:18px 20px;display:grid;gap:12px}
+.nowcard .nl{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);font-weight:700;color:var(--sakura);letter-spacing:.04em}
+.nowcard .nl i{width:8px;height:8px;border-radius:50%;background:var(--sakura);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.nowmain{display:flex;align-items:center;gap:12px}
+.nowmain .nt{flex:1;min-width:0;display:grid;gap:2px}
+.nowmain .nt b{font-size:20px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}
+.nowmain .nt span{font-size:var(--fs-xs);color:var(--muted)}
+.nowmain .nt .nd{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nownext{font-size:var(--fs-xs);color:var(--muted);border-top:1px solid var(--line);padding-top:8px;word-break:keep-all;overflow-wrap:anywhere}
+.nownext b{color:var(--ink);font-weight:700}
+
+/* board */
+.board{padding-block:24px 128px}
+.col{display:none;min-width:0}
+.col.active{display:block}
+.col-h{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.col-date{display:grid;justify-items:center;min-width:60px;padding:8px;border-radius:14px;border:1px solid var(--line-strong);background:var(--surface);font-variant-numeric:tabular-nums}
+.col-date b{font-size:22px;line-height:1.1;font-weight:900}
+.col-date span{font-size:var(--fs-xs);color:var(--muted);font-weight:500}
+.col-date.wkend span{color:var(--sakura)}
+.col-t{display:grid;gap:2px;min-width:0;flex:1}
+.col-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:4px}
+.col-n{font-size:var(--fs-xs);color:var(--muted);font-weight:700;letter-spacing:.08em}
+.col-n em{font-style:normal;color:var(--sakura)}
+.col-title{all:unset;cursor:pointer;font-size:22px;font-weight:700;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere;border-bottom:1px dashed transparent}
+.col-title:hover{border-bottom-color:var(--line-strong)}
+.col-title:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.col-title.ph-title{color:var(--muted);font-weight:500}
+.route{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;height:28px;padding:0 10px;border-radius:var(--pill);border:1px solid var(--ai);color:var(--ai);font-size:var(--fs-xs);font-weight:700;text-decoration:none;white-space:nowrap}
+.route svg{width:14px;height:14px}
+.route:hover{background:var(--ai-soft)}
+.col-foot{margin-top:12px;font-size:var(--fs-xs);color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.pool-desc{font-size:var(--fs-xs);color:var(--muted)}
+
+.tl{display:grid}
+.slot{display:grid;gap:10px;padding-block:14px;border-top:1px solid var(--line)}
+.tl .slot:first-child{border-top:0;padding-top:4px}
+.slot-h{display:flex;align-items:center;gap:8px;min-height:32px}
+.sico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line-strong);color:var(--muted);flex:0 0 auto}
+.sico svg{width:14px;height:14px}
+.slot-h b{font-size:var(--fs);font-weight:700}
+.slot.cur .sico{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.slot.cur .slot-h b{color:var(--sakura)}
+.slot.is-empty{padding-block:10px;gap:0}
+.slot.is-empty .slot-h b,.slot.is-empty .sico{opacity:.6}
+.slot.is-empty .list{min-height:0}
+.slot.is-empty .empty{display:none}
+body.dragging .slot.is-empty{gap:10px}
+body.dragging .slot.is-empty .empty{display:flex}
+.slot-sum{font-size:var(--fs-xs);color:var(--muted)}
+.slot-add{all:unset;cursor:pointer;margin-left:auto;height:32px;padding:0 12px;border-radius:var(--pill);display:inline-flex;align-items:center;color:var(--muted);border:1px solid var(--line);font-size:var(--fs-xs);font-weight:700;white-space:nowrap;background:var(--surface)}
+.slot-add:hover{border-color:var(--ink);color:var(--ink)}
+.slot-add:focus-visible{outline:2px solid var(--ai)}
+.slot.pool-slot{border-top:0}
+.slot.pool-slot.is-empty .empty{display:flex}
+.list{display:grid;gap:12px;min-height:36px;align-content:start}
+.empty{display:flex;align-items:center;min-height:36px;padding:0 12px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:var(--fs-xs)}
+.list:has(.ph) .empty{display:none}
+body.dragging .list .empty{border-color:var(--line-strong)}
+
+.item{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:16px;min-height:60px;box-shadow:0 1px 2px rgba(23,32,58,.05);transition:border-color .15s,box-shadow .15s,transform .15s}
+.item:hover{border-color:var(--line-strong);box-shadow:0 4px 14px rgba(23,32,58,.08)}
+.item.src{position:absolute;visibility:hidden;pointer-events:none;height:0;min-height:0;overflow:hidden;border:0}
+.grip{all:unset;cursor:grab;display:grid;place-items:center;color:var(--line-strong);touch-action:none;border-radius:16px 0 0 16px}
+.grip:hover{color:var(--muted)}
+.grip:focus-visible{outline:2px solid var(--ai)}
+.ro .grip{cursor:default;visibility:hidden}
+.ibody{cursor:pointer;display:grid;gap:4px;padding:14px 4px 14px 2px;min-width:0;outline:none}
+.ibody:focus-visible{outline:2px solid var(--ai);border-radius:6px}
+.imeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:var(--fs-xs);color:var(--muted);line-height:1.5}
+.mapl{display:inline-flex;align-items:center;gap:2px;padding:1px 8px 1px 6px;border-radius:var(--pill);background:var(--ai-soft);color:var(--ai);font-weight:700;text-decoration:none;white-space:nowrap}
+.mapl svg{width:12px;height:12px}
+.mapl:hover{text-decoration:underline}
+.itime{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.kind{font-size:var(--fs-xs);font-weight:700;padding:0 6px;border-radius:6px;border:1px solid currentColor;line-height:18px;white-space:nowrap}
+.k-food{color:var(--k-food)}.k-spot{color:var(--k-spot)}.k-shop{color:var(--k-shop)}.k-move{color:var(--k-move)}.k-stay{color:var(--k-stay)}.k-todo{color:var(--k-todo)}.k-facility{color:var(--k-facility)}.kind.k-facility{background:var(--kb-facility)}
+.ititle{font-size:var(--fs-lg);font-weight:700;line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
+.idesc{font-size:var(--fs);color:var(--muted);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.inote{font-size:var(--fs-xs);color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.iwarn{font-size:var(--fs-xs);color:var(--warn);font-weight:500}
+.ithumbs{display:flex;gap:6px;margin-top:4px}
+.ithumbs img{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:var(--sunk)}
+.ithumbs span{font-size:var(--fs-xs);color:var(--muted);align-self:center}
+.iacts{display:flex;align-items:flex-start;gap:4px;padding:14px 12px 14px 4px}
+.ibtn{all:unset;cursor:pointer;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);color:var(--muted);font-size:var(--fs-xs);font-weight:700;background:var(--surface)}
+.ibtn:hover{border-color:var(--line-strong);color:var(--ink)}
+.ibtn:focus-visible{outline:2px solid var(--ai)}
+.ibtn.map{width:auto;padding:0 8px;gap:2px;grid-auto-flow:column;color:var(--ai);border-color:var(--ai-soft);background:var(--ai-soft)}
+.ibtn.map svg{width:14px;height:14px}
+.item.done{background:var(--sunk)}
+.item.done .ititle{text-decoration:line-through;color:var(--muted)}
+.chk[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,30%{box-shadow:0 0 0 3px var(--sakura)}100%{box-shadow:0 0 0 0 transparent}}
+
+.ph{border:2px dashed var(--sakura);border-radius:12px;background:var(--sakura-soft)}
+.ghost{position:fixed;z-index:60;pointer-events:none;box-shadow:var(--shadow);border-color:var(--sakura);transform:rotate(1.5deg) scale(1.02);opacity:.96;margin:0}
+body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
+
+.notice{padding-block:12px 0}
+.notice div{border:1px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:var(--fs)}
+.notice b{display:block;margin-bottom:2px}
+
+.layout{max-width:var(--page-w);margin:0 auto;padding-inline:0}
+.layout.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mainc{min-width:0}
+.mbar{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--pill);background:var(--surface);font-size:var(--fs);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;box-shadow:var(--paper-shadow)}
+.mbar span{overflow:hidden;text-overflow:ellipsis}
+.mbar b{color:var(--sakura);font-variant-numeric:tabular-nums}
+.mbar small{font-size:var(--fs-xs);font-weight:500;color:var(--muted)}
+.mbar:hover{border-color:var(--sakura)}
+.dsec{display:grid;gap:10px;padding-block:14px;border-top:1px dashed var(--line-strong)}
+.dsec-h{display:flex;align-items:center;gap:8px;min-height:32px;flex-wrap:wrap}
+.dsec-h b{font-size:var(--fs);font-weight:700;background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.dsec-h small{font-size:var(--fs-xs);color:var(--muted)}
+.dsum{font-size:var(--fs);font-weight:700;color:var(--sakura);font-variant-numeric:tabular-nums}
+.dsec .slot-add{margin-left:auto}
+.drows{display:grid;gap:8px}
+.dsec .clist{gap:8px}
+.dsec .addrow .inp{padding:8px 12px;font-size:var(--fs)}
+.dsec .addrow .btn{padding:8px 14px;font-size:var(--fs)}
+.ltype{font-size:var(--fs-xs);font-weight:700;padding:0 8px;border-radius:var(--pill);line-height:20px;white-space:nowrap;justify-self:start}
+/* lists tab */
+.board{padding-bottom:32px!important}
+.below{display:grid;gap:40px;padding-block:8px 128px}
+.sec{display:grid;gap:16px;min-width:0;scroll-margin-top:var(--barh,140px)}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:24px;border-top:2px dashed var(--line-strong)}
+.sec-h h2{margin:0;font-size:24px;font-weight:900}
+.lgrid{display:grid;gap:16px}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px;min-width:0}
+.lcard-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.lcard-h b{font-size:var(--fs-lg);font-weight:700}
+.lcard-h small{font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.lcard .crow{box-shadow:none}
+.subtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:var(--pill);padding:6px 14px;font-size:var(--fs);font-weight:700;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.subtabs button small{font-size:var(--fs-xs);color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.subtabs button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.subtabs button[aria-selected="true"] small{color:inherit;opacity:.8}
+.addrow{display:flex;gap:8px}
+.addrow .inp{flex:1;min-width:0}
+.prog{display:flex;align-items:center;gap:10px;font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.prog .bar2{flex:1;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.prog .bar2 i{display:block;height:100%;background:var(--ok);border-radius:3px}
+.clist{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.crow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(23,32,58,.05)}
+.crow.done{background:var(--sunk)}
+.crow.done .ct{text-decoration:line-through;color:var(--muted)}
+.cbody{all:unset;cursor:pointer;display:grid;gap:2px;min-width:0}
+.cbody:focus-visible{outline:2px solid var(--ai);border-radius:6px}
+.ct{font-size:var(--fs-md);font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.cn{font-size:var(--fs-xs);color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.cday{font-size:var(--fs-xs);font-weight:700;color:var(--ai);border:1px solid var(--ai-soft);background:var(--ai-soft);border-radius:6px;padding:0 6px;white-space:nowrap}
+.sec-l{font-size:var(--fs-xs);font-weight:700;color:var(--muted);letter-spacing:.06em;margin-top:4px}
+.sumcard{border:1px solid var(--line-strong);background:var(--surface);border-radius:20px;box-shadow:0 2px 10px rgba(23,32,58,.06);padding:20px;display:grid;gap:16px}
+.sumtop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sumtop b{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.sumtop span{color:var(--muted);font-size:var(--fs);font-variant-numeric:tabular-nums}
+.linkbtn{all:unset;cursor:pointer;color:var(--ai);font-size:var(--fs-xs);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.paid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.paid div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;font-variant-numeric:tabular-nums}
+.paid div span{font-size:var(--fs-xs);color:var(--muted)}
+.paid div b{font-size:var(--fs-md)}
+.settle{display:grid;gap:4px;font-size:var(--fs)}
+.settle .s{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.settle .s b{font-variant-numeric:tabular-nums;color:var(--sakura)}
+.people{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pchip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:var(--pill);padding:2px 4px 2px 10px;font-size:var(--fs);background:var(--surface)}
+.pchip button{all:unset;cursor:pointer;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.pchip button:hover{background:var(--sunk)}
+.money-sec{display:grid;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;min-width:0;font-variant-numeric:tabular-nums}
+.stats span{font-size:var(--fs-xs);color:var(--muted)}
+.stats b{font-size:var(--fs-md);word-break:keep-all;overflow-wrap:anywhere}
+@media (max-width:520px){.stats{grid-template-columns:1fr 1fr}.stats div:last-child{grid-column:1/-1}}
+.paid div i{font-style:normal;font-size:var(--fs-xs);color:var(--muted)}
+.viewseg{display:flex;gap:4px;background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:3px;width:max-content;max-width:100%;overflow-x:auto}
+.viewseg button{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-size:var(--fs);font-weight:700;color:var(--muted);white-space:nowrap}
+.viewseg button[aria-pressed="true"]{background:var(--surface);color:var(--sakura);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.agg{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.agg>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 16px}
+.agg>summary::-webkit-details-marker{display:none}
+.agg>summary:focus-visible{outline:2px solid var(--ai);border-radius:12px}
+.agg[open]>summary{border-bottom:1px solid var(--line)}
+.agg .rows{display:grid;gap:8px;padding:10px}
+.abar{display:block;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden;margin-top:4px}
+.abar i{display:block;height:100%;border-radius:3px;background:var(--sakura)}
+.agg .cbody .abar i{background:var(--bc,var(--sakura))}
+.catbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--sunk);gap:2px}
+.catbar i{display:block;height:100%}
+.catleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-xs);color:var(--muted)}
+.catleg span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.catleg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.spent{font-size:var(--fs-xs);font-weight:700;color:var(--sakura);white-space:nowrap;font-variant-numeric:tabular-nums}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchips button{border:1px solid var(--line);background:var(--surface);border-radius:var(--pill);padding:2px 10px;font-size:var(--fs-xs)}
+.amt-hint{font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.erow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.erow .cbody{grid-column:1}
+.eamt{font-size:var(--fs-md);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.eamt small{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:500}
+.eday{display:flex;justify-content:space-between;font-size:var(--fs-xs);font-weight:700;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+/* FAB / sheet / toast */
+.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:40;display:flex;align-items:center;gap:6px;height:52px;padding:0 20px 0 16px;border-radius:var(--pill);border:0;background:var(--sakura);color:#fff;font-size:var(--fs-md);font-weight:700;box-shadow:var(--shadow)}
+.fab svg{width:20px;height:20px}
+.scrim{position:fixed;inset:0;z-index:70;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:calc(100% - 40px);overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px;border:1px solid var(--line)}
+@media (min-width:760px){.scrim{align-items:center}.sheet{border-radius:20px;padding:24px}}
+.sheet h2{margin:0;font-size:20px;font-weight:700}
+.sheet .hint{margin:-8px 0 0;color:var(--muted);font-size:var(--fs-xs)}
+.fld{display:grid;gap:6px}
+.fld>label,.fld>.lbl{font-size:var(--fs-xs);font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
+.inp{width:100%;border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;background:var(--surface);font-size:var(--fs-md)}
+textarea.inp{min-height:88px;resize:vertical;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:var(--fs);white-space:nowrap}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.seg.days button{min-width:52px;font-variant-numeric:tabular-nums;padding:4px 6px;font-size:var(--fs-xs);line-height:1.3}
+.seg.days button b{display:block;font-size:var(--fs)}
+.btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btns .sp{flex:1}
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:10px;padding:10px 16px;font-size:var(--fs-md);font-weight:700;white-space:nowrap}
+.btn.sm{padding:4px 10px;font-size:var(--fs-xs);border-radius:8px}
+.btn.pri{background:var(--sakura);border-color:var(--sakura);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.danger{color:var(--sakura);border-color:var(--sakura)}
+.btn.ai{color:var(--ai);border-color:var(--ai)}
+.photos{display:flex;flex-wrap:wrap;gap:8px}
+.ph-t{position:relative;width:76px;height:76px}
+.ph-t img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:var(--sunk);display:block}
+.ph-t button{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);font-size:var(--fs-xs);display:grid;place-items:center;padding:0}
+.ph-t button.arm{background:var(--sakura);border-color:var(--sakura);color:#fff;width:auto;padding:0 8px;border-radius:12px}
+.ph-add{width:76px;height:76px;border-radius:10px;border:1px dashed var(--line-strong);display:grid;place-items:center;text-align:center;font-size:var(--fs-xs);color:var(--muted);cursor:pointer;line-height:1.3;background:var(--surface)}
+.ph-add input{display:none}
+.ph-busy{width:76px;height:76px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-size:var(--fs-xs);color:var(--muted)}
+.preview{display:grid;gap:6px}
+.pv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:var(--fs-xs);color:var(--muted)}
+.pv b{color:var(--ink);font-size:var(--fs);margin-right:4px;word-break:keep-all;overflow-wrap:anywhere}
+.pv .tag{border:1px solid var(--line);border-radius:6px;padding:0 6px;white-space:nowrap}
+.sres{display:grid;gap:6px;max-height:60vh;overflow:auto}
+.sres button{all:unset;cursor:pointer;display:grid;gap:2px;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sres button:hover,.sres button:focus-visible{border-color:var(--ink)}
+.sres b{font-size:var(--fs);word-break:keep-all;overflow-wrap:anywhere}
+.sres span{font-size:var(--fs-xs);color:var(--muted)}
+.sres mark{background:var(--sakura-soft);color:inherit;border-radius:2px}
+.lb{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.88);display:grid;place-items:center;padding:24px}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+.lb button{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);right:max(16px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:80;display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:12px;padding:10px 14px;font-size:var(--fs);box-shadow:var(--shadow)}
+.toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast button{all:unset;cursor:pointer;font-weight:700;color:var(--sakura);white-space:nowrap}
+.ro #exp-add,.ro [data-exp-day],.ro [data-todo-day],.ro .cam,.ro .now-done,.ro #e-exp,.ro .fab,.ro .slot-add,.ro .addrow,.ro .expform,.ro .pchip button,.ro .people .btn{display:none}
+body.sec-lists .fab{display:none}
+
+/* ---- journal layer ---- */
+body{background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.4px);background-size:22px 22px;background-attachment:fixed}
+.bar-wrap{background:var(--bg);border-bottom:1px solid var(--line)}
+.tape{position:relative;display:inline-block;padding:2px 12px;font-weight:700;color:var(--ink);background:var(--tape-pink);transform:rotate(-2deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.tape.blue{background:var(--tape-blue)}.tape.mint{background:var(--tape-mint)}.tape.yellow{background:var(--tape-yellow)}
+.pass,.item,.lcard,.sumcard,.nowcard,.crow,.erow,.agg,.col-date,.icon-btn{box-shadow:var(--paper-shadow)}
+.pass-main{position:relative}
+.pass-main::before{content:"";position:absolute;top:-12px;left:22px;width:84px;height:22px;background:var(--tape-blue);transform:rotate(-5deg);clip-path:polygon(0 12%,4% 0,96% 4%,100% 14%,98% 50%,100% 86%,96% 100%,4% 96%,0 88%,2% 50%)}
+.pass-stub{background:var(--sakura-soft);background-image:repeating-linear-gradient(-45deg,transparent 0 10px,rgba(255,255,255,.25) 10px 12px)}
+.col-n{justify-self:start;display:inline-block;padding:1px 12px;background:var(--tape-pink);color:var(--ink)!important;transform:rotate(-2deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.col-n em{color:var(--sakura)}
+.col-date{width:72px;height:72px;min-width:72px;padding:0;border-radius:50%;border:2px dashed var(--sakura);background:var(--surface);color:var(--sakura);display:grid;place-content:center;transform:rotate(-6deg)}
+.col-date b{font-size:20px;color:var(--sakura)}
+.col-date span{color:var(--sakura)!important;font-size:var(--fs-xs)}
+.slot-h b{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.slot.cur .slot-h b{color:var(--ink)}
+.sico{border-style:dashed}
+.slot{border-top-style:dashed}
+.kind{border:0;padding:1px 8px;border-radius:var(--pill);line-height:20px}
+.kind.k-food{background:var(--kb-food)}.kind.k-spot{background:var(--kb-spot)}.kind.k-shop{background:var(--kb-shop)}.kind.k-move{background:var(--kb-move)}.kind.k-stay{background:var(--kb-stay)}.kind.k-todo{background:var(--kb-todo)}
+.item{background:var(--surface);border-color:var(--line);border-radius:14px}
+.mapl{background:transparent;color:var(--muted);border:1px solid var(--line-strong);padding:0 8px 0 6px}
+.mapl:hover{color:var(--ai);border-color:var(--ai);text-decoration:none}
+.item.done{background:var(--sunk)}
+.ithumbs{gap:10px;margin-top:8px;padding-left:2px}
+.ithumbs img{width:64px;height:64px;border-radius:3px;border:4px solid #fff;box-shadow:0 2px 6px rgba(60,40,20,.25);transform:rotate(-3deg);cursor:zoom-in}
+.ithumbs img:nth-child(2){transform:rotate(2deg)}.ithumbs img:nth-child(3){transform:rotate(-1deg)}
+.iacts{flex-direction:column;align-items:center;gap:8px}
+.ibtn.cam svg{width:16px;height:16px}
+.nowcard{border-style:dashed;border-width:2px}
+.nowcard .nl{justify-self:start}
+.sec-h{border-top:2px dashed var(--line-strong)}
+.sec-h h2{font-size:22px;padding:2px 14px;background:var(--tape-yellow);transform:rotate(-1.5deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%)}
+.lcard{position:relative;padding-top:22px}
+.lcard::before{content:"";position:absolute;top:-10px;left:50%;width:76px;height:20px;margin-left:-38px;background:var(--tape-mint);transform:rotate(3deg)}
+.lcard:nth-child(2)::before{background:var(--tape-pink);transform:rotate(-3deg)}
+.lcard:nth-child(3)::before{background:var(--tape-blue)}
+.lcard-h b{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 4px}
+.chip .c-d{border-style:dashed}
+.chip.active .c-d{border-style:solid}
+.fab{box-shadow:0 10px 24px -10px rgba(214,69,109,.55)}
+/* sheets as journal pages */
+.sheet{position:relative;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.4px);background-size:22px 22px;padding-bottom:0;gap:16px}
+.sheet h2{justify-self:start;padding:2px 14px;background:var(--tape-pink);transform:rotate(-1.5deg);clip-path:polygon(0 12%,3% 0,97% 4%,100% 14%,98% 50%,100% 86%,97% 100%,3% 96%,0 88%,2% 50%);margin-right:48px}
+.sheet:not(:has(.foot)){padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;font-size:var(--fs-lg);line-height:1;color:var(--muted);z-index:2}
+.sheet-x:hover{color:var(--ink);border-color:var(--ink)}
+.sheet .inp{background:var(--surface);border-color:var(--line-strong);border-radius:12px}
+.sheet .foot{position:sticky;bottom:0;z-index:3;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px dashed var(--line-strong)}
+@media (min-width:760px){.sheet .foot{margin-inline:-24px;padding-inline:24px;padding-bottom:20px;border-radius:0 0 20px 20px}}
+.btn.block{width:100%;justify-content:center;display:flex}
+.map-big{display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ai);border-color:var(--ai);background:var(--surface);font-size:var(--fs)}
+.map-big svg{width:16px;height:16px}
+.more{border:1px dashed var(--line-strong);border-radius:12px;padding:0 14px;background:var(--surface)}
+.more>summary{cursor:pointer;padding:12px 0;font-size:var(--fs);font-weight:700;color:var(--muted);list-style:none}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::before{content:"＋ "}
+.more[open]>summary::before{content:"－ "}
+.more>div{display:grid;gap:14px;padding-bottom:14px}
+.seg button{border-radius:var(--pill);padding:6px 14px;background:var(--surface)}
+.seg button[aria-pressed="true"]{background:var(--sakura-soft);border-color:var(--sakura);color:var(--sakura);font-weight:700}
+.dstrip{display:flex;flex-wrap:nowrap;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px}
+.dstrip::-webkit-scrollbar{display:none}
+.dstrip button{flex:0 0 auto;display:grid;justify-items:center;gap:2px;min-width:44px;padding:0;border:0;background:transparent!important;color:var(--ink)!important;border-radius:0}
+.dstrip .w{font-size:var(--fs-xs);color:var(--muted)}
+.dstrip .we .w,.dstrip button.we .w{color:var(--sakura)}
+.dstrip .n{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:var(--fs-md);font-weight:700;border:2px dashed var(--line-strong);background:var(--surface)}
+.dstrip button[aria-pressed="true"] .n{background:var(--sakura);border:2px solid var(--sakura);color:#fff}
+.dstrip .pool .n{font-size:var(--fs-xs)}
+.hint2{font-size:var(--fs-xs);color:var(--muted);line-height:1.6}
+textarea.grow{min-height:52px;resize:none;overflow:hidden;font-size:var(--fs-lg);line-height:1.5}
+.pvc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:var(--paper-shadow)}
+.pvc b{font-size:var(--fs-md);word-break:keep-all;overflow-wrap:anywhere}
+.pvc .imeta{grid-column:1/-1}
+/* ---- ux layer ---- */
+@media (min-width:960px){.fab{right:max(16px,calc((100vw - var(--page-w)) / 2 + 16px))}}
+.tl .slot.is-empty{display:none}
+body.dragging .tl .slot.is-empty{display:grid}
+.empty-day{border:2px dashed var(--line-strong);border-radius:16px;padding:20px;text-align:center;color:var(--muted);font-size:var(--fs);background:var(--surface)}
+.slot-h .slot-add{width:32px;height:32px;padding:0;justify-content:center;font-size:var(--fs-md)}
+.item{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.col.slide-l{animation:slideL .22s ease-out}.col.slide-r{animation:slideR .22s ease-out}
+@keyframes slideL{from{transform:translateX(28px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(-28px);opacity:.3}to{transform:none;opacity:1}}
+.acts{display:grid;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.abtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;font-size:var(--fs-md);font-weight:500;color:var(--ink);border-top:1px solid var(--line)}
+.abtn:first-child{border-top:0}
+.abtn:hover,.abtn:focus-visible{background:var(--sunk)}
+.abtn svg{width:20px;height:20px;color:var(--muted);flex:0 0 auto}
+.abtn.danger{color:var(--sakura)}.abtn.danger svg{color:var(--sakura)}
+.staff{position:fixed;inset:0;z-index:95;background:#fff;color:#1a1a1a;display:grid;align-content:center;justify-items:center;gap:20px;padding:calc(env(safe-area-inset-top,0px) + 32px) max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 32px) max(24px,env(safe-area-inset-left,0px));text-align:center}
+.staff .s-l{font-size:var(--fs-md);color:#6b6b6b}
+.staff .s-n{font-size:clamp(36px,10vw,72px);font-weight:900;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;max-width:100%}
+.staff .s-a{font-size:24px;font-weight:700;color:#444}
+.staff .s-p{font-size:22px;font-weight:700;border-top:2px dashed #ddd;padding-top:20px}
+.staff .btns{justify-content:center}
+.staff .btn{font-size:var(--fs-md)}
+@media (max-width:520px){.pass-main{padding:14px!important}.ap b{font-size:22px!important}.fly .ft{font-size:var(--fs-xs)}.pass-stub b{font-size:26px!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== 日系繪本風（和紙白底、3px 墨灰粗線、大圓角、平塗四色、Huninn） ===== */
+:root{
+  --bg:#FFFCF6; --surface:#FFFFFF; --sunk:#FBF3E6; --dot:transparent;
+  --ink:#3E3A39; --muted:#77706D; --line:#3E3A39; --line-strong:#3E3A39;
+  --coral:#F2A497; --yellow:#F6D27A; --water:#A8D3E6; --green:#B9DAA5;
+  --sakura:#D9705C; --sakura-soft:#FDE7E0; --ai:#3E3A39; --ai-soft:#E4F2F8;
+  --k-food:#3E3A39; --k-spot:#3E3A39; --k-shop:#3E3A39; --k-move:#3E3A39; --k-stay:#3E3A39; --k-todo:#3E3A39;
+  --kb-food:#F2A497; --kb-spot:#A8D3E6; --kb-shop:#F6D27A; --kb-move:#B9DAA5; --kb-stay:#B9DAA5; --kb-todo:#F6D27A; --k-facility:#3E3A39; --kb-facility:#D9C8EC;
+  --tape-pink:#F2A497; --tape-blue:#A8D3E6; --tape-mint:#B9DAA5; --tape-yellow:#F6D27A; --hl:rgba(246,210,122,.75);
+  --ok:#5E9A4A; --warn:#B07A10; --warn-soft:#FCF0D2;
+  --paper-shadow:none; --shadow:0 12px 0 -6px rgba(62,58,57,.18);
+  --font:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --bw:3px; --r:22px;
+}
+body{background:var(--bg)!important;background-image:none!important}
+.bar-wrap{border-bottom:var(--bw) solid var(--ink)}
+h1,h2,b,.ititle,.ct{font-weight:400!important}
+.brand h1{font-size:34px;letter-spacing:.02em}
+.brand h1 em{color:var(--sakura)}
+.hero-art{display:flex;justify-content:center;margin:-4px 0 -6px}
+.hero-svg{width:100%;max-width:420px;height:auto;display:block}
+@media (prefers-reduced-motion:no-preference){
+  .a-cloud1{animation:drift 9s ease-in-out infinite alternate}.a-cloud2{animation:drift 7s ease-in-out infinite alternate-reverse}
+  .a-plane{animation:bob 3.2s ease-in-out infinite}.a-sun{animation:glow 4s ease-in-out infinite;transform-origin:300px 38px}
+  .a-petal{animation:fall 6s ease-in-out infinite alternate}
+}
+@keyframes drift{to{transform:translateX(14px)}}
+@keyframes bob{50%{transform:translate(6px,-5px) rotate(-2deg)}}
+@keyframes glow{50%{transform:scale(1.08)}}
+@keyframes fall{to{transform:translateY(6px) rotate(8deg)}}
+
+/* cards & frames */
+.pass,.item,.nowcard,.erow,.crow,.agg,.sumcard,.lcard,.empty-day,.mbar,.icon-btn,.sheet,.acts,.pvc,.more,.fact{border:var(--bw) solid var(--ink)!important;border-radius:var(--r)!important;box-shadow:none!important}
+.item,.erow,.crow{border-radius:18px!important}
+.item.done{background:var(--sunk)}
+.pass::before,.pass::after{border:var(--bw) solid var(--ink);right:104px}
+.pass-main::before,.lcard::before{display:none}
+.pass-stub{background:var(--yellow)!important;background-image:none!important;border-left:var(--bw) dashed var(--ink)!important;border-radius:0 19px 19px 0}
+.pass-stub b{color:var(--ink)!important}
+.fline::before{border-top:3px dashed var(--ink)}
+.fline svg{color:var(--sakura)}
+.pass-meta{border-top:2px dashed var(--ink)}
+.nowcard{background:var(--sakura-soft)!important;border-style:solid!important}
+.nowcard .nl{color:var(--ink)}.nowcard .nl i{background:var(--sakura)}
+
+/* day header */
+.col-date{width:76px;height:76px;min-width:76px;border:var(--bw) solid var(--ink)!important;background:var(--coral)!important;color:var(--ink)!important;transform:rotate(-4deg)}
+.col-date b,.col-date span{color:var(--ink)!important}
+.col-n{background:var(--yellow)!important;border:var(--bd);border-radius:var(--pill);clip-path:none!important;transform:none!important;padding:0 12px!important}
+.col-n em{color:var(--ink)}
+.col-title{font-size:24px}
+.route{border:var(--bd);color:var(--ink);background:var(--water)}
+.slot{border-top:2px dashed rgba(62,58,57,.25)!important}
+.sico{border:var(--bd)!important;background:var(--water)!important;color:var(--ink)!important}
+.slot.cur .sico{background:var(--coral)!important}
+.slot-h b,.dsec-h b,.lcard-h b{background:linear-gradient(transparent 55%,var(--hl) 55%)!important}
+.slot-add{border:var(--bd)!important;color:var(--ink)!important}
+.dsec{border-top:2px dashed rgba(62,58,57,.25)!important}
+
+/* chips / stickers */
+.kind{border:var(--bd)!important;color:var(--ink)!important;line-height:18px}
+.mapl{border:var(--bd)!important;color:var(--ink)!important;background:var(--water)!important}
+.must{display:inline-flex;align-items:center;gap:2px;padding:0 8px;border:var(--bd);border-radius:var(--pill);background:var(--coral);font-size:var(--fs-xs);line-height:18px;color:var(--ink);white-space:nowrap}
+.spent{color:var(--ink);background:var(--yellow);border:var(--bd);border-radius:var(--pill);padding:0 8px}
+.ibtn{border:var(--bd)!important;color:var(--ink)!important;border-radius:50%!important}
+.chk[aria-pressed="true"]{background:var(--green)!important;color:var(--ink)!important}
+.chip .c-d{border:2px solid transparent!important}
+.chip.today .c-d{border-color:var(--ink)!important;border-style:dashed!important;color:var(--ink)}
+.chip.active .c-d{background:var(--coral)!important;border:var(--bw) solid var(--ink)!important;color:var(--ink)!important}
+.chip.wkend .c-w{color:var(--sakura)}
+.chip .c-dots i{background:var(--ink);opacity:.55}
+.chip.pool .c-d{border:2px dashed var(--ink)!important}
+
+/* buttons */
+.btn{border:var(--bw) solid var(--ink)!important;border-radius:var(--pill)!important;color:var(--ink)}
+.btn.pri{background:var(--yellow)!important;color:var(--ink)!important}
+.btn.danger{background:var(--sakura-soft)!important;color:var(--ink)!important}
+.map-big{background:var(--water)!important;color:var(--ink)!important}
+.fab{background:var(--yellow)!important;color:var(--ink)!important;border:var(--bw) solid var(--ink)!important;box-shadow:0 5px 0 var(--ink)!important}
+.fab:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)!important}
+.seg button{border:var(--bd)!important}
+.seg button[aria-pressed="true"]{background:var(--coral)!important;color:var(--ink)!important}
+.viewseg{border:var(--bd)}
+.viewseg button[aria-pressed="true"]{background:var(--yellow);color:var(--ink)}
+.inp{border:var(--bd)!important;border-radius:14px!important}
+.sheet{background:var(--bg)!important;background-image:none!important}
+.sheet h2{background:var(--yellow)!important;clip-path:none!important;transform:none!important;border:var(--bd);border-radius:var(--pill)}
+.sheet-x{border:var(--bd)!important;color:var(--ink)!important}
+.sheet .foot{background:var(--bg)!important;border-top:2px dashed var(--ink)!important}
+.toast{border:var(--bw) solid var(--ink)!important;border-radius:var(--pill)!important}
+.mbar b{color:var(--sakura)}
+.catbar{border:var(--bd);height:14px;border-radius:var(--pill)}
+.abtn{border-top:2px dashed rgba(62,58,57,.25)!important}
+
+/* login gate & footer */
+body.gated #app{display:none}
+#gate{min-height:100vh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));background:var(--bg)}
+.gate-card{max-width:420px;width:100%;border:var(--bw) solid var(--ink);border-radius:28px;background:#fff;padding:28px 24px;display:grid;gap:16px;text-align:center}
+.gate-card h1{margin:0;font-size:28px;font-weight:400}
+.gate-card p{margin:0;color:var(--muted);line-height:1.7}
+.site-foot{padding-block:8px 120px;text-align:center;font-size:var(--fs-xs);color:var(--muted)}
+.site-foot button{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--ink)}
+
+/* bookshelf */
+.shelf{padding-block:24px 40px;display:grid;gap:20px}
+.shelf-h{text-align:center;display:grid;gap:6px;justify-items:center}
+.shelf-h h1{margin:0;font-size:32px;font-weight:400}
+.shelf-h p{margin:0;color:var(--muted)}
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.tcard{display:grid;border:var(--bw) solid var(--ink);border-radius:var(--r);background:#fff;overflow:hidden;text-decoration:none;color:var(--ink);transition:transform .15s}
+.tcard:hover{transform:translateY(-3px) rotate(-.5deg)}
+.tcard .tcover{background:var(--sunk);border-bottom:var(--bw) solid var(--ink);padding:10px 10px 0}
+.tcard .tcover svg{width:100%;height:auto;display:block}
+.tcard .tbody{display:grid;gap:4px;padding:14px 16px}
+.tcard b{font-size:20px;font-weight:400}
+.tcard span{font-size:var(--fs-xs);color:var(--muted)}
+.tcard .tst{justify-self:start;margin-top:4px;padding:1px 10px;border:var(--bd);border-radius:var(--pill);background:var(--yellow);color:var(--ink);font-size:var(--fs-xs)}
+.tcard.now .tst{background:var(--coral)}.tcard.past{opacity:.75}.tcard.past .tst{background:var(--sunk)}
+.tnew{place-content:center;justify-items:center;min-height:220px;border-style:dashed;cursor:pointer;font:inherit;gap:6px}
+.tnew .plus{font-size:40px;line-height:1}
+.backlink{display:inline-flex;align-items:center;height:36px;padding:0 12px;border:var(--bd);border-radius:var(--pill);color:var(--ink);text-decoration:none;font-size:var(--fs);background:#fff;white-space:nowrap}
+.pill-btn{width:auto!important;padding:0 14px;background:var(--water)!important;border-radius:var(--pill)!important;font:inherit}
+.thseg{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.thbtn{display:grid!important;gap:4px;justify-items:center;padding:6px!important;border-radius:14px!important;font-size:var(--fs-xs)!important}
+.thbtn .thart svg{width:100%;height:auto;display:block}
+.shrole{flex-wrap:nowrap}.shrole button{padding:4px 8px!important;font-size:var(--fs-xs)!important}
+#sh-list .crow{grid-template-columns:minmax(0,1fr) auto auto}
+.invite{display:grid;gap:8px;padding:14px 16px;border:var(--bw) solid var(--ink);border-radius:18px;background:var(--green)}
+.invite b{font-weight:400;font-size:var(--fs-md)}.invite span{font-size:var(--fs);word-break:keep-all;overflow-wrap:anywhere}
+#sh-done,#sh-copy{flex:1}
+.whoami{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding-top:10px;font-size:var(--fs-xs);color:var(--muted)}
+.whoami b{font-weight:400;color:var(--ink);font-size:var(--fs);overflow-wrap:anywhere}
+.whoami .who-r{padding:0 8px;border:var(--bd);border-radius:var(--pill);background:var(--yellow);color:var(--ink);line-height:20px}
+.whoami button{all:unset;cursor:pointer;margin-left:auto;padding:2px 12px;border:var(--bd);border-radius:var(--pill);background:#fff;color:var(--ink);font-size:var(--fs-xs);line-height:20px;white-space:nowrap}
+.login-wrap{position:relative}
+.gis-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;overflow:hidden;cursor:pointer}
+.gis-over>div,.gis-over iframe{transform:scale(1.25);transform-origin:center}
+.login-wrap:hover .btn,.login-wrap:focus-within .btn{filter:brightness(.97)}
+.wx{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border:var(--bd);border-radius:var(--pill);background:#fff;font-size:var(--fs-xs);color:var(--ink);white-space:nowrap}
+.wx i{font-style:normal;font-size:var(--fs)}.wx small{font-size:var(--fs-xs);color:var(--muted)}
+.wx.wx-past{border-style:dashed}
+.gonext{display:inline-block;margin-top:6px;font-size:var(--fs-xs);color:var(--ink);text-decoration:underline;text-underline-offset:3px;word-break:keep-all;overflow-wrap:anywhere}
+/* narrow phones: admin toolbar has back + 旅費 + people + search + 分享 + ⚙, keep 旅費 readable */
+#mbar{flex-shrink:0}
+@media (max-width:480px){
+  .backlink{font-size:0;width:36px;min-width:36px;flex-shrink:0;padding:0;justify-content:center}
+  .bar .icon-btn{flex-shrink:0}
+  .bar #mbar small{display:none}
+  .bar .peers{max-width:52px;overflow:hidden;flex-shrink:1}
+  .bar .pill-btn{padding:0 10px}
+}
+/* 「哪一天」picker: no boxes, just weekday + a round date like the calendar strip at the top */
+.dstrip{gap:6px;padding:4px 2px 8px;scroll-snap-type:x proximity}
+.dstrip button{border:0!important;background:transparent!important;border-radius:0!important;min-width:44px;gap:4px;scroll-snap-align:center}
+.dstrip .w{font-size:var(--fs-xs);line-height:16px}
+.dstrip .n{width:42px;height:42px;font-size:var(--fs-md);font-weight:400;border:2px solid rgba(62,58,57,.28)!important;background:#fff;color:var(--ink)}
+.dstrip button:hover .n{border-color:var(--ink)!important}
+.dstrip button[aria-pressed="true"] .n{background:var(--coral)!important;border:var(--bw) solid var(--ink)!important;color:var(--ink)!important}
+.dstrip button[aria-pressed="true"] .w{color:var(--ink);font-weight:700}
+.dstrip .pool .n{font-size:var(--fs-xs);border-style:dashed!important}
+.seg.dstrip button,.seg.dstrip button[aria-pressed="true"]{background:transparent!important}
+.step{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:var(--fs-md)}
+.stepn{display:grid;place-items:center;width:28px;height:28px;border:var(--bd);border-radius:50%;background:var(--yellow);font-weight:400!important;font-size:var(--fs)}
+.invite small{font-size:var(--fs);line-height:1.6;color:var(--ink)}
+#sh-list .crow{grid-template-columns:minmax(0,1fr) auto auto;row-gap:8px}
+#sh-list .sh-send{grid-column:1/-1;justify-self:start;height:36px;padding:0 14px;background:var(--water)!important}
+.rolehint{display:block;margin-top:6px;font-size:var(--fs-xs);color:var(--muted)}
+.gonext{display:block}
+/* 「新旅行」is a slim dashed button, not a full card */
+.tnew{min-height:0!important;display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:8px;padding:16px;grid-column:1/-1}
+.tnew .plus{font-size:24px}
+.tnew b{font-size:var(--fs-md)}
+.hotel-l{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.hotel-m{display:none}
+@media (max-width:520px){
+  .hotel-m{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--ink);color:var(--ink);text-decoration:none;font-size:var(--fs);min-width:0}
+  .hotel-m b{font-weight:400;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hotel-m em{font-style:normal;font-size:var(--fs-xs);padding:0 10px;border:var(--bd);border-radius:var(--pill);background:var(--water);line-height:22px;flex-shrink:0}
+}
+.legs{display:grid;gap:8px}
+.leg{display:flex;align-items:center;gap:10px;padding:12px 14px;border:var(--bd);border-radius:18px;background:#fff;color:var(--ink);text-decoration:none}
+.leg-i{font-size:var(--fs-lg);flex-shrink:0}
+.leg-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--fs);word-break:keep-all;overflow-wrap:anywhere}
+.leg-t b{font-weight:400}.leg-a{color:var(--muted)}
+.leg-go{flex-shrink:0;font-size:var(--fs-xs);padding:0 10px;line-height:24px;border:var(--bd);border-radius:var(--pill);background:var(--water)}
+.leg-all{margin-top:12px;text-align:center;text-decoration:none;display:flex!important;justify-content:center;align-items:center;min-height:48px}
+/* added to home screen: iOS blurs content right under the status bar, so give the top more room */
+html.pwa .whoami{padding-top:44px}
+html.pwa #gate{padding-top:56px}
+.cur-seg{margin-bottom:8px}
+.own-new{margin-top:8px}
+.budget{display:grid;gap:6px;margin:10px 0 4px;padding:12px 14px;border:var(--bd);border-radius:18px;background:#fff}
+.bud-top{display:flex;justify-content:space-between;align-items:center;font-size:var(--fs)}
+.bud-bar{height:14px;border:var(--bd);border-radius:var(--pill);background:var(--sunk);overflow:hidden}
+.bud-bar i{display:block;height:100%;background:var(--green)}
+.budget.warn .bud-bar i{background:var(--yellow)}.budget.over .bud-bar i{background:var(--coral)}
+.bud-sub{font-size:var(--fs-xs);color:var(--muted)}.budget.over .bud-sub{color:var(--sakura)}
+.budget-set{display:block;margin:10px 0 4px}
+.site-foot .ver{display:grid;justify-items:center;gap:2px;margin-top:20px}
+.site-foot .ver img{width:40px;height:40px;border-radius:10px;border:var(--bd);margin-bottom:4px}
+.site-foot .ver b{font-weight:400;font-size:var(--fs);color:var(--ink)}
+.site-foot .ver span{font-size:var(--fs-xs);color:var(--muted);letter-spacing:.02em}
+.chip.pool .c-left{font-size:var(--fs-xs);line-height:16px;color:var(--muted);white-space:nowrap}
+.chip.pool.active .c-left{color:var(--ink)}
+.whoami .sync{height:24px;padding:0 8px;font-size:var(--fs-xs);border-width:2px;margin:0}
+@media (max-width:480px){.whoami .who-l{display:none}.whoami b{font-size:13px}}
+.ft-row{display:none}
+/* phones: the date/time gets its own line under the airports so it never breaks */
+@media (max-width:520px){
+  .fly .ft{display:none!important}
+  .ft-row{display:block;margin-top:6px;text-align:center;font-size:var(--fs);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+}
+/* ticket: airport codes + flight number are the headline; tighter spacing below */
+.pass .ap b{font-size:34px!important;line-height:36px!important;letter-spacing:.02em}
+.pass .fly .fn{font-size:var(--fs-md)!important;line-height:36px;height:36px;display:flex;align-items:center;justify-content:center;letter-spacing:.08em;color:var(--sakura)}
+.pass .fly{align-content:start}
+@media (max-width:520px){
+  .pass .ap b{font-size:30px!important;line-height:32px!important}
+  .pass .fly .fn{line-height:32px;height:32px;font-size:15px!important}
+  .pass-main{gap:8px!important}
+  .ft-row{margin-top:2px;font-size:var(--fs);color:var(--ink)}
+  .hotel-m{margin-top:4px;padding-top:10px}
+}
+/* checklists (行前待辦／行李／訂位／想買): one compact card with divider lines instead of a big box per item */
+.dsec .clist{display:block!important;padding:0;margin:8px 0 0;border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;overflow:hidden}
+.dsec .clist .crow{border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent;min-height:0;padding:8px 12px;gap:10px;align-items:center}
+.dsec .clist .crow+.crow{border-top:2px dashed rgba(62,58,57,.18)!important}
+.dsec .clist .lchk{width:28px!important;height:28px!important;min-width:28px;font-size:var(--fs);border-width:2px!important}
+.dsec .clist .crow .ct{font-size:var(--fs-md);line-height:1.4}
+.dsec .clist .crow.done .ct{text-decoration:line-through;color:var(--muted)}
+.dsec .clist .crow.done{background:var(--sunk)}
+.dsec .addrow .inp{height:44px}
+.dsec .addrow .btn{height:44px;min-width:64px;padding:0 14px}
+.dsec .clist .lchk[aria-pressed="false"]{color:transparent!important}
+.dsec .clist .lchk[aria-pressed="false"]:hover{color:var(--muted)!important}
+.pool-help{margin:6px 0 10px;font-size:var(--fs);line-height:1.7;color:var(--muted)}
+.pool-help b{color:var(--ink);font-weight:400;background:linear-gradient(transparent 60%,var(--hl) 60%)}
+/* itinerary: tighter cards; transport = slim dashed "step" rows so the places stand out */
+.slot{padding-block:10px!important;gap:8px!important}
+.list{gap:8px!important}
+.item .ibody{padding:10px 4px 10px 2px}
+.item .chk[aria-pressed="false"]{color:transparent!important}
+.item .chk[aria-pressed="false"]:hover{color:var(--muted)!important}
+.item.is-move,.item.is-stay,.item.is-todo{border:2px dashed rgba(62,58,57,.35)!important;background:transparent!important;min-height:0;border-radius:14px!important}
+.item.is-move .ibody,.item.is-stay .ibody,.item.is-todo .ibody{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;row-gap:0;padding:8px 4px 8px 2px}
+.item.is-move .imeta,.item.is-stay .imeta,.item.is-todo .imeta{order:0}
+.item.is-move .imeta .kind,.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:none}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle{font-size:var(--fs-md);order:1}
+.item.is-move .inote,.item.is-move .idesc,.item.is-stay .inote,.item.is-stay .idesc,.item.is-todo .inote,.item.is-todo .idesc{flex-basis:100%;order:2;font-size:var(--fs-xs)}
+.item.is-move .chk,.item.is-stay .chk,.item.is-todo .chk{width:28px!important;height:28px!important;border-width:2px!important;font-size:var(--fs-xs)}
+.item.is-move .grip,.item.is-stay .grip,.item.is-todo .grip{opacity:.5}
+.item.is-move .grip,.item.is-stay .grip,.item.is-todo .grip{min-height:0!important;height:auto!important}
+.item.is-move .iacts,.item.is-stay .iacts,.item.is-todo .iacts{padding-block:4px!important;align-items:center}
+/* slot headers: smaller so a slot with one item doesn't cost a whole screen row */
+.slot-h{min-height:28px!important}
+.slot-h .sico{width:28px!important;height:28px!important}
+.slot-h .sico svg{width:14px;height:14px}
+.slot-h b{font-size:var(--fs)}
+.slot-h .slot-add{width:32px!important;height:32px!important;font-size:var(--fs-lg)!important}
+.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:inline-flex!important;font-size:var(--fs-xs);line-height:16px;padding:0 6px}
+/* ===== calmer itinerary: one strong element (place cards), everything else quiet ===== */
+.tl .slot{border-top:0!important;padding-block:6px!important}
+.tl .slot+.slot{margin-top:6px}
+.tl .slot-h .sico{display:none!important}
+.tl .slot-h b{background:none!important;color:var(--muted);font-size:13px;letter-spacing:.08em}
+.tl .slot-add{border:0!important;background:transparent!important;color:var(--muted)!important;width:28px!important;height:28px!important}
+.tl .slot.cur .slot-h b{color:var(--sakura)}
+/* transport / hotel / to-do: plain rows, no box */
+.item.is-move,.item.is-stay,.item.is-todo{border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle{font-size:15px;font-weight:400;color:var(--ink)}
+.item.is-move .imeta,.item.is-stay .imeta,.item.is-todo .imeta{color:var(--muted)}
+.item.is-stay .imeta .kind,.item.is-todo .imeta .kind{display:none!important}
+.item.is-move .chk,.item.is-stay .chk,.item.is-todo .chk{border-color:rgba(62,58,57,.35)!important}
+/* place cards: a bit lighter frame */
+.item.is-spot,.item.is-food,.item.is-shop{border-width:2px!important}
+/* same calm look for the list sections (行前待辦／行李／訂位／想買／今日花費) */
+.col .dsec{border-top:0!important;padding-top:14px}
+.col .dsec-h .sico{display:none!important}
+.col .dsec-h b{background:none!important;font-size:var(--fs-md);color:var(--ink)}
+.col .dsec-h small{color:var(--muted)}
+/* framed = has a real place (景點／美食／購物／住宿); plain = 交通、待辦、and place items without a location (e.g. 飛機餐) */
+.item.is-stay{border:var(--bd)!important;background:var(--surface)!important;border-radius:18px!important}
+.item.is-stay .imeta .kind{display:inline-flex!important}
+.item.is-stay .ititle{font-size:var(--fs-lg)}
+.item.no-loc{border:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.item.no-loc .ititle{font-size:15px;font-weight:400}
+/* list-section add buttons (今日要辦／今日花費): just a ＋ like the time slots */
+.dsec-h .slot-add{width:32px!important;height:32px!important;min-width:32px;padding:0!important;border:0!important;background:transparent!important;font-size:0!important;margin-left:auto;display:grid;place-items:center}
+.dsec-h .slot-add::before{content:'＋';font-size:20px;line-height:1;color:var(--muted)}
+/* ＋ buttons: round outline so they read as buttons */
+.tl .slot-add,.dsec-h .slot-add{border:var(--bd)!important;border-radius:50%!important;background:#fff!important;color:var(--ink)!important;width:32px!important;height:32px!important}
+.dsec-h .slot-add::before{color:var(--ink)}
+/* ===== button size system: L 36 (toolbar + ＋), M 32 (all check circles), S 24 tall (small pills) ===== */
+.bar .icon-btn,.bar .backlink,.tl .slot-add,.dsec-h .slot-add{box-sizing:border-box!important;width:36px!important;height:36px!important;min-width:36px}
+.bar .pill-btn{width:auto!important;height:36px!important;box-sizing:border-box}
+.bar #mbar{height:36px!important;box-sizing:border-box}
+.ibtn.chk,.item .chk,.dsec .clist .lchk{box-sizing:border-box!important;width:32px!important;height:32px!important;min-width:32px!important;border-width:2px!important;font-size:var(--fs)!important}
+.mapl,.route,.wx{box-sizing:border-box;height:24px!important;line-height:20px;padding:0 10px!important;font-size:var(--fs-xs)!important}
+.route svg{width:14px;height:14px}
+.item .iacts{min-height:32px}.item .chk{flex:0 0 32px!important;aspect-ratio:1}
+body.ro .slot-add{display:none!important}
+/* iPhone zooms the page when a focused field's text is under 16px — keep every field at 16px */
+/* 輸入框一定要 16px：小於 16px 時 iOS 會自動放大整頁，PWA 裡縮不回來。這行別改成變數 */
+input,textarea,select,.inp{font-size:16px!important}
+.pre-split{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px;font-size:var(--fs);color:var(--muted)}
+.backlink{gap:6px}
+.backlink svg{flex-shrink:0}
+@media (max-width:480px){.backlink span{display:none}}
+.fld label .opt{font-size:var(--fs-xs);color:var(--muted);font-weight:400;margin-left:4px}
+/* 旅費總覽: lighter summary — stats as one quiet row, fund/personal as plain rows */
+.sumcard .stats{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;border-top:2px dashed rgba(62,58,57,.18);border-bottom:2px dashed rgba(62,58,57,.18);padding:10px 0}
+.sumcard .stats div{border:0!important;padding:0 6px!important;border-radius:0!important}
+.sumcard .stats div+div{border-left:2px dashed rgba(62,58,57,.18)!important}
+.sumcard .stats b{font-size:var(--fs)}
+.sumcard .catbar{height:12px!important;border-width:2px!important}
+.sumcard .paid{display:grid!important;grid-template-columns:1fr!important;gap:0!important}
+.sumcard .paid div{display:flex!important;align-items:baseline;gap:8px;border:0!important;border-radius:0!important;padding:6px 0!important}
+.sumcard .paid div+div{border-top:2px dashed rgba(62,58,57,.18)!important}
+.sumcard .paid div span{font-size:var(--fs);color:var(--ink);flex:1}
+.sumcard .paid div b{font-size:var(--fs-md)}
+.pre-split{border-radius:12px;background:var(--sunk);padding:8px 12px;margin-top:4px}
+.sumcard .stats div{grid-column:auto!important}
+.lgrip{display:grid;place-items:center;width:32px;height:32px;margin-right:-4px;color:var(--muted);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.crow.ldrag{background:var(--sakura-soft)!important;box-shadow:0 6px 16px rgba(62,58,57,.18)!important;position:relative;z-index:2}
+body.ldragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
+/* 出發前 tabs */
+.pretabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:12px 0 4px;padding:2px}
+.pretabs::-webkit-scrollbar{display:none}
+.pretabs button{all:unset;cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:36px;padding:0 14px;border:var(--bd);border-radius:var(--pill);background:#fff;font-size:var(--fs);color:var(--ink);white-space:nowrap;box-sizing:border-box}
+.pretabs button[aria-selected="true"]{background:var(--coral)}
+.pretabs button i{font-style:normal;font-size:var(--fs-xs);min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:var(--pill);background:var(--yellow);border:1.5px solid var(--ink);padding:0 4px;box-sizing:border-box}
+body[data-pt="todo"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="todo"]),
+body[data-pt="pack"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pack"]),
+body[data-pt="book"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="book"]),
+body[data-pt="buy"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="buy"]),
+body[data-pt="ticket"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="ticket"]),
+body[data-pt="money"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="money"]),
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="pool"]){display:none!important}
+.dsec .clist+.addrow{margin-top:10px}
+.pool-slot+.addrow,.dsec .slot+.addrow{margin-top:10px}
+/* the floating 新增行程 button must never sit on top of an add box */
+body:has(.addrow input:focus) .fab,body:has(.sheet) .fab{opacity:0;pointer-events:none}
+.col[data-col="0"]{padding-bottom:96px}
+/* 出發前: add only via the floating button — no inline add boxes */
+.col[data-col="0"] .addrow{display:none!important}
+.col[data-col="0"]{padding-bottom:88px}
+/* floating add button: just a round ＋ (the label stays for screen readers) */
+.fab{width:60px!important;height:60px!important;min-width:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;gap:0!important}
+.fab svg{width:26px!important;height:26px!important}
+.fab #fab-t{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ===== route-map look (v2) ===== */
+/* date strip = a train line: small stations on a track, the little train sits on the chosen day, date as a pill underneath */
+.strip .chip:not(.pool){padding-top:0;gap:0}
+.strip .chip:not(.pool) .c-w{line-height:16px}
+.strip .chip:not(.pool)::before{content:'';position:absolute;left:-2px;right:-2px;top:25px;border-top:2px solid var(--ink);opacity:.55}
+.strip .chip:not(.pool):last-child::before{right:50%}
+.strip .c-month+.chip::before{left:50%}
+.strip .chip:not(.pool)::after{content:'';position:absolute;left:50%;top:20px;width:8px;height:8px;margin-left:-6px;border:var(--bd);border-radius:50%;background:var(--bg)}
+.strip .chip:not(.pool) .c-d{margin-top:20px;width:auto!important;min-width:36px;height:28px!important;padding:0 6px;box-sizing:border-box;border-radius:var(--pill)!important;font-size:var(--fs-md)}
+.strip .chip.active:not(.pool)::after{width:26px;height:22px;top:15px;margin-left:-13px;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 22'%3E%3Cpath d='M13 1v3' stroke='%233E3A39' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='3' y='4' width='20' height='16' rx='5' fill='%23F2A497' stroke='%233E3A39' stroke-width='2'/%3E%3Crect x='6.5' y='8' width='5.5' height='5' rx='1.5' fill='%23F6D27A' stroke='%233E3A39' stroke-width='1.6'/%3E%3Crect x='14' y='8' width='5.5' height='5' rx='1.5' fill='%23F6D27A' stroke='%233E3A39' stroke-width='1.6'/%3E%3C/svg%3E") center/contain no-repeat}
+.strip .chip.active:not(.pool) .c-w{color:var(--ink);font-weight:700}
+.strip .chip.today:not(.active) .c-d{border:2px dashed var(--ink)!important}
+/* the day's items hang off one dotted line, each place a station on it */
+.tl{position:relative;padding-left:24px}
+.tl::before{content:'';position:absolute;left:8px;top:18px;bottom:12px;border-left:2px dotted rgba(62,58,57,.45)}
+.tl .slot-h{position:relative}
+.tl .slot-h::before{content:'';position:absolute;left:-20px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ink)}
+.tl .slot.cur .slot-h::before{background:var(--sakura)}
+.tl .item::before{content:'';position:absolute;left:-23px;top:15px;width:10px;height:10px;border:var(--bd);border-radius:50%;background:var(--bg)}
+.tl .item.is-move::before,.tl .item.is-todo::before,.tl .item.no-loc::before{width:6px;height:6px;left:-21px;top:16px;background:var(--bg);border-color:rgba(62,58,57,.55)}
+.tl .item.done::before{background:var(--ink)}
+.ghost::before,.tl .item.src::before{display:none}
+/* transport: coloured "how you go" tag + time, no box */
+.item.is-move .imeta .kind.tmode{display:inline-flex!important;align-items:center;gap:3px;font-size:var(--fs-xs);line-height:18px;padding:0 8px 0 6px;border:var(--bd)!important;border-radius:var(--pill)}
+.tmode svg{width:14px;height:14px}
+.tmode.m-train{background:var(--water)}.tmode.m-bus{background:var(--green)}.tmode.m-taxi{background:var(--yellow)}.tmode.m-plane{background:var(--coral)}.tmode.m-ship{background:var(--water)}.tmode.m-walk,.tmode.m-go{background:#fff}
+.item.is-move .ibody{align-items:center}
+.item.is-move .ititle{flex:1 1 100%}
+.item.is-move .inote,.item.is-move .idesc{flex-basis:auto}
+.item.is-move .inote+.tdur,.item.is-move .idesc+.tdur{margin-left:-2px}
+.tdur{order:2;font-size:var(--fs-xs);color:var(--muted)}
+.item.is-move .inote+.tdur::before,.item.is-move .idesc+.tdur::before{content:'・'}
+/* place names: underlined in light blue = tap to open the map */
+a.ititle.tlink{color:var(--ink);text-decoration:underline;text-decoration-color:var(--water);text-decoration-thickness:4px;text-underline-offset:4px;text-decoration-skip-ink:none;justify-self:start}
+a.ititle.tlink:hover{text-decoration-color:#7FBBD6}
+.item.done a.ititle.tlink{text-decoration:line-through;color:var(--muted)}
+/* small place picture under the check circle */
+.item .ipic{width:56px;height:56px;object-fit:cover;border-radius:12px;border:var(--bd);background:var(--sunk);display:block}
+.item.done .ipic{opacity:.5;filter:grayscale(.6)}
+.picrow{display:flex;align-items:center;gap:12px}
+.picrow img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:var(--bd)}
+/* home button is icon-only at every width (its text overflowed the 36px circle on desktop) */
+.bar .backlink span{display:none!important}
+/* ===== size + spacing calibration (v3) =====
+   type: 12 meta · 14 body · 16 rows · 18 card titles · 24 day title · 32 trip title
+   controls: 24 small pills · 32 checks · 36 toolbar / ＋ · 56 floating ＋
+   spacing: 4 · 8 · 12 · 16 · 24 · 32 */
+.brand h1{font-size:32px!important}
+.col-title{font-size:24px!important;line-height:1.3}
+.tl .slot-h b{font-size:var(--fs)!important;letter-spacing:.06em}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle,.item.no-loc .ititle{font-size:var(--fs-md)!important}
+.nowmain .nt b{font-size:var(--fs-lg)!important}
+.whoami b{font-size:var(--fs)!important}
+/* account row: one line, email shortens instead of pushing 登出 down */
+.whoami{flex-wrap:nowrap!important;gap:8px!important}
+.whoami b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal!important}
+.whoami .who-r,.whoami .sync,.whoami button{flex-shrink:0;height:24px;box-sizing:border-box;line-height:20px!important}
+/* toolbar: even gaps, people-online avatars never squashed */
+.bar{gap:6px!important}
+.bar .peers{flex-shrink:0!important;max-width:none!important;overflow:visible!important;padding-left:6px}
+.bar .peer{width:24px!important;height:24px!important;font-size:var(--fs-xs);margin-left:-8px;border-width:2px}
+.bar #mbar{padding:0 12px!important}
+/* top of the page: smaller drawing so the day shows up sooner on a phone */
+@media (max-width:600px){.hero-art svg{height:104px!important;width:auto!important}}
+/* day header */
+.col-h{gap:16px!important;margin-bottom:24px!important;align-items:center!important}
+.col-date{width:64px!important;height:64px!important;min-width:64px!important}
+.col-date b{font-size:var(--fs-lg)!important}
+.col-sub{gap:8px!important;margin-top:8px!important}
+/* now card: tighter */
+.nowcard{padding:12px 16px!important;gap:8px!important}
+/* floating ＋ */
+.fab{width:56px!important;height:56px!important}
+.fab svg{width:24px!important;height:24px!important}
+/* calmer cards: lighter grips, check circles and photo frames; even spacing inside */
+.tl .slot+.slot{margin-top:12px!important}
+.list{gap:12px!important}
+.item .grip{color:rgba(62,58,57,.35)!important}
+.item .chk[aria-pressed="false"]{border-color:rgba(62,58,57,.4)!important}
+.item .ipic{border:0!important;border-radius:12px;box-shadow:0 0 0 1px rgba(62,58,57,.12)}
+.item .ibody{gap:4px!important}
+.item:not(.is-move):not(.is-todo):not(.no-loc) .ibody{padding:12px 4px 12px 2px!important}
+.item:not(.is-move):not(.is-todo):not(.no-loc) .iacts{padding:12px 12px 12px 4px!important}
+/* the two "how to get there" links share one quiet row */
+.gorow{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px}
+.gorow .gonext{display:inline-flex!important;align-items:center;min-height:24px;margin:0!important;color:var(--muted)!important;text-decoration-color:rgba(62,58,57,.3)!important}
+.gorow .gonext:hover{color:var(--ink)!important}
+/* pre-trip chip matches the size of the day pills */
+.strip .chip.pool .c-d{width:36px!important;height:36px!important}
+/* checklist rows with photos (想買): pictures sit under the name, a little bigger so you can show them in a shop */
+.dsec .clist .crow .ithumbs img{width:72px;height:72px}
+/* narrow phones (≤380): one online avatar, slimmer 旅費 pill so the toolbar never scrolls sideways */
+@media (max-width:380px){.bar .peer~.peer{display:none!important}.bar #mbar{padding:0 8px!important}.bar{gap:4px!important}}
+/* the round ＋ is only for people who can edit (its display:grid above must not bring it back for view-only or the sign-in screen) */
+body.ro .fab,body:has(.gate-card) .fab,.fab[hidden]{display:none!important}
+/* checklist rows with photos (購物 and the rest): product-card layout — square photo on the left, name + note on the right.
+   One photo is shown; more photos show as a little stack behind it. Tap the photo to see it big. */
+.clist .crow .cbody:has(.ithumbs){display:grid!important;grid-template-columns:72px minmax(0,1fr);column-gap:12px;row-gap:2px;align-items:center;text-align:left}
+.clist .crow .cbody:has(.ithumbs)>*{grid-column:2}
+.clist .crow .cbody:has(.ithumbs)>.ithumbs{grid-column:1;grid-row:1 / span 4;margin:0!important;padding:0!important;position:relative;width:72px;height:72px}
+.clist .crow .ithumbs img{width:72px!important;height:72px!important;border:0!important;border-radius:12px!important;transform:none!important;box-shadow:0 0 0 1px rgba(62,58,57,.15)!important;object-fit:cover;background:var(--sunk)}
+.clist .crow .ithumbs img~img{display:none}
+.clist .crow .ithumbs:has(img+img) img:first-child{box-shadow:0 0 0 1px rgba(62,58,57,.15),4px 4px 0 -1px #fff,4px 4px 0 0 rgba(62,58,57,.3)!important}
+.clist .crow .ithumbs span{position:absolute;right:4px;bottom:4px;padding:0 6px;border-radius:var(--pill);background:rgba(255,255,255,.9);font-size:var(--fs-xs);line-height:18px;color:var(--ink)}
+.clist .crow .cbody:has(.ithumbs) .ct{align-self:end}
+.clist .crow .cbody:has(.ithumbs) .cn{align-self:start}
+.clist .crow:has(.ithumbs){padding-block:10px!important}
+.clist .crow.done .ithumbs img{opacity:.5;filter:grayscale(.6)}
+/* centre the name (and note / tag) next to the photo */
+.clist .crow .cbody:has(.ithumbs){grid-template-rows:1fr auto auto auto 1fr}
+.clist .crow .cbody:has(.ithumbs)>.ithumbs{grid-row:1 / 6}
+.clist .crow .cbody:has(.ithumbs)>.kind{grid-row:2;justify-self:start}
+.clist .crow .cbody:has(.ithumbs)>.ct{grid-row:3;align-self:auto}
+.clist .crow .cbody:has(.ithumbs)>.cn{grid-row:4;align-self:auto}
+/* 新增行程: 加入並填細節 and 加入行程 side by side, same size */
+.btns:has(#a-more:not([hidden])){flex-wrap:nowrap!important;gap:8px}
+.btns:has(#a-more:not([hidden])) #a-more,.btns:has(#a-more:not([hidden])) #a-ok{flex:1 1 0!important;width:auto!important;min-width:0}
+/* date pill on 出發前 checklist rows that already have a day */
+.ldate{display:inline-flex;align-self:flex-start;justify-self:start;width:max-content;font-size:var(--fs-xs);line-height:18px;padding:0 8px;border:1.5px solid rgba(62,58,57,.35);border-radius:var(--pill);color:var(--muted);margin-bottom:2px}
+.clist .crow .cbody:has(.ithumbs)>.ldate{grid-row:2}
+/* 口袋名單 looks like the other 出發前 lists: one white card, dashed dividers, check circle on the left and drag grip on the right */
+.col[data-col="0"] .pool-slot .list:has(.item){border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;overflow:hidden;gap:0!important;padding:0}
+.col[data-col="0"] .pool-slot .item{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:0;grid-template-columns:auto minmax(0,1fr) 32px!important}
+.col[data-col="0"] .pool-slot .item+.item{border-top:2px dashed rgba(62,58,57,.18)!important}
+.col[data-col="0"] .pool-slot .item .iacts{order:-1;padding:8px 0 8px 12px!important;align-items:center;justify-content:center}
+.col[data-col="0"] .pool-slot .item .ibody{order:0;padding:10px 4px 10px 10px!important}
+.col[data-col="0"] .pool-slot .item .grip{order:1}
+.col[data-col="0"] .pool-slot .item .ititle{font-size:var(--fs-md)!important}
+.col[data-col="0"] .pool-slot .item .ipic{width:48px;height:48px}
+/* edit sheet: the old "更多資訊" fold is always open and drawn as plain fields */
+.sheet details.more.allopen{border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0}
+.sheet details.more.allopen>summary{display:none}
+.sheet details.more.allopen>div{padding:0!important}
+/* edit sheet: 日文店名 and Google 地圖連結 are filled in automatically now (AI area + map search), so the fields are hidden.
+   The inputs stay in the sheet, so any value already saved is kept when the item is saved again. */
+.sheet .fld:has(#e-q),.sheet .fld:has(#e-map){display:none!important}
+/* 旅費總覽: the 依分類／依日期… switch scrolls inside the sheet instead of pushing it wider than the phone */
+.sheet>*{min-width:0}
+.viewseg{width:auto!important;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.viewseg::-webkit-scrollbar{display:none}
+/* small text links (匯率、設定預算…) get a finger-sized tap area */
+.sheet .linkbtn{display:inline-flex;align-items:center;min-height:32px}
+
+/* cards: one line of 簡介 (the whole text is in the item's sheet) */
+.item .idesc{-webkit-line-clamp:1!important}
+/* empty 今日要辦／今日花費: one slim row each instead of a big empty block */
+.col:not([data-col="0"]) .dsec:not(:has(.crow,.erow,.drows>*)){padding-top:4px!important;padding-bottom:0!important;margin:0}
+.col:not([data-col="0"]) .dsec:not(:has(.crow,.erow,.drows>*)) .dsec-h{min-height:36px}
+.col:not([data-col="0"]) .dsec:not(:has(.crow,.erow,.drows>*)) .dsec-h b{font-size:var(--fs)!important;color:var(--muted)!important}
+.col:not([data-col="0"]) .dsec:not(:has(.crow,.erow,.drows>*)) .dsec-h small{display:none}
+/* possible duplicate on a checklist row */
+.ldup{display:block;font-size:var(--fs-xs);color:var(--warn);margin-top:2px}
+/* 幫我排順序 */
+#ord-ai{margin:4px 0 8px}
+.ord-plan{border:2px dashed rgba(62,58,57,.3);border-radius:16px;padding:12px 14px;margin-bottom:12px;background:#fff}
+.ord-plan ol{margin:8px 0;padding-left:22px;display:grid;gap:4px}
+.ord-plan li small{margin-left:8px;color:var(--muted);font-size:var(--fs-xs)}
+
+/* 記帳 button: sits right above the ＋ on trip days */
+.fab-exp{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:40;width:48px;height:48px;border-radius:50%;border:var(--bw) solid var(--ink);background:#fff;color:var(--ink);font:inherit;font-size:var(--fs);line-height:1;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);cursor:pointer}
+.fab-exp:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+@media (min-width:960px){.fab-exp{right:max(20px,calc((100vw - var(--page-w)) / 2 + 20px))}}
+body:has(.sheet) .fab-exp,body.ro .fab-exp,body:has(.gate-card) .fab-exp{display:none!important}
+/* 記一筆: the amount comes first */
+.sheet:has(#x-amt)>.sheet-x{order:-4}
+.sheet:has(#x-amt)>h2{order:-3}
+.sheet:has(#x-amt)>.fld:has(#x-amt){order:-2}
+
+/* no accidental zoom: double-tap zoom off everywhere (pinch is stopped in extras.js, except on a full-screen photo) */
+html,body{touch-action:manipulation}
+
+/* 記帳 button shows a plain $ drawn like the ＋ (💰 already means 基金 in the money pages) */
+.fab-exp{font-size:24px;font-weight:700;font-family:inherit}
+.fab-exp span{transform:translateY(1px)}
+/* long button labels (e.g. 刪除旅行（所有行程、記帳、清單都會刪除）) wrap instead of pushing the sheet wider than the phone */
+.sheet .btn{max-width:100%}
+.sheet .btn.danger{white-space:normal!important;height:auto!important;min-height:44px;line-height:1.4;padding-block:8px!important;text-align:center;text-wrap:balance}
+
+/* departure / home day: just the words, centred in the yellow panel */
+#cd-l:empty,#cd-u:empty{display:none}
+
+#cd.words{white-space:normal!important;font-size:20px!important;line-height:1.35!important;text-align:center;max-width:100%;word-break:normal;overflow-wrap:normal}
+
+/* start – end time inputs */
+.trange{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:center}
+.trange>span{color:var(--muted)}
+.row2.trow{grid-template-columns:1fr!important}
+/* estimated start (no time of its own): quiet */
+.itime.est{color:var(--muted);font-weight:400}
+.itime.est small{font-size:var(--fs-xs);margin-left:2px}
+
+/* trip from the previous stop: 🚃／🚕 + minutes */
+.legmin{display:flex;align-items:center;gap:8px;margin-top:8px}
+.legmin .inp{width:120px}
+.legmin span{color:var(--muted);font-size:var(--fs)}
+.itime small{font-weight:400;color:var(--muted);font-size:var(--fs-xs)}
+
+.tbad{font-size:var(--fs-xs);color:var(--warn);white-space:nowrap}
+
+/* 新增行程: even spacing between the detail fields */
+#a-extra{display:grid;gap:16px}
+#a-extra[hidden]{display:none}
+/* 出發前・花費: add with the round ＋ like every other tab (no second button in the header) */
+.col[data-col="0"] .dsec[data-sec="money"] .dsec-h .slot-add{display:none!important}
+
+/* "下一站怎麼去" is a button now (opens the 交通 sheet): looks like the quiet link it was */
+button.gonext{border:0;background:none;padding:0;font:inherit;font-size:var(--fs-xs);cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px}
+.legft{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:var(--fs-md);margin:0}
+.legft span{color:var(--muted)}
+#leg-go{text-decoration:none}
+/* one way to add: the round ＋ (itinerary) and $ (spending) at the bottom right — no ＋ on every time slot or on 今日花費 */
+.tl .slot-h .slot-add{display:none!important}
+.col:not([data-col="0"]) .dsec-h [data-exp-day]{display:none!important}
+/* the date strip: no heavy black rule under it; once it sticks to the top while scrolling, a soft shadow separates it from the page */
+.bar-wrap{border-bottom:0!important;transition:box-shadow .2s}
+body.bar-stuck .bar-wrap{box-shadow:0 8px 14px -10px rgba(62,58,57,.45)}
+/* even rhythm around the toolbar and the date strip: 16px between ticket ▸ toolbar ▸ dates ▸ the day */
+.bar{padding-top:4px!important}
+#strip{padding-top:16px!important;padding-bottom:8px!important}
+#board{padding-top:8px!important}
+
+.legmin .inp{width:150px}
+/* day header ▸ first time slot: 16px; slots spaced by the grid gap so hidden empty slots don't leave space */
+.col-h{margin-bottom:16px!important}
+.tl{row-gap:12px}
+.tl .slot+.slot{margin-top:0!important}
+
+/* the 交通 line at the bottom of a card */
+.legbtn .leglead{color:var(--muted);margin-right:6px;text-decoration:none;display:inline-block}
+.legbtn .legarr{margin-left:4px;text-decoration:none;display:inline-block}
+/* one way to add a to-do on a day: the 待辦 type in 新增行程 (＋ at the bottom right); 今日要辦 only shows that day's bookings, tickets and shopping */
+.col:not([data-col="0"]) .dsec-h [data-todo-day]{display:none!important}
+/* 今日要辦／今日花費 with nothing in them (and no ＋ any more) are not shown at all */
+.col:not([data-col="0"]) .dsec:has([data-todo-day]):not(:has(.crow)),
+.col:not([data-col="0"]) .dsec:has([data-exp-day]):not(:has(.erow)){display:none!important}
+
+/* UX round */
+/* ① ② trip days: the picture goes, the ticket folds into one line (tap to open it) */
+body.trip-mid #trip-hero .hero-art{display:none}
+body.trip-mid:not(.pass-open) #trip-hero .pass{display:none}
+.pass-mini{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:8px 16px;margin:8px 0 4px;border:var(--bw,2px) solid var(--ink);border-radius:16px;background:#fff;cursor:pointer;font-size:var(--fs);white-space:nowrap;box-shadow:0 4px 0 var(--ink)}
+.pass-mini .pm-l{font-weight:700}
+.pass-mini b{font-weight:700}
+.pass-mini .pm-r{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.pass-mini .pm-a{color:var(--muted);font-size:var(--fs-xs)}
+body.pass-open .pass-mini{margin-bottom:12px}
+/* ③ the title is plain text now; the map has its own pill */
+.item .ititle{text-decoration:none!important}
+.imap{display:inline-flex;align-items:center;gap:2px;min-height:28px;padding:0 10px;border:var(--bd);border-radius:var(--pill);background:#fff;color:var(--ink)!important;font-size:var(--fs-xs);line-height:1;text-decoration:none!important;white-space:nowrap}
+.imap svg{width:14px;height:14px}
+/* ④ folded 更多 in the add form */
+.sheet details.amore{margin:4px 0 0}
+/* ⑤ 今日要辦 sits above the timeline */
+.col .dsec-todo{margin:0 0 16px}
+/* ⑥ one ＋: the $ button is gone; the chooser */
+.fab-exp{display:none!important}
+.pickadd{display:grid;gap:12px;margin:8px 0 4px}
+.pickadd .pk{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:14px;min-height:72px;padding:12px 16px;border:var(--bd);border-radius:16px;background:#fff;box-shadow:0 4px 0 var(--ink)}
+.pickadd .pk:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.pickadd .pk-i{font-size:24px}
+.pickadd .pk b{display:block;font-size:var(--fs-md)}
+.pickadd .pk small{display:block;color:var(--muted);font-size:var(--fs-xs);margin-top:2px}
+/* ⑦ 出發前 tabs in two rows, nothing hidden off screen */
+.pretabs{flex-wrap:wrap;overflow:visible}
+.pretabs button{flex:1 1 calc(25% - 6px);justify-content:center;padding:0 8px}
+/* ⑧ 交通 between cards */
+.legc{display:flex;align-items:center;min-height:40px;margin:-4px 0;padding-left:16px}
+.legc .gonext{display:inline-flex!important;align-items:center;gap:6px;min-height:40px;margin:0!important;padding:0 12px!important;border:2px dashed rgba(62,58,57,.35)!important;border-radius:var(--pill)!important;background:var(--bg,#FFFBF2)!important;color:var(--ink)!important;font-size:var(--fs)!important;text-decoration:none!important}
+.legc .gonext .leglead{color:var(--muted)}
+.pass-mini{max-width:100%;min-width:0;overflow:hidden}
+#trip-hero{min-width:0;max-width:100%}
+.pass-mini .pm-a{flex:none}
+/* 出發前 tabs: every tab the same width (4 per row) */
+.pretabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pretabs button{flex:none;width:auto;min-width:0;justify-content:center;padding:0 4px}
+/* 交通 between cards: plain text line, no frame (still a 40px-tall tap area) */
+.legc .gonext{border:0!important;background:none!important;padding:0 8px 0 4px!important;color:var(--ink)!important}
+
+/* transport rows like the 去下一站 line */
+.item.mvrow{border:0!important;background:none!important;box-shadow:none!important;min-height:40px}
+.item.mvrow .ibody{display:flex!important;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:0;min-height:40px;padding:4px 4px!important;font-size:var(--fs)}
+.item.mvrow .itime{font-weight:700}
+.item.mvrow .mv-m{white-space:nowrap}
+.item.mvrow .mv-n{font-size:var(--fs)!important;font-weight:400!important;color:var(--ink)}
+.item.mvrow .mv-d{color:var(--ink);white-space:nowrap}
+.item.mvrow .legarr{color:var(--muted)}
+/* newly added card */
+@keyframes newflash{0%{box-shadow:0 0 0 3px rgba(0,102,204,.35)}100%{box-shadow:0 0 0 0 rgba(0,102,204,0)}}
+.item.flash{animation:newflash 1.6s ease-out}
+
+/* day start/end chip */
+.dtchip{font:inherit;font-size:var(--fs-xs);line-height:20px;padding:0 8px;border:1.5px solid rgba(62,58,57,.35);border-radius:var(--pill);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
+.dtchip.dim{color:var(--muted);border-style:dashed}
+.dtchip.late{color:var(--warn);border-color:var(--warn)}
+/* 去下一站 opens navigation: a link that looks like the old line */
+a.gonext.legnav{text-decoration:none}
+.legnav .legarr{color:var(--water-ink,#2B6F8F);font-size:var(--fs-xs);white-space:nowrap}
+/* desktop: the title, picture and boarding pass use the same centered width as everything below (they used to stretch edge to edge) */
+#trip-hero.hero{max-width:912px!important;margin-inline:auto!important;box-sizing:border-box}
+/* ＋ chooser: tiles (icon, name, one-line hint); light, the open tab's list is marked */
+.pickadd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.pickadd .pk{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;min-height:104px;padding:14px 6px 12px;text-align:center;
+  border:1.5px solid rgba(62,58,57,.28);border-radius:16px;background:#fff;box-shadow:none}
+.pickadd .pk:hover{border-color:var(--ink)}
+.pickadd .pk:active{transform:translateY(1px);box-shadow:none}
+.pickadd .pk.cur{border:var(--bd);background:#FFF4D6}
+.pickadd .pk-i{font-size:26px;line-height:32px}
+.pickadd .pk b{display:block;font-size:15px;line-height:20px;word-break:keep-all}
+.pickadd .pk small{display:block;color:var(--muted);font-size:var(--fs-xs);line-height:16px;margin:0;word-break:keep-all;overflow-wrap:anywhere}
+/* 出發前: four a row, the same order as the tabs */
+.pickadd.pre{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pickadd.pre .pk{min-height:96px;padding:12px 4px 10px}
+/* 備註 on a place card takes the 簡介's line: same size, one line, marked as yours */
+.item.is-food .inote,.item.is-spot .inote,.item.is-shop .inote,.item.is-facility .inote{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs);line-height:1.65;color:var(--ink)}
+.item.is-food .inote::before,.item.is-spot .inote::before,.item.is-shop .inote::before,.item.is-facility .inote::before{content:'📝 '}
+/* forecast says rain: a blue chip with 記得帶傘 (may wrap on a narrow phone) */
+.wx.wx-wet{border-color:#2B6F8F;background:#E8F2F8;white-space:normal;height:auto!important;min-height:24px;max-width:100%}
+.wx.wx-wet b{font-weight:700;color:#2B6F8F;white-space:nowrap}
+/* a checklist row shows only the first photo: a "3 張" badge says there are more (the old "+N" only appeared past three) */
+.clist .crow .ithumbs>span{display:none!important}
+.clist .crow .ithumbs:not([data-n="1"])::after{content:attr(data-n) ' 張';position:absolute;right:4px;bottom:4px;padding:0 6px;border-radius:var(--pill);background:rgba(255,255,255,.92);font-size:var(--fs-xs);line-height:18px;color:var(--ink)}
+/* ＋ chooser in the page's own look: ink outline like every button, line icon on a theme-colour disc */
+.pickadd .pk{border:var(--bw,2px) solid var(--ink)!important;border-radius:18px;background:var(--surface,#fff);color:var(--ink);gap:6px}
+.pickadd .pk:hover{border-color:var(--ink);background:#fff}
+.pickadd .pk.cur{background:#FFF4D6}
+.pickadd .pk-i{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:var(--bw,2px) solid var(--ink);font-size:0;line-height:0}
+.pickadd .pk-i svg{width:20px;height:20px}
+.pickadd.pre .pk-i{width:36px;height:36px}.pickadd.pre .pk-i svg{width:18px;height:18px}
+.pickadd{margin-bottom:0}
+/* 導航 is a small pill like 今日路線 (ink outline, water fill, pin) */
+.legnav .navpill{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;height:24px;margin-left:8px;padding:0 10px;border:var(--bd);border-radius:var(--pill);background:var(--water);color:var(--ink);font-size:var(--fs-xs);font-weight:700;line-height:20px;white-space:nowrap;text-decoration:none}
+.legnav .navpill svg{width:14px;height:14px}
+/* edit sheet: everything shown, the extra fields after a divider */
+.sheet .more-flat{border-top:1.5px dashed rgba(62,58,57,.3);padding-top:16px}
+.sheet .more-flat>div{display:grid;gap:16px}
+/* desktop bookshelf: trip cards and 新旅行 are tiles of one size, the row centred (phones keep the full-width 新旅行 bar) */
+@media (min-width:640px){
+  .shelf-grid{grid-template-columns:repeat(auto-fit,minmax(240px,280px));justify-content:center}
+  .shelf-grid .tnew{grid-column:auto;flex-direction:column!important;min-height:100%!important;padding:24px}
+  .shelf-grid .tnew .plus{font-size:36px}
+}
+/* 哪一天: all days on screen in rows of seven (a week per row feel), no sideways scrolling and no half-cut circle at the edge */
+.dstrip{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:0!important;row-gap:8px;overflow:visible!important;scroll-snap-type:none;padding:4px 0 4px!important}
+.dstrip button{min-width:0!important;width:100%}
+.dstrip .n{width:min(42px,calc(100% - 4px))!important;height:auto!important;aspect-ratio:1}
+.dsec .addrow+.clist,.dsec .addrow+.pool-help{margin-top:10px}
+/* 最近更新 inside 搜尋 */
+.sres .recent-h{font-size:var(--fs-xs);font-weight:700;color:var(--muted);margin:4px 0 2px}
+/* 哪一天: circles sit close together like a calendar (columns no wider than a circle + a little), not spread across a wide sheet */
+.dstrip{grid-template-columns:repeat(7,minmax(0,48px))!important;column-gap:6px!important;justify-content:start}
+/* days already behind you: visited stops on the route — filled dot, the line walked in coral, the date in grey */
+.strip .chip.past:not(.active)::after{background:var(--ink)}
+.strip .chip.past::before{border-top:3px solid var(--coral)!important;opacity:1!important;top:24px!important}
+.strip .chip.past:not(.active) .c-d{color:var(--muted)!important}
+.strip .chip.past:not(.active) .c-w{opacity:.6}
+/* even px everywhere (min 12px text): odd sizes and 1px/3px paddings rounded to the next even value, heights kept */
+.whoami b{font-size:var(--fs)!important}
+.pass .fly .fn{font-size:var(--fs-md)!important}
+.tl .slot-h b{font-size:var(--fs)!important}
+.item.is-move .ititle,.item.is-stay .ititle,.item.is-todo .ititle,.item.no-loc .ititle{font-size:var(--fs-md)!important}
+.pickadd .pk b{font-size:var(--fs-md)}
+.m{font-size:var(--fs)!important}
+.kind{padding:0 8px!important;line-height:20px!important}
+.item.is-move .imeta .kind.tmode{gap:4px!important}
+.icon-btn:not(.pill-btn),.sheet-x{padding:0!important}
+.bar .pill-btn{padding:0 14px!important}
+.pass-meta div{gap:2px!important}
+.mapl{padding:0 8px 0 6px!important}
+.viewseg{padding:4px!important}
+.col-n{padding:2px 12px!important}
+.tcard .tst{padding:2px 10px!important}
+
+/* 旅行設定: 出發日 + 天數 side by side without overlapping (iOS date inputs have a wide built-in minimum) */
+.row2>*{min-width:0}
+.row2 input[type="date"]{min-width:0;width:100%;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;text-align:left}
+.row2 input[type="date"]::-webkit-date-and-time-value{text-align:left}
+/* 出發前 chip: as wide as "還有 47 項", so no letters peek out at the edge when the strip scrolls */
+.strip .chip.pool{flex:0 0 auto;min-width:max-content}
+/* 新增行程／記一筆 on one screen: choices in one swipeable row, smaller chips, hints folded away, photo box small, amount on one row */
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)){gap:10px!important}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .fld{gap:4px!important;margin:0!important}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .fld>label,.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .fld>.lbl{font-size:var(--fs-xs);line-height:16px;margin:0}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .fld .opt,.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .hint2{display:none!important}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .inp{min-height:44px;height:44px;padding-block:8px;box-sizing:border-box}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) textarea.inp{height:44px;min-height:44px!important;resize:none}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip){flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px;padding:2px 0;margin:0 -2px}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip)::-webkit-scrollbar{display:none}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip) button{flex:0 0 auto;height:32px;min-height:32px;padding:0 12px!important;font-size:var(--fs);line-height:28px}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .photos{gap:6px}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .ph-add,.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .ph-t{width:56px!important;height:56px!important}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .ph-add{font-size:var(--fs-xs);line-height:16px}
+/* 記一筆: ¥/NT$ switch and the amount on one row */
+.sheet .fld:has(#x-amt){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:8px}
+.sheet .fld:has(#x-amt)>.lbl,.sheet .fld:has(#x-amt)>.amt-hint{grid-column:1/-1}
+.sheet .fld:has(#x-amt)>.amt-hint:empty{display:none}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .fld>*{min-width:0}
+.sheet:has(#x-amt) .rolehint{display:none!important}
+/* six short choices fit one row on a phone, no half-cut chip: equal columns */
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip):not(#seg-cur){display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;overflow:visible;margin:0}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip):not(#seg-cur) button{padding:0 2px!important;min-width:0;overflow:hidden;text-overflow:clip}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-alg,#seg-atm,#seg-leg) button{font-size:var(--fs-xs);letter-spacing:-.02em}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-pay,#seg-own){grid-auto-columns:auto!important}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important;gap:2px!important}
+@media (max-width:359px){.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 交通 line never splits a phrase: lead, mode+minutes and 導航 each stay whole */
+.legnav .leglead,.legnav .navpill{white-space:nowrap}
+.legnav .legtx{white-space:nowrap}
+.legc .legnav{flex-wrap:wrap!important;row-gap:2px;max-width:100%;box-sizing:border-box}
+.legc .legnav{column-gap:4px!important}.legc .legnav .leglead{margin-right:0!important}.legc .legnav .navpill{margin-left:4px}
+@media (max-width:359px){.bar .pill-btn{padding:0 10px!important}}
+/* ===== 出發前 like Reminders: home (smart lists + 我的清單) → open one list ===== */
+.col[data-col="0"] .pretabs{display:none!important}
+body:not([data-pt="home"]) .col[data-col="0"] .pre-back{display:flex}
+.pre-back{display:none;align-items:center;gap:8px;margin:4px 0 8px}
+.pre-back b{font-size:20px;font-weight:700}
+.pre-back .linkbtn{font-size:var(--fs);color:var(--ink);text-decoration:none;padding:4px 0}
+body[data-pt="home"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="home"]),
+body[data-pt="list"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="list"]),
+body[data-pt="bag"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="bag"]),
+body[data-pt^="s-"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="smart"]){display:none!important}
+.col[data-col="0"] .dsec:not([data-sec]){display:none!important}
+.pre-home .smart{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.pre-home .smc{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:var(--bw,2px) solid var(--ink);border-radius:16px;background:#fff;font:inherit;color:var(--ink);cursor:pointer}
+.pre-home .smc b{font-size:var(--fs-md)}.pre-home .smc span{font-size:24px;font-weight:700}
+.pre-home .my-h{font-size:var(--fs);color:var(--muted);margin:0 0 8px}
+.pre-home .mylist{border:var(--bw,2px) solid var(--ink);border-radius:16px;background:#fff;overflow:hidden}
+.pre-home .myrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;border:0;border-top:1.5px dashed rgba(62,58,57,.2);background:none;font:inherit;font-size:var(--fs-md);color:var(--ink);cursor:pointer;text-align:left}
+.pre-home .myrow:first-child{border-top:0}
+.pre-home .myrow em{margin-left:auto;font-style:normal;color:var(--muted)}
+.pre-home .myrow i{font-style:normal;color:var(--muted)}
+.pre-home .my-i{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:var(--bd)}
+.pre-home .my-i svg{width:16px;height:16px}
+/* typing line at the bottom of a list */
+.clist .addline{padding:0!important;border-style:dashed!important}
+.clist .addtap{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:12px 16px;color:var(--muted);font-size:var(--fs-md)}
+.clist .addline-in{border:0!important;box-shadow:none!important;background:transparent;height:48px;font-size:var(--fs-md);padding:0 16px;width:100%;box-sizing:border-box}
+/* 筆記 rows: no circle */
+.crow.nochk .nochk-dot{width:28px;flex:0 0 28px}
+.kind.k-note{background:#EDE7F6;border-color:var(--ink)}
+/* ＋ : one box, 會加到 choices as small tiles */
+.pickadd.uni{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
+.pickadd.uni.pre{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px}
+.pickadd.uni .pk{min-height:72px!important;padding:8px 2px!important;gap:4px}
+.pickadd.uni .pk[aria-pressed="true"]{background:#FFF4D6;outline:2px solid var(--ink);outline-offset:-4px}
+.pickadd.uni .pk b{font-size:var(--fs)}
+.pickadd.uni .pk-i{width:32px;height:32px}.pickadd.uni .pk-i svg{width:16px;height:16px}
+#u-text{min-height:48px;resize:none;font-size:var(--fs-md)}
+#composer{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg,#FFFCF6);border-top:2px solid var(--ink)}
+#composer[hidden]{display:none}
+#composer .inp{flex:1;min-width:0;height:44px;font-size:var(--fs-md)}
+#composer .btn{height:44px;flex:0 0 auto}
+body.composing .fab{opacity:0;pointer-events:none}
+body.composing .col[data-col="0"]{padding-bottom:160px}
+/* 留言 */
+.item .cmcount{display:inline-block;margin-left:8px;font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;vertical-align:2px}
+.cmbox{border-top:1.5px dashed rgba(62,58,57,.3);padding-top:12px}
+.cmlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cmlist li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;align-items:baseline;padding:8px 12px;border:var(--bd);border-radius:14px;background:#fff}
+.cmlist li b{font-size:var(--fs)}
+.cmlist .cmt{font-size:var(--fs);overflow-wrap:anywhere}
+.cmlist small{grid-column:2;font-size:var(--fs-xs);color:var(--muted)}
+.cmlist .cmdel{grid-column:3;grid-row:1;all:unset;cursor:pointer;color:var(--muted);font-size:var(--fs);padding:0 4px}
+.cmlist .cmdel.arm{color:var(--warn);font-weight:700}
+.cmadd{display:flex;gap:8px}
+.cmadd .inp{flex:1;min-width:0;height:44px}
+.cmadd .btn{height:44px;flex:0 0 auto}
+/* 新增 switch row on top of every add form */
+.sheet .addsw{margin-top:-4px}
+.sheet .addsw .seg button{flex:1 1 0}
+/* chips in 新增／記一筆／編輯: clear gaps, never touching */
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) .seg:not(.dstrip){gap:8px!important;column-gap:8px!important}
+.pre-home .mylist{margin-top:4px}
+:root{--pro:#E3DAF2}
+body[data-pt="notes"] .col[data-col="0"] .dsec[data-sec]:not([data-sec="notes"]){display:none!important}
+.sheet .addsw #seg-addsw{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px!important}
+.sheet .addsw #seg-addsw button{padding:0 2px!important;min-width:0;height:36px;font-size:var(--fs)}
+.sheet:is(:has(#a-text),:has(#x-amt)){gap:8px!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld:has(#photos){display:flex!important;flex-direction:row;align-items:center;gap:12px!important}
+.sheet:is(:has(#a-text),:has(#x-amt)) .fld:has(#photos)>.lbl{flex:0 0 auto}
+.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title)) :is(#seg-alg,#seg-atm,#seg-leg){gap:2px!important;column-gap:2px!important}
+/* 編輯行程: the editing part above the dashed line fits one screen */
+.sheet:has(#e-title){gap:8px!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px}
+.sheet:has(#e-title)>*{grid-column:1/-1}
+.sheet:has(#e-title)>.fld:has(#e-note){grid-column:1}
+.sheet:has(#e-title)>.fld:has(#photos){grid-column:2;align-self:end}
+.sheet:has(#e-title)>.fld:has(#photos)>.lbl{visibility:hidden}
+.sheet:has(#e-title)>.fld:has(#photos) .photos{flex-wrap:nowrap;max-width:180px;overflow-x:auto}
+.sheet:has(#e-title)>.fld:has(#e-cm):not(.legf){display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px}
+.sheet:has(#e-title)>.fld:has(#e-cm) .legmin{max-width:180px}
+.sheet:has(#e-title) .dstrip{row-gap:2px!important}
+.sheet:has(#e-title) .dstrip .n{width:32px!important;max-width:32px}
+.sheet:has(#e-title) .dstrip .w{line-height:14px}
+.sheet:has(#e-title) .more-flat{padding-top:12px}
+/* 編輯行程: one-line fields carry their label on the left (no label row) */
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time)){display:grid!important;grid-template-columns:44px minmax(0,1fr);align-items:center;column-gap:8px}
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time))>:is(label,.lbl){margin:0;white-space:nowrap}
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time)) .opt{display:none!important}
+.sheet:has(#e-title)>.fld:has(#e-time)>:not(label):not(.lbl){grid-column:2}
+.sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg){grid-auto-columns:auto!important}
+.sheet:has(#e-title) :is(#seg-alg,#seg-atm,#seg-leg) button{font-size:var(--fs-xs);letter-spacing:-.02em}
+.sheet :is(#seg-alg,#seg-atm,#seg-leg){display:flex!important;flex-wrap:nowrap!important}
+.sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:1 0 auto!important;min-width:max-content!important;padding:0 2px!important}
+.sheet .legmin span{white-space:nowrap}
+.sheet:has(#e-title){gap:6px!important}
+/* ===== desktop (sheet is a centred dialog, plenty of room): a tidy form — every row has its label on the left in one column,
+   choices keep their natural size and sit left, no stretched or squeezed chips ===== */
+@media (min-width:560px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)){grid-template-columns:1fr!important;gap:12px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in))>*{grid-column:1/-1!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own)){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own))>:is(label,.lbl){grid-column:1;align-self:start;padding-top:10px;margin:0;font-size:var(--fs);white-space:nowrap;visibility:visible!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(.aiinfo):not(:has(#e-area)):not(:has(#e-oh)):not(:has(#a-text)):not(:has(#seg-own))>:not(label):not(.lbl){grid-column:2}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .fld .opt{display:none!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip){display:flex!important;flex-wrap:wrap!important;justify-content:flex-start;gap:8px!important;overflow:visible}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip) button{flex:0 0 auto!important;min-width:64px!important;padding:0 14px!important;height:36px;font-size:var(--fs)!important;letter-spacing:0}
+  .sheet .addsw #seg-addsw{display:flex!important;gap:8px!important}
+  .sheet .addsw #seg-addsw button{flex:0 0 auto!important;padding:0 16px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) textarea.inp{height:64px!important;min-height:64px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .ph-add,.sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .ph-t{width:64px!important;height:64px!important}
+  .sheet .dstrip{justify-content:start}
+  .sheet .fld:has(#x-amt){grid-template-columns:88px auto minmax(0,1fr)!important}
+  .sheet .fld:has(#x-amt)>#seg-cur{grid-column:2!important}.sheet .fld:has(#x-amt)>#x-amt{grid-column:3!important}
+  .sheet .fld:has(#e-time)>*:not(label):not(.lbl){max-width:320px}
+  .sheet .fld:has(#e-cm) .legmin{max-width:200px}
+  .sheet .more-flat>div{display:grid;gap:12px}
+  .sheet .more-flat .row2{grid-template-columns:repeat(2,minmax(0,200px));justify-content:start}
+}
+/* 出發前: one row of five tabs */
+.pretabs2{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:8px 0 16px}
+.pretabs2 button{display:flex;align-items:center;justify-content:center;gap:4px;height:40px;padding:0 4px;border:var(--bd);border-radius:var(--pill);background:#fff;font:inherit;font-size:var(--fs);color:var(--ink);cursor:pointer;white-space:nowrap;min-width:0}
+.pretabs2 button[aria-selected="true"]{background:var(--coral);font-weight:700}
+.pretabs2 i{font-style:normal;font-size:var(--fs-xs);min-width:20px;height:20px;line-height:16px;padding:0 4px;border:var(--bd);border-radius:var(--pill);background:var(--yellow);box-sizing:border-box}
+.col[data-col="0"] .pre-back{display:none!important}
+.sheet:has(#e-title)>.fld:is(:has(#e-title),:has(#e-note),#e-posf,:has(#e-time)){grid-template-columns:52px minmax(0,1fr)!important}
+/* 今日日記 */
+.dsec.diary .dlist{list-style:none;margin:8px 0;padding:0;display:grid;gap:8px}
+.dsec.diary .dentry{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:4px;width:100%;padding:12px 16px;border:var(--bd);border-radius:18px;background:#fff}
+.dsec.diary .dmeta{font-size:var(--fs-xs);color:var(--muted)}
+.dsec.diary .dtext{font-size:var(--fs);line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.dsec.diary .ithumbs{margin-top:4px}
+.dsec.diary .dadd{display:block;width:100%;box-sizing:border-box;padding:12px 16px;border:2px dashed rgba(62,58,57,.35);border-radius:18px;color:var(--muted);font-size:var(--fs);text-align:center;cursor:pointer;background:none}
+/* AI 推薦 line on a card */
+.item .irec{display:block;font-size:var(--fs);line-height:1.6;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* list rows: tag・date・name on one line, the note on the next — two lines instead of four */
+.clist .crow .lbody.lx{display:flex!important;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;text-align:left}
+.clist .crow .lbody.lx>.kind,.clist .crow .lbody.lx>.ldate{flex:0 0 auto;margin:0!important}
+.clist .crow .lbody.lx>.ct{flex:1 1 120px;min-width:0}
+.clist .crow .lbody.lx>.cn{flex:1 0 100%;margin:0}
+.clist .crow .lbody.lx>.ithumbs{flex:0 0 100%}
+.clist .crow .lbody.lx>.ct{flex:1 1 0!important;min-width:0}
+.clist .crow .lbody.lx>.cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 旅費: the five 依… buttons share the width — none cut at the edge */
+.viewseg{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px!important;overflow:visible!important}
+.viewseg button{padding:6px 2px!important;min-width:0;white-space:nowrap}
+/* 記一筆: the switch row first, then 金額; rows and the ¥/NT$ ↔ amount gap get room to breathe */
+.sheet .addsw{order:-2!important}
+.sheet .fld:has(#x-amt){order:-1!important;column-gap:12px!important}
+.sheet:has(#x-amt){gap:12px!important}
+.sheet:has(#x-amt) #seg-cur{gap:8px!important}
+/* 資訊 block: 地區・營業時間・簡介 as text; the three fields only after 修改 */
+.sheet:has(#e-title):not(.ai-open) .fld:is(:has(#e-area),:has(#e-oh),:has(#e-desc)){display:none!important}
+.sheet .aiinfo{display:grid!important;gap:4px!important;padding:12px 16px;border:var(--bd);border-radius:16px;background:#fff}
+.sheet .aiinfo .aiinfo-h{display:flex;align-items:center;justify-content:space-between}
+.sheet .aiinfo .aiinfo-h .lbl{margin:0}
+.sheet .aiinfo .aiinfo-edit{font-size:var(--fs);color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.sheet .aiinfo .aiinfo-meta{font-size:var(--fs);color:var(--ink)}
+.sheet .aiinfo .aiinfo-desc{font-size:var(--fs);line-height:1.7;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+@media (min-width:560px){.sheet .fld.aiinfo{grid-template-columns:1fr!important}.sheet .fld.aiinfo>*{grid-column:1!important}}
+/* 分享: one row to add, compact people list */
+.shadd{display:flex;gap:8px}
+.shadd .inp{flex:1;min-width:0;height:44px}
+.shadd .btn{height:44px;flex:0 0 auto;padding:0 20px}
+.seg.shrole-new{margin-top:-4px}
+.shlist .shrow{display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"mail mail" "role act";align-items:center;gap:8px 8px;padding:12px 16px!important}
+.shlist .shrow .cbody{grid-area:mail;min-width:0}
+.shlist .shrow .ct{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shlist .shrow .shrole{grid-area:role;justify-self:start}
+.shlist .shrow .sh-send{grid-area:act;justify-self:end}
+.shlist .shrow [data-rm]{grid-area:act;justify-self:end;margin-right:88px}
+.shlist .shrow{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"mail mail mail" "role send rm"!important}
+.shlist .shrow .sh-send{grid-area:send!important}
+.shlist .shrow [data-rm]{grid-area:rm!important;margin:0!important}
+/* every sheet: row 1 = title + ×, row 2 = the 新增 switch row, then the fields (same order in every add form) */
+.sheet>.sheet-x{order:-4!important}
+.sheet>h2{order:-3!important}
+.sheet>.addsw{order:-2!important}
+/* 修改 open: 地區 and 營業時間 side by side */
+.sheet:has(#e-title) .more-flat>div{grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:8px}
+.sheet:has(#e-title) .more-flat>div>*{grid-column:1/-1}
+.sheet:has(#e-title).ai-open .more-flat>div>.fld:has(#e-area){grid-column:1!important}
+.sheet:has(#e-title).ai-open .more-flat>div>.fld:has(#e-oh){grid-column:2!important}
+.sheet:has(#e-title) .fld:has(#e-oh) .opt,.sheet:has(#e-title) .fld:has(#e-area) .opt{display:none!important}
+@media (min-width:560px){.sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){grid-template-columns:72px minmax(0,1fr)!important}}
+/* 哪一天: touch screens swipe one row of exactly seven days (snaps to whole days, no half circle at the edge);
+   mouse screens keep the two rows, since they can't swipe */
+@media (pointer:coarse){
+  .sheet .dstrip{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;scroll-snap-type:x mandatory;column-gap:0!important;row-gap:0!important;scrollbar-width:none;padding:4px 0!important}
+  .sheet .dstrip::-webkit-scrollbar{display:none}
+  .sheet .dstrip button{flex:0 0 calc(100% / 7)!important;width:calc(100% / 7)!important;min-width:0!important;scroll-snap-align:start}
+}
+/* 出發前 switch row has six choices with emoji: two rows of three on phones */
+@media (max-width:559px){.sheet .addsw #seg-addsw:has(> :nth-child(4)){grid-auto-flow:row!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:8px!important}}
+/* 記一筆 kept to one screen: 其他人 folded, 記什麼／細節 labels on the left, 8px rows */
+.sheet:has(#x-amt):not(.own-open) .own-new{display:none!important}
+.sheet.own-open .own-add{display:none}
+.sheet .own-add{margin-left:12px;font-size:var(--fs-xs);color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.sheet:has(#x-amt){gap:8px!important}
+@media (max-width:559px){
+  .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what)){display:grid!important;grid-template-columns:52px minmax(0,1fr);align-items:center;column-gap:8px}
+  .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what))>:is(label,.lbl){margin:0;white-space:nowrap}
+  .sheet:has(#x-amt) .fld:is(:has(#x-shop),:has(#x-what)) .opt{display:none!important}
+}
+@media (max-width:559px){
+  .sheet .addsw #seg-addsw button{height:32px!important;min-height:32px!important}
+  .sheet .addsw #seg-addsw{row-gap:6px!important}
+  .sheet:has(#x-amt) .ph-add,.sheet:has(#x-amt) .ph-t{width:48px!important;height:48px!important}
+}
+/* 交通 line: [lead + mode + minutes] is a button (change it), 導航 is the only link */
+.legc .legnav{display:flex!important;align-items:center;flex-wrap:wrap;gap:4px 8px;text-decoration:none!important}
+.legc .legnav .legedit{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:32px;padding:0 8px;margin-left:-8px;border-radius:var(--pill)}
+.legc .legnav .legedit:hover,.legc .legnav .legedit:active{background:rgba(62,58,57,.06)}
+.legc .legnav .legedit .legtx{text-decoration:underline dotted rgba(62,58,57,.4);text-underline-offset:4px}
+.legc .legnav .navpill{margin-left:0;text-decoration:none}
+.legc .legnav.back .leglead{color:var(--ink)}
+/* card: opening hours next to type + area */
+.item .imeta .ioh{white-space:nowrap}
+/* 時段 headers: an emoji and a soft pill so 早餐／上午／午餐… stand out */
+.tl .slot-h b{display:inline-flex;align-items:center;gap:4px;padding:2px 12px;border-radius:var(--pill);background:#fff;border:var(--bd);font-size:var(--fs)!important;color:var(--ink)}
+.tl .slot-h:has([data-slot="breakfast"]) b::before{content:'🍳'}
+.tl .slot-h:has([data-slot="morning"]) b::before{content:'☀️'}
+.tl .slot-h:has([data-slot="lunch"]) b::before{content:'🍱'}
+.tl .slot-h:has([data-slot="afternoon"]) b::before{content:'🌤️'}
+.tl .slot-h:has([data-slot="dinner"]) b::before{content:'🍽️'}
+.tl .slot-h:has([data-slot="evening"]) b::before{content:'🌙'}
+.sheet .star-tog{margin-left:12px;font-size:var(--fs-xs);color:var(--muted);text-decoration:none;padding:0 8px;border:1.5px solid rgba(62,58,57,.3);border-radius:var(--pill);line-height:20px}
+.sheet .star-tog[aria-pressed="true"]{color:var(--ink);background:var(--yellow);border-color:var(--ink);font-weight:700}
+.item .imeta:has(.tbad) .ioh{display:none}
+
+/* 交通 sheet: the long「從「…」過來」hint wraps inside the sheet instead of running off it */
+.sheet .legf .lbl{white-space:normal!important;display:block}
+.sheet .legf .lbl .opt{display:inline;overflow-wrap:anywhere}
+.sheet .legft{overflow-wrap:anywhere}
+/* desktop: 去哪裡 keeps its label (with ☆ 必去) on top of the box */
+@media (min-width:560px){
+  .sheet .fld:has(#a-text)>label{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .sheet:has(#e-title).ai-open .more-flat>div>.fld:is(:has(#e-area),:has(#e-oh)){display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;align-items:center;column-gap:8px}
+}
+.sheet:has(#e-title):not(.ai-open) .more-flat .fld:is(:has(#e-area),:has(#e-oh),:has(#e-desc)){display:none!important}
+/* desktop: 交通方式 chips at normal size with 8px gaps (the 2px squeeze is only for phones) */
+@media (min-width:560px){
+  .sheet :is(#seg-alg,#seg-atm,#seg-leg){gap:8px!important;column-gap:8px!important;flex-wrap:wrap!important}
+  .sheet :is(#seg-alg,#seg-atm,#seg-leg) button{flex:0 0 auto!important;padding:0 14px!important;font-size:var(--fs)!important;letter-spacing:0!important}
+}
+/* 交通 sheet (its own small sheet): the six choices wrap onto two rows with normal gaps */
+.sheet:not(:has(#e-title)):not(:has(#a-text)) #seg-leg{flex-wrap:wrap!important;gap:8px!important;column-gap:8px!important}
+.sheet:not(:has(#e-title)):not(:has(#a-text)) #seg-leg button{flex:0 0 auto!important;padding:0 12px!important;font-size:var(--fs)!important;letter-spacing:0!important}
+/* no extra ring on the chip you just clicked (it looked like a different style); keyboard users still get one */
+.seg button:focus,.pk:focus,.pretabs2 button:focus{outline:none!important;box-shadow:none!important}
+.seg button:focus-visible,.pretabs2 button:focus-visible{outline:2px dashed var(--ink)!important;outline-offset:2px}
+/* 口袋 page = 口袋名單 (places) on top, 筆記 underneath */
+.col[data-col="0"].active{display:flex;flex-direction:column}  /* only while it is the shown column — otherwise it stayed on screen when you picked a day */
+.col[data-col="0"]>*{min-width:0}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec][data-sec="notes"]:not([data-sec="x"]){display:block!important;order:50}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"]{order:40}
+.col[data-col="0"] .col-foot,.col[data-col="0"]>footer{order:90}
+/* desktop: 這筆是誰的（＋其他人）keeps its label on top */
+@media (min-width:560px){.sheet .fld:has(#seg-own){display:grid!important;grid-template-columns:1fr!important}.sheet .fld:has(#seg-own)>*{grid-column:1!important}.sheet .fld:has(#seg-own)>.lbl{padding-top:0!important}}
+@media (max-width:559px){.sheet .addsw #seg-addsw:has(> :nth-child(4)):not(:has(> :nth-child(5))){grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-flow:column!important}}
+/* 時段 headers, lighter: emoji + bold word, then a soft dashed rule (no boxed pill) */
+.tl .slot-h{display:flex!important;align-items:center;gap:8px}
+.tl .slot-h b{padding:0!important;border:0!important;background:none!important;font-size:var(--fs)!important;font-weight:700;gap:6px}
+.tl .slot-h::after{content:'';flex:1;border-top:1.5px dashed rgba(62,58,57,.2);margin-right:4px}
+/* 口袋 = one list: the places, then the notes right under them, no second heading */
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="notes"]{padding-top:0!important;margin-top:-8px}
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pool"] .pool-help{display:none}
+.bar .backlink{padding:0!important;justify-content:center!important;gap:0!important}
+/* wide screens: the 13 days spread across the whole strip (no empty space on the right) */
+@media (min-width:760px){.strip .chip:not(.pool){flex:1 1 0!important;min-width:44px}}
+/* 記一筆: ¥ / NT$ always side by side, the amount box takes the rest */
+.sheet #seg-cur{flex-wrap:nowrap!important}
+.sheet #seg-cur button{flex:0 0 auto!important}
+.sheet .fld:has(#x-amt)>#x-amt{min-width:96px}
+/* 編輯: ☆ 必去 is a small switch inside the 名稱 box (no 標記 row) */
+.sheet .togwrap{position:relative;min-width:0}
+.sheet .togwrap .inp{width:100%;box-sizing:border-box;padding-right:88px}
+.sheet .togwrap .star-in{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:28px;padding:0 10px;border:2px solid rgba(62,58,57,.3);border-radius:var(--pill);background:#fff;font:inherit;font-size:var(--fs-xs);line-height:20px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.sheet .togwrap .star-in[aria-pressed="true"]{background:var(--yellow);border-color:var(--ink);color:var(--ink);font-weight:700}
+/* 交通方式: 要多久 sits right under the choices, in the same field */
+.sheet .legf .legmin{display:flex;align-items:center;gap:8px;margin-top:8px;max-width:none!important}
+.sheet .legf .legmin label{font-size:var(--fs);color:var(--ink);white-space:nowrap;margin:0}
+.sheet .legf .legmin .inp{width:140px;flex:0 0 auto}
+/* the 新增 switch row is always one row of equal buttons on wider screens, in every form (待辦 used to wrap) */
+@media (min-width:560px){
+  .sheet .addsw #seg-addsw{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(0,1fr)!important;grid-template-columns:none!important;gap:8px!important;flex-wrap:nowrap!important}
+  .sheet .addsw #seg-addsw button{min-width:0!important;padding:0 8px!important;white-space:nowrap}
+}
+/* chips in every form get real 8px gaps. These need the extra :not(#…) so they outrank the old phone squeeze
+   (.seg:not(#seg-cur) and :is(#seg-alg…) carry ids, which beat the plain desktop rules — that is why the gaps stayed 2–4px) */
+@media (min-width:560px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip):not(#seg-cur):not(#seg-addsw){display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;gap:8px!important;column-gap:8px!important;row-gap:8px!important;overflow:visible!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) .seg:not(.dstrip):not(#seg-cur):not(#seg-addsw) button{flex:0 0 auto!important;min-width:56px!important;width:auto!important;padding:0 12px!important;height:36px!important;font-size:var(--fs)!important;letter-spacing:0!important}
+}
+@media (max-width:559px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) :is(#seg-alg,#seg-atm,#seg-leg):not(#seg-cur):not(#seg-addsw){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:8px!important;column-gap:8px!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#e-title),:has(#q-in)) :is(#seg-alg,#seg-atm,#seg-leg):not(#seg-cur):not(#seg-addsw) button{min-width:0!important;padding:0 4px!important;font-size:var(--fs)!important;letter-spacing:0!important}
+}
+/* 8px between chips everywhere (switch row on phones, 分享 role chips) */
+.sheet .addsw #seg-addsw:not(#x){column-gap:8px!important}
+.sheet .seg:is(#sh-role,.shrole-new,.shrole):not(#x){gap:8px!important}
+/* every add form looks the same: label on the left (wide screens), ☆ 必去 sits inside the box instead of taking its own line */
+.sheet .togwrap:has(textarea) .star-in{top:8px;transform:none}
+.sheet .togwrap textarea.inp{padding-right:88px}
+@media (min-width:560px){
+  .sheet .fld:has(#a-text):not(#x){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px;row-gap:6px}
+  .sheet .fld:has(#a-text):not(#x)>label{grid-column:1;align-self:start;padding-top:10px;margin:0!important;font-size:var(--fs);display:block!important;white-space:nowrap}
+  .sheet .fld:has(#a-text):not(#x)>:not(label){grid-column:2}
+}
+/* ===== one look for every add form (wide screens) — the :not(#…) pairs out-rank the older per-form rules ===== */
+.sheet .fld #seg-cur:not(#z1):not(#z2){flex-wrap:nowrap!important}
+.sheet .fld #seg-cur:not(#z1):not(#z2) button{flex:0 0 auto!important}
+.sheet .addsw #seg-addsw:not(#z1):not(#z2){display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(0,1fr)!important;grid-template-columns:none!important;gap:8px!important;width:100%}
+.sheet .addsw #seg-addsw:not(#z1):not(#z2) button{flex:none!important;width:auto!important;min-width:0!important}
+/* 這筆是誰的: ＋ 其他人 is the last chip on the same line */
+.sheet #seg-own .own-add:not(#z1){margin:0!important;border:2px dashed rgba(62,58,57,.4)!important;background:transparent!important;color:var(--ink);font-size:var(--fs)!important;text-decoration:none!important;border-radius:var(--pill)}
+@media (min-width:560px){
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#q-in),:has(#dy-in),:has(#e-title)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):not(:has(#x-amt)):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(:has(#e-area)):not(:has(#e-oh)){display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;align-items:center;column-gap:12px!important;row-gap:6px!important;padding-left:0!important;padding-right:0!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#q-in),:has(#dy-in),:has(#e-title)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):not(:has(#x-amt)):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(:has(#e-area)):not(:has(#e-oh))>:is(label,.lbl){grid-column:1!important;align-self:start;padding-top:10px!important;margin:0!important;font-size:var(--fs)!important;white-space:nowrap;display:block!important}
+  .sheet:is(:has(#a-text),:has(#x-amt),:has(#q-in),:has(#dy-in),:has(#e-title)) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):not(:has(#x-amt)):not(:has(#e-q)):not(:has(#e-map)):not(:has(#e-desc)):not(:has(#e-area)):not(:has(#e-oh))>:not(label):not(.lbl){grid-column:2!important}
+  .sheet .fld:has(#x-amt):not(#z1):not(#z2):not(#z3){display:grid!important;grid-template-columns:88px auto minmax(0,1fr)!important;align-items:center;column-gap:12px!important}
+  .sheet .fld:has(#x-amt):not(#z1):not(#z2):not(#z3)>.lbl{grid-column:1!important;font-size:var(--fs)!important;margin:0!important;padding-top:0!important}
+  .sheet .fld:has(#x-amt):not(#z1):not(#z2):not(#z3)>#seg-cur{grid-column:2!important}
+  .sheet .fld:has(#x-amt):not(#z1):not(#z2):not(#z3)>#x-amt{grid-column:3!important}
+}
+.sheet .fld #seg-cur:not(#z1):not(#z2){margin:0!important}
+/* 住宿 on the pass: the name is a button (tap to change), 地圖 is its own pill */
+.hotel-e{all:unset;cursor:pointer;text-decoration:underline dotted rgba(62,58,57,.5);text-underline-offset:4px}
+.hotel-m .hotel-e{display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-decoration:none}
+.hotel-m .hotel-e b{text-decoration:underline dotted rgba(62,58,57,.5);text-underline-offset:4px}
+.hotel-m .hotel-map{text-decoration:none;color:var(--ink);flex-shrink:0}
+/* no empty list box (e.g. 口袋 with no 筆記 yet) now that lists have no add row */
+.clist:empty{display:none!important}
+/* same rule on the day pages: 今日要辦／今日花費／今日日記 have no add button of their own — the ＋ does it (with 待辦／花費／日記 on its top row) */
+.dsec .dsec-h .slot-add{display:none!important}
+.mbar .mb-o{font-style:normal;margin-left:8px;padding-left:8px;border-left:2px solid rgba(62,58,57,.2)}
+.mbar .mb-o:first-child{margin-left:0;padding-left:0;border-left:0}
+/* the 旅費 pill never pushes ⚙／分享 off a phone screen: it shrinks (and trims) instead */
+.bar #mbar{flex:0 1 auto!important;min-width:0!important;overflow:hidden}
+.bar #mbar>span{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media (max-width:480px){.bar #mbar.mb-multi{font-size:var(--fs-xs);padding:0 10px!important}.bar #mbar.mb-multi .mb-o{margin-left:6px;padding-left:6px}}
+.mbar .mb-f{font-style:normal}
+/* phones, every form the same: a typing box has its label on the left; a row of choices has its label on top */
+@media (max-width:559px){
+  .sheet:has(.addsw) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):is(:has(>input.inp),:has(>textarea.inp),:has(>.togwrap)):not(:has(#x-amt)){display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;align-items:center;column-gap:8px!important;row-gap:4px!important}
+  .sheet:has(.addsw) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):is(:has(>input.inp),:has(>textarea.inp),:has(>.togwrap)):not(:has(#x-amt))>:is(label,.lbl){grid-column:1!important;margin:0!important;white-space:nowrap;display:block!important;align-self:center}
+  .sheet:has(.addsw) .fld:not(.addsw):not(.cmbox):not([hidden]):not(.aiinfo):not(#z1):not(#z2):is(:has(>input.inp),:has(>textarea.inp),:has(>.togwrap)):not(:has(#x-amt))>:not(label):not(.lbl){grid-column:2!important}
+  .sheet:has(.addsw) .fld:not(#z1):not(#z2):is(:has(>input.inp),:has(>textarea.inp),:has(>.togwrap)) .opt{display:none!important}
+}
+@media (max-width:559px){
+  /* also left: 照片, 排在哪裡 (a dropdown), 時間 (two boxes) — and a row of choices (這筆是誰的) stays on top */
+  .sheet:has(.addsw) .fld:not(.addsw):not([hidden]):not(#z1):not(#z2):is(:has(#photos),:has(>select),:has(#a-time),:has(#e-time)){display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;align-items:center;column-gap:8px!important;row-gap:4px!important}
+  .sheet:has(.addsw) .fld:not(.addsw):not([hidden]):not(#z1):not(#z2):is(:has(#photos),:has(>select),:has(#a-time),:has(#e-time))>:is(label,.lbl){grid-column:1!important;margin:0!important;white-space:nowrap;display:block!important}
+  .sheet:has(.addsw) .fld:not(.addsw):not([hidden]):not(#z1):not(#z2):is(:has(#photos),:has(>select),:has(#a-time),:has(#e-time))>:not(label):not(.lbl){grid-column:2!important}
+  .sheet:has(.addsw) .fld:not(#z1):not(#z2):not(#z3):has(#seg-own){display:flex!important;flex-direction:column;align-items:stretch}
+}
+/* every add form ends the same way: one wide button (× on top is cancel) — 新增行程 already looked like this */
+.sheet:has(.addsw) .btns :is(#q-cancel,#x-cancel,#dy-cancel),.sheet:has(.addsw) .btns .sp{display:none!important}
+.sheet:has(.addsw) .btns .btn.pri{flex:1 1 auto!important;width:100%}
+/* 出發前: three tabs now (花費 moved to 旅費) */
+.pretabs2{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.bar .mb-add{flex:0 0 auto;font-size:var(--fs-lg);line-height:1}
+/* 住宿 地圖: the same blue pill as 導航 (opens the hotel on Google Maps, not directions) */
+.pass .hm-pill{display:inline-flex;align-items:center;gap:4px;height:24px;margin-left:8px;padding:0 10px;border:var(--bd);border-radius:var(--pill);background:var(--water);color:var(--ink);font-size:var(--fs-xs);font-weight:700;line-height:20px;white-space:nowrap;text-decoration:none;vertical-align:middle}
+.pass .hm-pill svg{width:14px;height:14px}
+#hf-ok~*,.sheet .btns a.btn svg{width:16px;height:16px;vertical-align:-2px}
+/* ===== 旅費總覽 charts: same cards as the rest of the app (thick ink border, round corners, theme colours) ===== */
+#money .sumcard .catbar,#money .sumcard .catleg,#money .sumcard .paid{display:none!important}
+.mviz{display:grid;gap:12px;margin:12px 0}
+.mv-card{border:var(--bd);border-radius:20px;background:#fff;padding:16px}
+.mv-h{font-size:var(--fs);font-weight:700;margin-bottom:12px}
+.mv-cat{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center}
+.mv-donut{width:120px;height:120px;display:block}
+.mv-leg{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mv-leg li{display:grid;grid-template-columns:12px minmax(0,1fr) auto 36px;align-items:center;gap:8px;font-size:var(--fs)}
+.mv-leg i{width:12px;height:12px;border-radius:var(--pill);border:var(--bd);box-sizing:border-box}
+.mv-leg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv-leg b{font-weight:700;white-space:nowrap}
+.mv-leg em{font-style:normal;font-size:var(--fs-xs);color:var(--muted);text-align:right}
+.mv-days{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;align-items:end;height:112px}
+.mv-d{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0;height:100%}
+.mv-bar{width:100%;max-width:20px;border:var(--bd);border-radius:6px 6px 2px 2px;background:var(--coral);box-sizing:border-box}
+.mv-bar[style*="height:0px"]{border:0}
+.mv-d small{font-size:var(--fs-xs);color:var(--muted);line-height:16px}
+.mv-d.today small{color:var(--ink);font-weight:700}
+.mv-d.today .mv-bar{background:var(--yellow)}
+.mv-who{display:grid;gap:10px}
+.mv-w{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:var(--fs)}
+.mv-w span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv-track{height:16px;border:var(--bd);border-radius:var(--pill);background:var(--bg);overflow:hidden;box-sizing:border-box}
+.mv-track i{display:block;height:100%}
+.mv-w b{white-space:nowrap}
+@media (max-width:359px){.mv-cat{grid-template-columns:1fr;justify-items:center}}
+.hotel-m em{display:inline-flex;align-items:center;gap:4px;font-weight:700}
+.hotel-m em svg{width:14px;height:14px}
+/* typing boxes: no second ring around the box while you type (it looked like a double frame) */
+.inp:focus,.inp:focus-visible{outline:none!important;box-shadow:none!important}
+/* ★ inside the name box: just the star — white when off, yellow when on */
+.sheet .togwrap .star-in{width:32px;height:32px;padding:0!important;display:grid;place-items:center;font-size:var(--fs-md)!important;line-height:1!important;border:var(--bd)!important;background:#fff!important;color:var(--ink)!important;border-radius:var(--pill)}
+.sheet .togwrap .star-in[aria-pressed="true"]{background:var(--yellow)!important}
+.sheet .togwrap .inp{padding-right:48px!important}
+.sheet .togwrap:has(textarea) .star-in{top:6px}
+.sheet .togwrap:not(:has(textarea)) .star-in{top:50%;transform:translateY(-50%)}
+@media (max-width:480px){.mv-cat{grid-template-columns:1fr!important;justify-items:center}.mv-leg{width:100%}}
+#money .sumtop .budget-set{margin:0 0 0 12px!important;padding:0!important;font-size:var(--fs-xs)}
+/* list item sheet: no 放在哪一類／要打勾嗎 rows */
+.sheet .fld:has(#seg-chk){display:none!important}
+.sheet .togwrap .tix-in{font-size:var(--fs)!important}
+/* 住宿: the English／Japanese name on its own small line under the name */
+.hotel-e .hotel-en{display:block;font-size:var(--fs-xs);font-weight:400;color:var(--muted);line-height:16px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hotel-m .hotel-e b{display:flex;flex-direction:column;min-width:0}
+.sheet :is(#seg-qtype,#seg-ltype):not(#z1):not(#z2){gap:8px!important;column-gap:8px!important}
+/* 住宿 備註: every line shown */
+.hotel-note{white-space:pre-line!important;overflow:visible!important;text-overflow:clip!important}
+/* 口袋 tab = one list (places + 想買／筆記, tagged); the old 口袋名單 block and the separate 筆記 block are hidden there */
+body[data-pt="pool"] .col[data-col="0"] .dsec[data-sec="pocket"]:not(#z1){display:block!important}
+body[data-pt="pool"] .col[data-col="0"] .dsec:is([data-sec="pool"],[data-sec="notes"]):not(#z1):not(#z2){display:none!important}
+body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:none!important}
+.crow.pk-item .must{font-size:var(--fs-xs);color:var(--ink);background:var(--yellow);border:var(--bd);border-radius:var(--pill);padding:0 6px;line-height:16px}
+/* 記帳 button: same round icon button as 搜尋 */
+.bar #mb-add svg{width:20px;height:20px}
+/* phones: 旅費 + 記帳 stay on the first row with 🏠 — the other buttons get a little tighter so everything fits */
+@media (max-width:480px){
+  .bar{flex-wrap:nowrap!important;gap:6px!important}
+  .bar #mbar{padding:0 10px!important;font-size:var(--fs-xs)}
+  .bar #mbar>span{text-overflow:clip}
+  .bar .pill-btn{padding:0 10px!important}
+  .bar .peers,.bar .sp{display:none!important}
+  .bar #mb-add{margin-right:auto!important}
+}
+@media (max-width:559px){
+  /* 類型 (待辦／票券／訂位) is short: label and choices on one row */
+  .sheet .fld:not(#z1):not(#z2):not(#z3):is(:has(#seg-qtype),:has(#seg-ltype)){display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;align-items:center;column-gap:8px!important}
+  .sheet .fld:not(#z1):not(#z2):not(#z3):is(:has(#seg-qtype),:has(#seg-ltype))>.lbl{grid-column:1!important;margin:0!important}
+}
+/* phones: a 交通 row (✈️ 飛機・約 4 小時) never breaks inside a part, and the row grows to fit its 2nd line instead of running into the next card */
+.item.mvrow,.item.mvrow .ibody{height:auto!important;max-height:none!important;overflow:visible!important}
+.item.mvrow .ibody{flex-wrap:wrap!important;align-items:center;row-gap:4px}
+.item.mvrow :is(.mv-m,.mv-d,.itime){white-space:nowrap!important}
+.item.mvrow .mv-n{flex:1 0 100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.item.mvrow .mv-d:not(#z1){display:inline-block!important;flex:0 0 auto!important;height:auto!important}
+.item.mvrow .ibody:not(#z1){display:flex!important;flex-direction:row!important}
+/* 旅行設定: shorter — covers in one swipe row, flights as compact rows, delete as a small link at the end */
+.sheet:has(#tf-title) #tf-theme{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px!important;scrollbar-width:none;padding-bottom:4px}
+.sheet:has(#tf-title) #tf-theme::-webkit-scrollbar{display:none}
+.sheet:has(#tf-title) #tf-theme .thbtn{flex:0 0 88px!important;min-width:88px!important;padding:4px!important;font-size:var(--fs-xs)}
+.sheet:has(#tf-title) #tf-theme .thart svg{height:40px!important;width:auto}
+.sheet .tf-fly{display:grid;gap:8px;border-top:1.5px dashed rgba(62,58,57,.3);padding-top:12px}
+.sheet .tf-fly .row2 .fld>label{font-size:var(--fs-xs)}
+.sheet .tf-del{justify-self:center;color:var(--muted);font-size:var(--fs-xs);text-decoration:underline;text-underline-offset:4px}
+.sheet .tf-del.arm{color:#C23D63;font-weight:700}
+.sheet .tf-fly>.lbl{font-size:var(--fs-xs);font-weight:700}
+.sheet .tf-fly>.lbl .opt{display:inline!important;margin-left:8px;font-weight:400;color:var(--muted)}
+/* 旅行設定, even shorter: small labels, 40px boxes, small covers; wide screens put pairs side by side (名稱+目的地 | 出發日+天數, 去程 | 機場, 回程) */
+.sheet:has(#tf-title){gap:10px!important}
+.sheet:has(#tf-title) .fld{gap:2px!important;margin:0!important}
+.sheet:has(#tf-title) .fld>label,.sheet:has(#tf-title) .fld>.lbl{font-size:var(--fs-xs)!important;margin:0!important;padding:0!important}
+.sheet:has(#tf-title) .inp{height:40px!important;min-height:40px!important;padding-block:6px!important}
+.sheet:has(#tf-title) .row2{gap:8px!important}
+.sheet:has(#tf-title) #tf-theme .thbtn{flex:0 0 72px!important;min-width:72px!important}
+.sheet:has(#tf-title) #tf-theme .thart svg{height:28px!important}
+.sheet:has(#tf-title) .tf-fly{gap:6px!important;padding-top:8px!important}
+@media (min-width:560px){
+  .sheet:has(#tf-title){grid-template-columns:1fr 1fr!important;column-gap:12px!important}
+  .sheet:has(#tf-title)>*{grid-column:1/-1}
+  .sheet:has(#tf-title)>.row2{grid-column:auto!important}
+  .sheet:has(#tf-title) .tf-fly{grid-template-columns:1fr 1fr;column-gap:12px}
+  .sheet:has(#tf-title) .tf-fly>.lbl{grid-column:1/-1}
+  .sheet:has(#tf-title) .fld:not(#z1):not(#z2):not(#z3){display:flex!important;flex-direction:column!important}
+}
+.sheet:has(#tf-title) #tf-theme .thbtn{overflow:hidden}
+.sheet:has(#tf-title) #tf-theme .thart{display:block;max-width:100%;overflow:hidden}
+/* 哪一天/使用日期: one row, swipe sideways (she asked 11/04); selected day is scrolled into view on open */
+.dstrip:not(#z1):not(#z2){display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;column-gap:6px!important;padding:4px 2px!important;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.dstrip:not(#z1):not(#z2) button{flex:0 0 48px!important;width:48px!important;scroll-snap-align:center}
+.dstrip:not(#z1):not(#z2) .n{width:42px!important;height:42px!important}
+
+/* 日期列兩側淡出提示（還能滑的那一側才淡） */
+.dstrip.fr:not(.fl){-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
+.dstrip.fl:not(.fr){-webkit-mask-image:linear-gradient(90deg,transparent,#000 32px);mask-image:linear-gradient(90deg,transparent,#000 32px)}
+.dstrip.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent)}
+
+#mb-add .mb-emo{font-size:20px;line-height:1}
+/* 11/04 debug：飯店名稱／日文名在手機不要截斷，完整換行顯示；旅費金額不被擠掉尾數 */
+.hotel-e b:not(#z1),.hotel-en:not(#z1){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;line-height:1.4}
+#mbar:not(#z1):not(#z2){flex:0 0 auto!important}
+#mbar:not(#z1):not(#z2)>*{overflow:visible!important}
+@media (max-width:389px){
+  #mbar:not(#z1):not(#z2)>span{font-size:0!important}
+  #mbar:not(#z1):not(#z2)>span b{font-size:var(--fs-xs)!important}
+}
+@media (max-width:359px){
+  .bar:not(#z1):not(#z2){column-gap:4px!important;gap:4px!important}
+  #mbar:not(#z1):not(#z2){padding:0 8px!important}
+}
+.pass-meta b:not(#z1),.pass-meta .hotel-en:not(#z1){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+/* 手機登機證：飯店文字用滿寬度，地圖鈕放下方；窄手機縮小右側天數欄 */
+.pass-main:not(#z1){grid-template-columns:minmax(0,1fr)!important}
+.hotel-m:not(#z1){min-width:0}
+.hotel-m .hotel-e:not(#z1):not(#z2){box-sizing:border-box;min-width:0;max-width:100%}
+@media (max-width:520px){
+  .hotel-m:not(#z1){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
+  .hotel-m .hotel-e:not(#z1){width:100%}
+  .hotel-m .hotel-map:not(#z1){align-self:flex-start;margin-left:28px}
+}
+@media (max-width:374px){
+  .pass:not(#z1):not(#z2){grid-template-columns:minmax(0,1fr) 64px!important}
+  .pass-main:not(#z1):not(#z2){padding-left:10px!important;padding-right:10px!important}
+  .fly-row .ap b:not(#z1),.fly-row .ap strong:not(#z1){font-size:22px!important}
+}
+@media (max-width:339px){.ft-row:not(#z1){font-size:var(--fs-xs)!important;letter-spacing:0}}
+/* 飯店：日文名稱、備註各自一列 */
+.hotel-e .hotel-en:not(#z1):not(#z2){display:block!important}
+.hotel-e .hotel-note:not(#z1):not(#z2){margin-top:2px}
+.dsec.diary .dadd:not(#z1):not(#z2){display:block!important;margin-top:8px}
+/* 飯店備註：保留她自己打的換行 */
+.hotel-e .hotel-note:not(#z1):not(#z2):not(#z3){white-space:pre-line!important}
+/* 旅費總覽：不需要新增成員 */
+#add-person{display:none!important}
+/* 停留時間：卡片名稱下一小行 */
+.item .istay{display:block;font-size:var(--fs-xs);line-height:1.6;color:var(--muted);white-space:nowrap}
+/* 停留時間：六格等寬一排，不換行、不被切 */
+#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px!important;overflow:visible!important;flex-wrap:nowrap!important;margin:0!important;padding:0!important}
+#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) button{width:auto!important;min-width:0!important;padding:0 2px!important;height:32px;min-height:32px;font-size:var(--fs);line-height:28px;white-space:nowrap;letter-spacing:0}
+@media (max-width:480px){#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) button{font-size:var(--fs-xs)}#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){gap:8px!important}}
+@media (max-width:340px){#seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){gap:4px!important}}
+/* 登機證：回程那格靠上、班次＋時間同一行，不被拉高 */
+.pass-meta:not(#z1):not(#z2){grid-template-columns:auto minmax(0,1fr)!important;column-gap:40px!important;align-items:start!important}
+.pass-meta>div:first-child:not(#z1):not(#z2){display:flex!important;flex-wrap:wrap;align-items:baseline;align-content:flex-start;column-gap:8px;row-gap:4px;height:auto!important}
+.pass-meta>div:first-child>span:not(#z1){flex:0 0 100%}
+.pass-meta>div:first-child>b:not(#z1){font-size:var(--fs-lg);line-height:1.3}
+.pass-meta>div:first-child>small:not(#z1){font-size:var(--fs);color:var(--ink)}
+@media (max-width:719px){.pass-meta:not(#z1):not(#z2):not(#z3){grid-template-columns:minmax(0,1fr)!important;row-gap:12px!important}}
+/* date circles stay round in every sheet */
+.sheet .dstrip:not(#z1):not(#z2):not(#z3) .n{width:36px!important;height:36px!important;min-width:36px!important;max-width:36px!important;min-height:36px!important;flex:0 0 36px!important;aspect-ratio:auto!important;padding:0!important;box-sizing:border-box!important;border-radius:50%!important}
+.sheet .dstrip:not(#z1):not(#z2):not(#z3) button{flex:0 0 52px!important;width:52px!important;min-width:52px!important}
+/* 時間／停留時間／要多久: same look — label on top, 40px boxes, full width */
+.sheet:has(#e-title) .fld:has(#e-time):not(#z1):not(#z2){display:block!important}
+.sheet:has(#e-title) .fld:has(#e-time):not(#z1):not(#z2)>label,.sheet:has(#e-title) .legf .legmin:not(#z1)>label{display:block!important;font-size:var(--fs)!important;color:var(--muted)!important;font-weight:700;margin:0 0 6px!important}
+.sheet:has(#e-title) .trange:not(#z1):not(#z2){display:grid!important;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr)!important;gap:8px!important;width:100%}
+.sheet:has(#e-title) .trange:not(#z1) .inp,.sheet:has(#e-title) .legf .legmin:not(#z1) .inp{height:40px!important;min-height:40px!important;font-size:var(--fs-md)!important;padding:0 12px!important;border-radius:12px!important}
+.sheet:has(#e-title) .trange>span{text-align:center}
+.sheet:has(#e-title) .legf .legmin:not(#z1):not(#z2){display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:center;margin-top:12px!important;max-width:none!important}
+.sheet:has(#e-title) .legf .legmin:not(#z1)>label{grid-column:1/-1}
+.sheet:has(#e-title) .legf .legmin:not(#z1) .inp{width:100%!important}
+.sheet:has(#e-title) .row2.trow:not(#z1):not(#z2){display:block!important;max-width:none!important}
+.sheet:has(#e-title) .row2.trow:not(#z1)>.fld,.sheet:has(#e-title) .fld:has(#seg-stay):not(#z1),.sheet:has(#e-title) .legf:not(#z1) .legmin{max-width:none!important;width:100%!important}
+.sheet:has(#e-title) .trange:not(#z1):not(#z2):not(#z3){max-width:none!important;width:100%!important}
+/* 時間／停留時間／要多久: small boxes, not full width */
+.sheet:has(#e-title) .trange:not(#z1):not(#z2):not(#z3):not(#z4){grid-template-columns:96px 16px 96px!important;width:auto!important;justify-content:start}
+.sheet:has(#e-title) .trange:not(#z1):not(#z2) .inp{padding:0 8px!important;text-align:center}
+.sheet .minrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+.sheet .minrow .inp{width:96px!important;height:40px!important;min-height:40px!important;font-size:var(--fs-md)!important;padding:0 8px!important;text-align:center;border-radius:12px!important}
+.sheet .minrow span{color:var(--muted);font-size:var(--fs);white-space:nowrap}
+.sheet:has(#e-title) .legf .legmin:not(#z1):not(#z2):not(#z3){grid-template-columns:96px auto!important;justify-content:start}
+.sheet:has(#e-title) .legf .legmin:not(#z1):not(#z2) .inp{width:96px!important;padding:0 8px!important;text-align:center}
+.sheet .swaprow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.sheet .swaprow .btn{height:40px;padding:0 16px}
+.sheet:has(#e-title) .trange:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){grid-template-columns:120px 16px 120px!important}
+.sheet .minrow:not(#z1) .inp{width:120px!important}
+.sheet:has(#e-title) .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4){grid-template-columns:120px auto!important}
+.sheet:has(#e-title) .legf .legmin:not(#z1):not(#z2):not(#z3) .inp{width:120px!important}
+@media(max-width:359px){
+  .sheet:has(#e-title) .trange:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){grid-template-columns:104px 16px 104px!important}
+}
+@media(max-width:340px){
+  .sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6){grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+}
+.sheet .sugf .btn.sug{width:100%;height:40px;font-size:var(--fs);justify-content:center;white-space:normal;line-height:18px}
+/* 交通 sheet matches the 行程 sheet: 3×2 mode grid, label on top, small boxes */
+.sheet #seg-leg:not(#z1):not(#z2):not(#z3):not(#z4){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;flex-wrap:nowrap!important}
+.sheet #seg-leg:not(#z1):not(#z2):not(#z3):not(#z4) button{min-width:0!important;width:100%!important;height:36px!important;padding:0 4px!important;font-size:var(--fs)!important;letter-spacing:0!important;justify-content:center}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4){display:grid!important;grid-template-columns:120px auto!important;column-gap:8px;row-gap:0;align-items:center;justify-content:start;margin-top:12px!important;max-width:none!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3)>label{grid-column:1/-1;display:block!important;font-size:var(--fs)!important;color:var(--muted)!important;font-weight:700;margin:0 0 6px!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4) .inp,.sheet #lg-dep:not(#z1):not(#z2){width:120px!important;height:40px!important;min-height:40px!important;font-size:var(--fs-md)!important;padding:0 8px!important;text-align:center;border-radius:12px!important}
+.sheet .legft{line-height:24px}
+/* 停留時間: six chips + a typed-minutes box, all in one row */
+.sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7){display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important}
+.sheet #seg-stay:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7) button{padding:0!important;font-size:var(--fs-xs)!important;letter-spacing:-.02em!important;min-width:0!important;height:36px!important}
+.sheet #seg-stay #e-stay{width:100%!important;min-width:0;height:36px!important;min-height:36px!important;padding:0 2px!important;font-size:var(--fs)!important;text-align:center;border-radius:18px!important}
+/* 要多久 (and 出發 in the 交通 sheet): label, box, 分鐘 on one line */
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5){display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;margin-top:12px!important}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4)>label{display:inline!important;margin:0!important;font-size:var(--fs)!important;white-space:nowrap}
+.sheet .legf .legmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) .inp{width:96px!important;flex:0 0 96px;font-size:var(--fs)!important}
+.sheet .legf .depmin:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5) .inp{width:80px!important;flex:0 0 80px}
+.sheet .legf .depmin>label[for="e-cm"]{margin-left:8px!important}
+/* ===== one size system for the time rows (行程 + 交通 sheets) =====
+   label 14px bold muted · boxes 40px tall, radius 12, 14px text · chips 36px · gaps 8px */
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;margin:12px 0 0!important;max-width:none!important;width:auto!important;grid-template-columns:none!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{display:inline!important;margin:0!important;font-size:var(--fs)!important;font-weight:700!important;color:var(--muted)!important;white-space:nowrap!important;grid-column:auto!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>span{font-size:var(--fs)!important;color:var(--muted)!important;white-space:nowrap!important}
+.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex:0 0 104px!important;width:104px!important;height:40px!important;min-height:40px!important;padding:0 8px!important;font-size:var(--fs)!important;text-align:center!important;border-radius:12px!important}
+.sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) #lg-dep{flex:0 0 80px!important;width:80px!important}
+.sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label[for="e-cm"]{margin-left:8px!important}
+.sheet:has(#e-title) .trange:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{height:40px!important;min-height:40px!important;font-size:var(--fs)!important;border-radius:12px!important}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>button,.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>#e-stay{height:36px!important;min-height:36px!important;min-width:0!important;padding:0!important;font-size:var(--fs-xs)!important;letter-spacing:0!important;border-radius:18px!important;text-align:center!important}
+@media(max-width:359px){
+  .sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex-basis:76px!important;width:76px!important}
+  .sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) #lg-dep{flex-basis:64px!important;width:64px!important}
+  .sheet .legf .depmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label[for="e-cm"]{margin-left:0!important}
+}
+@media(max-width:359px){.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{padding:0 4px!important}}
+.sheet #seg-stay:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9),.sheet #seg-leg:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){grid-auto-flow:row!important;grid-auto-columns:auto!important}
+.sheet #seg-leg:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+@media(max-width:767px){.sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:var(--fs-xs)!important}}
+@media(max-width:767px){.sheet:has(#e-title) .fld:has(#e-time):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:var(--fs-xs)!important}}
+@media(min-width:768px){.sheet .fld.cmbox:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>.lbl{font-size:var(--fs)!important}}
+@media(max-width:359px){
+  .sheet #seg-slot:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) button{padding:0 2px!important;font-size:var(--fs-xs)!important;min-width:0!important}
+  .sheet .legf .legmin:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{font-size:var(--fs-xs)!important}
+}
+@media(min-width:768px){.sheet .fld.legf:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>.lbl,.sheet .fld:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:var(--fs)!important}}
+/* trip list card: title + status on one line, dates under it */
+.tcard .tbody:not(#q1):not(#q2){grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:4px}
+.tcard .tbody:not(#q1)>b{grid-column:1;grid-row:1;min-width:0;overflow-wrap:anywhere}
+.tcard .tbody:not(#q1)>.tst{grid-column:2;grid-row:1;margin:0!important;white-space:nowrap;justify-self:end}
+.tcard .tbody:not(#q1)>span:not(.tst){grid-column:1/-1;grid-row:2}
+/* trip card: title and status share a line when they fit (title never squeezed), dates below */
+.tcard .tbody:not(#q1):not(#q2):not(#q3){display:flex!important;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:4px}
+.tcard .tbody:not(#q1):not(#q2)>b{flex:1 0 auto;max-width:100%}
+.tcard .tbody:not(#q1):not(#q2)>.tst{order:2;flex:0 0 auto}
+.tcard .tbody:not(#q1):not(#q2)>span:not(.tst){order:3;flex:0 0 100%}
+/* day header: long auto titles and chips wrap inside the column */
+.col-h .col-t:not(#q1){min-width:0}
+.col-h .col-title:not(#q1):not(#q2){white-space:normal!important;overflow-wrap:anywhere;word-break:keep-all;max-width:100%}
+.col-h .col-sub:not(#q1):not(#q2){flex-wrap:wrap!important;min-width:0;max-width:100%}
+.col-h .dtchip:not(#q1){max-width:100%;white-space:normal}
+.item .imap:not(#q1){background:var(--green)!important;font-weight:700;height:24px;min-height:24px;padding:0 10px;gap:4px}
+/* 留言 removed */
+.sheet .cmbox,.item .cmcount,.cmlist{display:none!important}
+/* empty 資訊 block (住宿／交通): no stray dashed line */
+.sheet .more-flat:not(:has(.fld:not([hidden]))){display:none!important}
+/* 交通方式 of a transport row: 3 per line like the trip-to sheet */
+.sheet #seg-tm:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:8px!important;flex-wrap:nowrap!important}
+.sheet #seg-tm:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) button{min-width:0!important;width:100%!important;height:36px!important;padding:0 4px!important;font-size:var(--fs)!important;letter-spacing:0!important;justify-content:center}
+/* 要多久 of a transport row: label, box, 分鐘 on one line */
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9){display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{margin:0!important;font-size:var(--fs-xs)!important;font-weight:700;color:var(--muted)!important;white-space:nowrap}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .legmin{display:flex!important;align-items:center;gap:8px;margin:0!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) .inp{flex:0 0 104px!important;width:104px!important;height:40px!important;min-height:40px!important;padding:0 8px!important;font-size:var(--fs)!important;text-align:center;border-radius:12px!important}
+.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9) span{font-size:var(--fs);color:var(--muted);white-space:nowrap}
+@media(min-width:768px){.sheet .fld:has(#e-mv):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9)>label{font-size:var(--fs)!important}}
+
+.hm-pill:not(#q1):not(#q2),.legnav .navpill:not(#q1):not(#q2){background:var(--green)!important}
+.hotel-m em:not(#q1):not(#q2){background:var(--green)!important}
+/* 時段標題：小膠囊，取代虛線 */
+.slot-h:not(#q1):not(#q2)::after{display:none!important}
+.slot-h:not(#q1):not(#q2)>b{display:inline-flex;align-items:center;gap:6px;padding:4px 14px 4px 10px!important;border:2px solid rgba(62,58,57,.18)!important;border-radius:var(--pill);background:var(--sunk)!important;line-height:20px}
+/* 只留開始時間；結束由停留時間推算 */
+.trange:not(#q1):not(#q2):not(#q3){grid-template-columns:minmax(0,50%)!important}
+.trange:not(#q1)>span,#e-end:not(#q1),#a-end:not(#q1){display:none!important}
+/* 要多久交給 AI 自動抓 */
+.sheet:has(#e-title) .fld:has(#e-mv):not(#q1){display:none!important}
+.sheet:has(#e-title) .legmin:has(#e-cm):not(#q1):not(#q2){display:none!important}
+.sheet:has(#e-title) .legf .legmin:has(#e-cm):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){display:none!important}
+/* 一致：所有「備註」都同一個高度；簡介給足空間；地區／營業時間交給 AI */
+.sheet :is(#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3){height:48px!important;min-height:48px!important;max-height:none;padding-top:12px!important;padding-bottom:12px!important;line-height:20px!important;font-size:var(--fs-md)!important;resize:vertical}
+.sheet #e-desc:not(#q1):not(#q2):not(#q3){height:auto!important;min-height:120px!important;line-height:24px!important}
+.sheet:has(#e-title) .fld:is(:has(#e-area),:has(#e-oh)):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){display:none!important}
+.sheet.ai-open .aiinfo .aiinfo-desc:not(#q1){display:none!important}
+.sheet.ai-open:has(#e-title) .fld:has(#e-desc):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+/* 一致：表單裡所有單行欄位（名稱、要加什麼、備註、排在哪裡、時間、推薦）都 48px */
+.sheet :is(input.inp,select.inp,select,#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#e-stay):not(#e-desc):not([type=checkbox]):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){height:48px!important;min-height:48px!important;font-size:var(--fs-md)!important;border-radius:14px!important}
+.sheet :is(#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){padding:12px 16px!important;line-height:20px!important}
+.item .ioh{cursor:pointer;text-decoration:underline dotted rgba(62,58,57,.35);text-underline-offset:4px}
