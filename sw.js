@@ -1,9 +1,9 @@
 /* 旅行手帳 service worker: the page shell and libraries are cached so the notebook opens offline.
    Trip data itself comes from the page's own local cache; Supabase API calls are never cached here.
    V and SHELL below are rewritten by build.py — do not edit them by hand. */
-const V = 'tn-1ca9fff2';
+const V = 'tn-82b98199';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
-  , './app.css?v=b498f380', './themes.js?v=6b2c63e3', './trip.js?v=e7429b1e', './app.js?v=ccf82197'];
+  , './app.css?v=c0f1a991', './themes.js?v=6b2c63e3', './trip.js?v=e7429b1e', './app.js?v=ccf82197'];
 const PH = 'tn-ph', PH_MAX = 200;   // 看過的照片最多留 200 張，超過就丟最早看的那張
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });

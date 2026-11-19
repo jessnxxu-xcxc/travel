@@ -1901,3 +1901,6 @@ body[data-tab="plan"] #strip .chip.pool{display:none!important}
 body[data-tab="prep"] #trip-hero,body[data-tab="prep"] #strip,body[data-tab="prep"] .c-month{display:none!important}
 /* 旅費在分頁裡，上方不再重複 */
 body.has-tabs .bar #mbar,body.has-tabs .bar #mb-add{display:none!important}
+/* 「現在」提醒卡：更淡的粉底＋淡色細虛線 */
+.nowcard:not(#q1):not(#q2){background:#FFF5F2!important;border:2px dashed rgba(217,112,92,.45)!important}
+.nowcard:not(#q1) hr,.nowcard:not(#q1) .nnext,.nowcard:not(#q1)>*+*{border-color:rgba(217,112,92,.3)!important}
