@@ -1717,7 +1717,7 @@ setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
 /* 底部 3 個分頁：行程（每天的行程）／準備（待辦・行李・口袋）／旅費（旅費總覽）
    分頁狀態跟著日期列：選到「出發前」= 準備，選到某一天 = 行程 */
 (function tabs(){
-  const ICON={plan:'<path d="M4 6h16M4 12h16M4 18h10"/>',prep:'<path d="M5 12.5l4 4L19 7"/>',money:'<circle cx="12" cy="12" r="8"/><path d="M12 7.5v9M14.5 9.5c-.6-.8-1.5-1.2-2.6-1.2-1.4 0-2.4.8-2.4 1.9 0 2.6 5.2 1.3 5.2 4 0 1.1-1.1 1.9-2.6 1.9-1.1 0-2.1-.5-2.7-1.3"/>'};
+  const ICON={plan:'<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',prep:'<rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 4.5V3h6v1.5M8.5 11l2 2 4-4M8.5 17h7"/>',money:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 14.5h2"/>'};
   const nav=document.createElement('nav');nav.id='tabs';nav.className='tabs';nav.setAttribute('aria-label','切換');
   nav.innerHTML=[['plan','行程'],['prep','準備'],['money','旅費']].map(([k,l])=>'<button type="button" data-tab="'+k+'" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg><span>'+l+'</span></button>').join('');
   let lastDay=null;
