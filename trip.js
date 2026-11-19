@@ -1714,4 +1714,23 @@ const cached=loadCache();countdown();render();loadFx();loadWeather();picsLater()
   use('room').then(r=>{if(!r)return;S.room=r;try{r.onPeers(onPeersChange)}catch(e){}pushPresence()});
 })();
 setInterval(()=>{countdown();if(!S.drag)renderNow()},6e4);
+/* 底部 3 個分頁：行程（每天的行程）／準備（待辦・行李・口袋）／旅費（旅費總覽）
+   分頁狀態跟著日期列：選到「出發前」= 準備，選到某一天 = 行程 */
+(function tabs(){
+  const ICON={plan:'<path d="M4 6h16M4 12h16M4 18h10"/>',prep:'<path d="M5 12.5l4 4L19 7"/>',money:'<circle cx="12" cy="12" r="8"/><path d="M12 7.5v9M14.5 9.5c-.6-.8-1.5-1.2-2.6-1.2-1.4 0-2.4.8-2.4 1.9 0 2.6 5.2 1.3 5.2 4 0 1.1-1.1 1.9-2.6 1.9-1.1 0-2.1-.5-2.7-1.3"/>'};
+  const nav=document.createElement('nav');nav.id='tabs';nav.className='tabs';nav.setAttribute('aria-label','切換');
+  nav.innerHTML=[['plan','行程'],['prep','準備'],['money','旅費']].map(([k,l])=>'<button type="button" data-tab="'+k+'" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg><span>'+l+'</span></button>').join('');
+  let lastDay=null;
+  const cur=()=>{const a=document.querySelector('#strip .chip.active');return a?+a.dataset.day:null};
+  const sync=()=>{const d=cur();const t=d===0?'prep':'plan';if(d)lastDay=d;document.body.dataset.tab=t;nav.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===t)))};
+  const pickDay=()=>{if(lastDay)return lastDay;const n=todayN();return n>=1&&n<=NDAYS?n:1};
+  nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=b.dataset.tab;
+    if(t==='money'){const m=document.getElementById('mbar');if(m)m.click();return}
+    const want=t==='prep'?0:pickDay();const c=document.querySelector('#strip .chip[data-day="'+want+'"]');
+    if(c&&cur()!==want)c.click();scrollTo({top:0,behavior:'instant'});setTimeout(sync,0)});
+  const start=()=>{if(!document.getElementById('strip')){setTimeout(start,200);return}
+    if(!document.getElementById('tabs'))document.body.appendChild(nav);document.body.classList.add('has-tabs');
+    new MutationObserver(sync).observe(document.getElementById('strip'),{subtree:true,attributes:true,attributeFilter:['class'],childList:true});sync()};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
 };
