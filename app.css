@@ -1884,23 +1884,6 @@ body:not([data-pt="pool"]) .col[data-col="0"] .dsec[data-sec="pocket"]{display:n
 .sheet :is(input.inp,select.inp,select,#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#e-stay):not(#e-desc):not([type=checkbox]):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){height:48px!important;min-height:48px!important;font-size:var(--fs-md)!important;border-radius:14px!important}
 .sheet :is(#a-text,#q-in,#e-note,#a-note,#l-note,#q-note):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#qa){padding:12px 16px!important;line-height:20px!important}
 .item .ioh{cursor:pointer;text-decoration:underline dotted rgba(62,58,57,.35);text-underline-offset:4px}
-/* 底部分頁列：浮在底部的圓角膠囊，手機電腦同一個樣子 */
-.tabs{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:60;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:6px;background:var(--surface);border:2px solid var(--ink);border-radius:28px;box-shadow:0 4px 0 var(--ink)}
-.tabs button{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:6px;height:48px;border-radius:22px;color:var(--muted);font-size:14px;font-weight:700;letter-spacing:.04em;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
-.tabs button svg{width:20px;height:20px;flex:none}
-.tabs button[aria-pressed="true"]{background:var(--coral);color:var(--ink)}
-.tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-@media (max-width:359px){.tabs{left:12px;right:12px}.tabs button{gap:4px;font-size:12px}.tabs button svg{width:18px;height:18px}}
-@media (min-width:768px){.tabs{left:50%;right:auto;transform:translateX(-50%);width:400px;bottom:20px}}
-body.has-tabs{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 96px)}
-body.has-tabs #fab:not(#q1):not(#q2){bottom:calc(env(safe-area-inset-bottom,0px) + 92px)!important}
-body.has-tabs .toast:not(#q1){bottom:calc(env(safe-area-inset-bottom,0px) + 100px)!important}
-@media (min-width:768px){body.has-tabs #fab:not(#q1):not(#q2){bottom:104px!important}body.has-tabs .toast:not(#q1){bottom:108px!important}}
-/* 行程頁：不顯示「出發前」；準備頁：不顯示機票卡和日期列 */
-body[data-tab="plan"] #strip .chip.pool{display:none!important}
-body[data-tab="prep"] #trip-hero,body[data-tab="prep"] #strip,body[data-tab="prep"] .c-month{display:none!important}
-/* 旅費在分頁裡，上方不再重複 */
-body.has-tabs .bar #mbar,body.has-tabs .bar #mb-add{display:none!important}
 /* 「現在」提醒卡：更淡的粉底＋淡色細虛線 */
 .nowcard:not(#q1):not(#q2){background:#FFF5F2!important;border:2px dashed rgba(217,112,92,.45)!important}
 .nowcard:not(#q1) hr,.nowcard:not(#q1) .nnext,.nowcard:not(#q1)>*+*{border-color:rgba(217,112,92,.3)!important}
